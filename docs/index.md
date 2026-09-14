@@ -24,8 +24,9 @@ handful of cosmetic rendering defects remain — are listed plainly under
 [Honest status](#honest-status).
 
 <p align="center">
-  <video src="media/goldeneye-gh-preview.mp4" width="70%" controls muted loop></video>
-  <br><em>~32 s gameplay montage from live play sessions, running in the port (the clip has no audio track).</em>
+  <img src="media/goldeneye-gh-preview.gif" width="70%"
+       alt="~32 s gameplay montage from live play sessions">
+  <br><em>~32 s gameplay montage loop from live play sessions, running in the port.</em>
 </p>
 
 ## Download
