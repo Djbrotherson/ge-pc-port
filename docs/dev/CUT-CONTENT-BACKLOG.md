@@ -2,29 +2,20 @@
 
 Research branch: `research/cut-content-backlog`. Source of truth: the local TCRF
 export at `scratchpad/backlog-scrape/restore-cut-content-mod/` (gitignored).
-Working notes: `docs/dev/notes/cut-content/` (gitignored).
 
-## 0. Source & limitations
-
-The export covers six TCRF articles on GoldenEye 007 (N64):
-
-| Article | Export state |
-|---|---|
-| GoldenEye 007 (main) | **Body blocked** (Cloudflare challenge page). All ~172 article image *filenames* captured; images themselves are CF stubs. |
-| Unused items | **Body blocked**, but all 20 article images captured intact. |
-| Unused stuff by level | **Body blocked**, but ~150 article images captured intact (the richest page). |
-| Prerelease | **Body blocked**; image filenames + 7 YouTube embeds captured. |
-| Bugs / Notes | Body + images blocked; nothing usable. |
-
-So claims below are derived from (a) the captured image filenames/imagery, which
-are descriptive and map 1:1 onto ROM object names, and (b) direct cross-reference
-against the decomp source (`src/`) and extracted asset tables (`assets/obseg/`).
-Anything not verifiable in code/assets is marked **unverified** — re-scrape the
-article bodies (or read TCRF directly) before acting on those.
-
-Article imagery that *is* intact lives under the export's `*_files/` dirs; image
-names carry a per-page suffix (`_KYPp` main, `_LxbF` unused items, `_wAKT` by
-level, `_1vt` prerelease).
+> **Superseded by the verified cross-reference.** All six article *bodies* were
+> recovered and every major claim was checked against the decomp source and asset
+> tables. The full verified findings (with file:line references, corrections to
+> TCRF, and updated mod tiers) live in `backlog/cut-content/RESEARCH.md`
+> (gitignored; article markdowns in `backlog/cut-content/articles/`). This doc is
+> the first pass (image-filename based) — read it for the per-item imagery index,
+> but trust RESEARCH.md where they disagree. Key corrections: (1) "dest" is the
+> *shipped* Frigate geometry, not an early version (`bg.c` levelinfotable);
+> `cryp`/`dish` are shipped Egypt/Temple; (2) Library/Stack share Basement's bg
+> file — they have geometry; (3) all 29 "unused items" exist in the ROM object
+> table as pickup+prop pairs except heroine; (4) TCRF's 11 unused cheats, music
+> track index, MP character table and build dates all verify 1:1 against
+> `bondconstants.h`/`cheat.c`/`front.c`/`compiletime.c`.
 
 ## 1. Findings
 
@@ -320,8 +311,7 @@ Prerelease page (body blocked; filenames + embeds only):
    our build.
 3. Dump `assets/obseg/chr/` model headers to identify the UnusedFace1-3 /
    FemHead1-4 models concretely.
-4. Re-scrape TCRF article bodies (main/prerelease/bugs/notes) to upgrade
-   "unverified" claims; the CF challenge blocked both the original scrape and a
-   direct `api.php` attempt.
+4. ~~Re-scrape TCRF article bodies~~ — **done**; all six bodies recovered into
+   `backlog/cut-content/articles/` and cross-referenced (see RESEARCH.md §0).
 5. If Tier-1 item granting is wanted: spec it as an F10 toggle set, port-layer
    only, each entry citing the cheat-code precedent in `cheat.c`.
