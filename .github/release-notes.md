@@ -35,11 +35,16 @@
   signals, which were dead on PC before.
 - **QoL**: F10 in-game options overlay (fullscreen, resolution, frame cap,
   MSAA, texture filtering, FOV/draw distance, sensitivity), F12 screenshot.
-- **Everything unlocked by default**: all 21 solo levels are selectable at
-  every difficulty from the first launch, 007 mode is available, and the cheat
-  menu is fully populated. No *active* cheats are enabled (weapons remain
-  per-mission pickups, as on N64); F10 → *All unlocked* switches back to
-  faithful N64 progression.
+- **Sharper defaults out of the box**: draw distance and LOD swap distance now
+  default to 150% of the authored N64 values, so props no longer fade in just
+  before they become visible (Dam's alarms and wall switches being the tell);
+  F10 → *Draw distance* / *LOD distance* set back to 100 restores the
+  console-authentic look. MSAA now defaults to 4× instead of off.
+- **All-unlocked toggle**: F10 → *All unlocked* makes all 21 solo levels
+  selectable at every difficulty from the first launch, adds 007 mode, and
+  fully populates the cheat menu. It is off by default (faithful N64
+  progression). No *active* cheats are enabled either way (weapons remain
+  per-mission pickups, as on N64).
 - **Steam Deck first-run preset**: on SteamOS the first launch seeds
   Deck-friendly defaults (native 1280×800 fullscreen, VSync, MSAA 4, 150%
   draw/LOD distance); an existing `ge007.ini` always wins. Two more F10 rows:

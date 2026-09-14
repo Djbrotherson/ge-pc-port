@@ -130,8 +130,9 @@ int main(int argc, char **argv)
     configLoad();
     atexit(portAtExit);   /* persist config + window geometry on clean exit */
 
-    /* 1a. D257: Game.AllUnlocked (default ON) -- seed the game's own RAM
-     *     unlock flags so mission select offers every solo level at every
+    /* 1a. D257: Game.AllUnlocked (default OFF; F10 'All unlocked' enables)
+     *     -- when set, seed the game's own RAM unlock flags so mission
+     *     select offers every solo level at every
      *     difficulty plus 007 mode, with no save data required. Both are
      *     plain s32 globals in src/game/debugmenu_handler.c (compiled because
      *     the PC build defines LEFTOVERDEBUG); file2.c's

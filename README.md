@@ -72,8 +72,8 @@ is very welcome.
 start); all 21 solo missions load, render and are crash-free (full campaign
 playtested end to end at Agent difficulty); steady 60 fps
 (software RSP off the presentation critical path); full audio: in-level music and SFX; keyboard + mouse (click-to-lock, proportional aim mode) and a modern
-dual-stick controller layout; file-backed saves; all levels, 007 mode and the full cheat menu unlocked by
-default (F10 → *All unlocked* restores faithful N64 progression); F10 in-game
+dual-stick controller layout; file-backed saves; faithful N64 progression by default
+(F10 → *All unlocked* opens every level, 007 mode and the full cheat menu); F10 in-game
 options overlay (resolution, frame cap, MSAA, filtering, FOV, sensitivity);
 Windows and Linux.
 

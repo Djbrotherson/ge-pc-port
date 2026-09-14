@@ -54,14 +54,14 @@ static int initDone = 0;
  */
 static int cfgVSync         = 1;   /* swap interval: 0 = off, 1 = on            */
 static int cfgFpsCap        = 0;   /* frame cap in fps; 0 = uncapped (vsync)    */
-static int cfgMSAA          = 1;   /* 1/2/4/8 samples; 1 = off                  */
+static int cfgMSAA          = 4;   /* 1/2/4/8 samples; default 4 (modern ports ship AA on; snaps down to the highest supported level) */
 static int cfgTexFilter     = 1;   /* 0 = nearest, 1 = bilinear (default), 2 = N64 3-point + trilinear */
 static int cfgFixMipTex     = 1;   /* RC2: clip mip-contaminated texture uploads to base height */
 static int cfgWrapFix       = 0;   /* D74 sub-tile UV pre-wrap + RC3/D167 non-PoT mask-period wrap (opt-in; GE_WRAPFIX env overrides) */
 static int cfgFovScale      = 100; /* D211: percent of the original vertical FOV; 100 = unchanged (byte-identical) */
-static int cfgDrawDistance      = 100; /* D218: percent of the level's authored far-clip/fog distance; 100 = unchanged */
+static int cfgDrawDistance      = 150; /* D218: percent of the level's authored far-clip/fog distance. Default raised 100->150 for v0.2.0: at the authored N64 distance, props visibly fade in just before they become visible on modern displays (Dam alarms / wall switches); 150 is the value the Steam Deck preset playtest-validated. 100 = unchanged N64. */
 static int cfgDrawDistanceAutoFov = 1;   /* D218: couple draw distance to Video.FovScale unless DrawDistance is set explicitly */
-static int cfgLodDistance         = 100; /* D249: percent scale on the geometry/model LOD-swap distance; 100 = unchanged */
+static int cfgLodDistance         = 150; /* D249: percent scale on the geometry/model LOD-swap distance. Default raised 100->150 for v0.2.0 (same pop-in family as DrawDistance: LOD-swapped props like Dam's alarms/wall switches faded in at range); 150 matches the Steam Deck preset. 100 = unchanged N64. */
 static int cfgLodDistanceAutoFov  = 0;   /* off by default -- unlike DrawDistance, this is meant as a standalone perf lever, not something that should silently get more expensive as FovScale widens */
 static int cfgAniso         = 4;   /* D212: anisotropic filtering samples; 4 = the value fast3d already applied (no visual delta at default) */
 static int cfgFullscreen    = 0;   /* 0 = windowed, 1 = borderless fullscreen   */
@@ -95,14 +95,18 @@ s32 portSkipIntro = 0;
  * original damage flash. */
 s32 portNoHitFlash = 0;
 
-/* D257: Game.AllUnlocked — ship-with-everything-unlocked goodie, ON by
- * default for this cut. Consumed once at startup by main.c, which sets the
- * game's own RAM unlock flags (debug_enable_all_levels_flag /
- * debug_007_unlock_flag in src/game/debugmenu_handler.c, live because the PC
- * build defines LEFTOVERDEBUG) — port-layer memory writes only, no game-code
- * edits. Takes effect at launch; toggling it mid-session applies next run.
- * 0 = faithful N64 progression (levels unlock as you complete them). */
-s32 portAllUnlocked = 1;
+/* D257: Game.AllUnlocked — everything-unlocked goodie, OFF by default
+ * (faithful N64 progression: levels unlock as you complete them). Consumed
+ * once at startup by main.c, which sets the game's own RAM unlock flags
+ * (debug_enable_all_levels_flag / debug_007_unlock_flag in
+ * src/game/debugmenu_handler.c, live because the PC build defines
+ * LEFTOVERDEBUG) — port-layer memory writes only, no game-code edits.
+ * 1 = every solo level selectable at every difficulty plus 007 mode from
+ * the first launch. F10 'All unlocked' row toggles it; takes effect next
+ * run. Known quirk when ON with a fresh save: audio volumes load as 0
+ * (silence) because the patched save block is CRC-valid and skips the
+ * game's BLANKSAVEDATA reset that normally seeds max volume — see D259. */
+s32 portAllUnlocked = 0;
 
 /* D211: Video.FovScale as a multiplier on the render FOV. Applied game-side
  * at the guPerspectiveF chokepoint (src/fr.c) so it lands BEFORE the CPU
