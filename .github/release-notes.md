@@ -32,8 +32,7 @@
   level's opening (D253) — this also revives the auto-crouch and ladder
   signals, which were dead on PC before.
 - **QoL**: F10 in-game options overlay (fullscreen, resolution, frame cap,
-  MSAA, texture filtering, FOV/draw distance, sensitivity), mute-on-focus-loss,
-  F12 screenshot.
+  MSAA, texture filtering, FOV/draw distance, sensitivity), F12 screenshot.
 - **Everything unlocked by default** — all 21 solo levels are selectable at
   every difficulty from the first launch, 007 mode is available, and the cheat
   menu is fully populated. No *active* cheats are enabled (weapons remain
