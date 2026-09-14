@@ -38,8 +38,8 @@ See [Background](#background).
 
 | Platform | Bundle | Notes |
 |---|---|---|
-| **Windows** (x86_64) | [win64.zip](/jkdansereau/goldeneye-pc-port/releases) | Engine + runtime DLLs + the one-time asset tool. |
-| **Linux** (x86_64) / **Steam Deck** | [linux tarball](/jkdansereau/goldeneye-pc-port/releases) | SDL2 is bundled, so it runs as-is on any distro, and sideloads onto a Deck with nothing installed. |
+| **Windows** (x86_64) | [win64.zip](https://github.com/jkdansereau/goldeneye-pc-port/releases) | Engine + runtime DLLs + the one-time asset tool. |
+| **Linux** (x86_64) / **Steam Deck** | [linux tarball](https://github.com/jkdansereau/goldeneye-pc-port/releases) | SDL2 is bundled, so it runs as-is on any distro, and sideloads onto a Deck with nothing installed. |
 
 Both bundles contain **no ROM and no game assets**: you supply your own
 (see [Requirements](#requirements)), which keeps the release legal to
@@ -50,10 +50,10 @@ yourself; see [Building](#building).
 
 You need a GoldenEye 007 N64 ROM (`.z64`, big-endian). This release supports
 the **NTSC-U (US)** version; PAL and JP are on the roadmap ([issue
-#85](/jkdansereau/goldeneye-pc-port/issues/85)). No ROM or game asset is
+#85](https://github.com/jkdansereau/goldeneye-pc-port/issues/85)). No ROM or game asset is
 included or distributed. Then:
 
-1. Download the Windows or Linux bundle from [Releases](/jkdansereau/goldeneye-pc-port/releases) and unpack it.
+1. Download the Windows or Linux bundle from [Releases](https://github.com/jkdansereau/goldeneye-pc-port/releases) and unpack it.
 2. Make a `data/` folder next to the executable and drop the ROM in as `ge007.ntsc-final.z64`.
 3. Launch the executable from that folder. The first run takes a few extra seconds: it detects the ROM and generates the derived asset folders once (no Python or other tooling needed).
 
@@ -98,13 +98,13 @@ Windows and Linux.
   [`docs/dev/GRAPHICS-BACKLOG.md`](docs/dev/GRAPHICS-BACKLOG.md).
 - No macOS or ARM support; no controller rebinding UI.
 
-Root causes and fix status for every item: the [release notes](/jkdansereau/goldeneye-pc-port/releases)
+Root causes and fix status for every item: the [release notes](https://github.com/jkdansereau/goldeneye-pc-port/releases)
 and the finding log in [`docs/dev/findings.md`](docs/dev/findings.md).
 
 ### Steam Deck
 
 The Linux bundle is the Deck build. SFTP it over from your PC, or download
-it straight from the [releases page](/jkdansereau/goldeneye-pc-port/releases) on the Deck itself:
+it straight from the [releases page](https://github.com/jkdansereau/goldeneye-pc-port/releases) on the Deck itself:
 unzip, drop your ROM in `data/`, launch it once (the first run generates the
 derived assets), and add the executable as a non-Steam game. SDL2 is bundled, so no dependencies need
 installing. On SteamOS the first launch seeds `ge007.ini` with Deck-friendly
@@ -190,7 +190,7 @@ big-endian (`.z64`) format, matching one of:
 
 This release supports the US (NTSC-U) version; PAL and JP ROMs are
 recognised by region but not yet supported (on the roadmap, [issue
-#85](/jkdansereau/goldeneye-pc-port/issues/85)).
+#85](https://github.com/jkdansereau/goldeneye-pc-port/issues/85)).
 
 The port also relies on the decompilation's asset-extraction step, which pulls
 the level, model, texture and music data out of your ROM at build time. That
@@ -382,7 +382,7 @@ GitHub. It follows the same conventions they do:
 - No official logos, box art, or marketing assets are used. "GoldenEye 007",
   "007", "James Bond" and related marks belong to their respective owners
   (Nintendo, Microsoft/Rare, MGM, Danjaq, EON Productions).
-- Pre-built binaries published under [Releases](/jkdansereau/goldeneye-pc-port/releases) contain
+- Pre-built binaries published under [Releases](https://github.com/jkdansereau/goldeneye-pc-port/releases) contain
   only the engine (the `port/` layer plus the compiled decompilation, with no
   game data of any kind), bundled with permissively-licensed runtime libraries
   (SDL2, zlib, the MinGW runtime; their licenses travel in the download). Any
