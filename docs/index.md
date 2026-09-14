@@ -48,8 +48,8 @@ without a ROM you already own.
 ## See it running
 
 <p align="center">
-  <img src="img/attract-bunker1.png" width="45%" alt="Bunker 1 intro camera, rendered by the port">
-  <img src="img/attract-dam.png" width="45%" alt="Dam intro camera, rendered by the port">
+  <img src="img/shots/shot-06.jpg" width="45%" alt="Bunker 1, rendered by the port (v0.2.0 playtest)">
+  <img src="img/shots/shot-01.jpg" width="45%" alt="Dam, rendered by the port (v0.2.0 playtest)">
 </p>
 
 <details>

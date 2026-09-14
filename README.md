@@ -29,12 +29,12 @@ See [Background](#background).
 > playable game — see [Requirements](#requirements) and [Legal](#legal).
 
 <p align="center">
-  <img src="docs/img/attract-bunker1.png" width="32%" alt="Bunker 1 intro camera">
+  <img src="docs/img/shots/shot-06.jpg" width="32%" alt="Bunker 1, in-engine">
   <img src="docs/media/goldeneye-gh-preview.gif" width="32%"
        alt="~32 s gameplay montage from live play sessions">
-  <img src="docs/img/attract-dam.png" width="32%" alt="Dam intro camera">
-  <br><em>In-engine, running in the port — Bunker&nbsp;1 and Dam attract views, and a
-  ~32&nbsp;s gameplay montage loop from live play sessions.</em>
+  <img src="docs/img/shots/shot-01.jpg" width="32%" alt="Dam, in-engine">
+  <br><em>All in-engine, running in the port — Bunker&nbsp;1 and Dam captures plus a
+  ~32&nbsp;s gameplay montage loop from the v0.2.0 playtest.</em>
 </p>
 
 ## Download
