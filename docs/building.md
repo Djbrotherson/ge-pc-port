@@ -7,13 +7,13 @@ description: Full build and asset-extraction guide for the GoldenEye 007 PC port
 
 Stages:
 
-1. **Extract assets from your ROM** (§2) — a one-time step using the
+1. **Extract assets from your ROM** (§2): a one-time step using the
    decompilation's own toolchain to pull levels, models, textures, fonts and
    music into `assets/`. *(Only needed to regenerate the committed data files;
    a plain `git clone` already has what the PC build compiles.)*
-2. **Build the port** (§3) — a CMake build compiling the game sources plus the
+2. **Build the port** (§3): a CMake build compiling the game sources plus the
    `port/` layer into a native executable. Needs no ROM.
-3. **Generate the PC asset sidecars** (§4) — two pure-Python converters turn
+3. **Generate the PC asset sidecars** (§4): two pure-Python converters turn
    ROM model / stage data into the PC-layout `data/pcmodels-*` / `data/pccg-*`
    files the port loads at runtime. **Required to run.**
 
@@ -27,10 +27,11 @@ for accepted versions and hashes.
 
 ### Port build
 
-> **Only the Windows (MSYS2 MINGW64) path is tested.** The Debian/Ubuntu and
-> macOS columns below are best-effort guidance — the port has never been built
-> or run on Linux or macOS. Expect to fix build breaks yourself on those
-> platforms.
+> **The Windows (MSYS2 MINGW64) path is the primary one.** The Linux build is
+> compiled by CI on every push and ships in the release bundle (also
+> playtested on Steam Deck hardware); the macOS column is best-effort
+> guidance and has never been built or run there. Expect to fix build breaks
+> yourself on untested platforms.
 
 | Need | Windows (MSYS2 MINGW64) | Debian/Ubuntu | macOS (Homebrew) |
 |------|------------------------|---------------|------------------|
@@ -45,10 +46,10 @@ for accepted versions and hashes.
 
 The extraction scripts need `binutils-mips-linux-gnu` (or an equivalent MIPS
 binutils), `make`, `git`, and `python3`. They build a small host-compiled
-`tools/extractor` and slice blobs straight out of the ROM — **no IDO / IRIX
+`tools/extractor` and slice blobs straight out of the ROM; **no IDO / IRIX
 toolchain is involved in extraction or in the PC build.** (The IDO toolchain is
 only needed to build the N64 ROM itself, and its proprietary SGI binaries are
-not distributed here — see [`SetupGuide.md`](https://github.com/jkdansereau/goldeneye-pc-port/blob/main/docs/SetupGuide.md) "Recompile IDO".)
+not distributed here; see [`SetupGuide.md`](https://github.com/jkdansereau/goldeneye-pc-port/blob/main/docs/SetupGuide.md) "Recompile IDO".)
 On Windows this is easiest under WSL or a Linux VM. Full details and
 alternatives (Docker) are in [`SetupGuide.md`](https://github.com/jkdansereau/goldeneye-pc-port/blob/main/docs/SetupGuide.md).
 
@@ -108,7 +109,7 @@ builds are named `ge007.pal-final.x86_64` / `ge007.jpn-final.x86_64`.
 ## 4. Generate the PC asset sidecars (required to run)
 
 The port does **not** read model geometry, stage bg/stan data, or per-level
-setup data from the raw ROM at runtime — it reads them from PC-layout *sidecar*
+setup data from the raw ROM at runtime; it reads them from PC-layout *sidecar*
 files under `data/`, produced offline by three converters. **Without them the
 game shows the intro logos and then crashes** in
 `modelPromoteNodeOffsetsToPointers` (finding D179) or on the first level load
@@ -130,6 +131,9 @@ python3 tools_pc/d69_emit.py ntsc-final          # -> data/pccg-ntsc-final/{pccg
 python3 tools_pc/d88_emit.py ntsc-final --regen  #    appends the 21 per-level Usetup*Z stage-setup files -> ~3.6 MB
 ```
 
+**PAL / JP note:** sidecar generation for these regions is currently broken at
+the source-data level (finding D258); use an NTSC-U ROM until issue #85 lands.
+
 These are **pure-stdlib Python 3** (no MIPS toolchain, independent of the
 step-2 asset extraction) and read only the ROM plus files already committed to
 the repo (`scripts/filelist.u.csv`, `assets/obseg/file_resource_table.inc.c`,
@@ -138,10 +142,12 @@ deterministic function of the ROM. Re-run after any change to `d43_emit.py` /
 `d69_emit.py` / `d88_emit.py` or the model/bg converters (`d43_*`, `d69_*`,
 `d88_propdefs.py`).
 
-> The release bundle ships `prepare-assets/prepare-assets.py`, which runs all
-> three passes against your ROM automatically — see the bundled `README.md`.
+> The release bundle ships the same converter frozen as
+> `prepare-assets/ge007-convert`; the game spawns it on first launch when the
+> sidecars are missing, so end users never run it by hand. See the bundled
+> `README.md`.
 
-> `data/pcmodels-*/` and `data/pccg-*/` are gitignored ROM-derived game data —
+> `data/pcmodels-*/` and `data/pccg-*/` are gitignored ROM-derived game data;
 > never commit or redistribute them.
 
 ---
