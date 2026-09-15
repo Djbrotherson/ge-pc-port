@@ -123,7 +123,13 @@ static struct Row rows[] = {
     { "Input.MouseTurnSpeed",     "Mouse turn speed", ROW_SLIDER, 1,    NULL,       0, 0, 100, 0,0,0,0,0 },
     { "Input.SensLink",           "Link aim/turn sens",ROW_TOGGLE, 1,   kOnOff,     0, 0, 0,   0,0,0,0,0 },
     { "Input.MouseInvertY",       "Mouse invert Y",   ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
-    { "Game.ScreenShakeIntensity","Screen shake",     ROW_SLIDER, 0.25, NULL,       0, 0, 3,   0,0,0,0,0 },
+    /* D181/Game.ScreenShakeIntensity: user testing (v0.2.1) found the slider
+     * "basically useless" -- viShake() is only called from explosion.c, so it
+     * scales explosion shake alone; it never touches the always-on walking
+     * head-bob or any getting-shot reaction, which is what "Screen shake"
+     * reads as to a player. Pulled from the menu until it covers all
+     * screen-shake/view-bob sources, not just explosions. Config var + fr.c
+     * hook stay in place. */
     /* D232: the community "no damage flash" toggle (suppresses the red/green
      * hit-flash overlay in bondview2). */
     { "Game.NoHitFlash",          "No hit flash",     ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
