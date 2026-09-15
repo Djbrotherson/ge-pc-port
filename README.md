@@ -17,10 +17,20 @@ Linux bundle sideloads as-is) and runs the full campaign at a steady 60 fps
 with known rough edges ([Status](#status)). Free to download, build on and
 modify (you bring the ROM).
 
-It's also a case study in AI-agent collaboration on a large, low-level
-codebase: two coding agents, driven by one person part-time, porting ~230
-translation units of unmodified big-endian MIPS game code to a 64-bit desktop.
-See [Background](#background).
+**This is a pre-1.0 release, not a finished product.** v1.0 is the target
+for a polished, feature-complete build; until then, expect rough edges,
+missing features, and breaking changes between versions. See
+[Status](#status) for what works today and [Roadmap](#roadmap) for where
+this is headed.
+
+**AI disclosure:** development here was agentic - Claude Pro plus a local
+open-weight model on a single RTX 5090, as of August–September 2026. This
+project is as much a study of *that process* as it is a port: whether
+current LLMs can carry a codebase like this, and what actually goes wrong
+along the way. Judge the result for yourself.
+I'm one person doing this in my spare time, not a team. See
+[Background](#background) for the full setup, timeline, and an honest
+account of what worked and what didn't.
 
 > [!IMPORTANT]
 > **You must supply your own GoldenEye 007 ROM.** This repository contains no
@@ -94,8 +104,29 @@ Windows and Linux.
   (D251).
 - Surface 1's 2D billboard trees render as a solid wall of tree texture
   instead of discrete sprites (D236). Under active investigation.
-- **Steam Deck:** one intermittent SIGSEGV remains in heavy firefights (D255);
-  current builds capture full faulting registers in `ge007.crash.log`.
+- No true widescreen: 16:9 stretches the 4:3-authored view (world + HUD)
+  rather than properly expanding the horizontal FOV; the F10 *FOV scale %*
+  slider is a manual workaround, not real widescreen.
+- Distant geometry can drop out on the biggest open levels (Streets,
+  Egyptian) at default FOV — a culling/LOD issue that sometimes
+  self-corrects as you keep moving (D249).
+- Gunshot SFX can sound off during sustained/rapid fire: cadence can drift
+  from the N64 original's rate, and PP7/AK47 fire can occasionally go silent
+  under heavy automatic fire near another looping sound (D240/D241).
+- **`All unlocked` is highly experimental — don't enable it until you have
+  at least one save written** (complete a level normally first, e.g. Dam on
+  Agent). Enabling it on a brand-new install with no prior save can still
+  cause silent audio and odd right-mouse-aim behavior (D257/D259/D281).
+- **Linux / Steam Deck:** an intermittent SIGSEGV remains, with a reliable
+  repro found this release — Facility's computer terminals (the ones you
+  activate to open a door for level progression) consistently crash the
+  game on activation (D255; seen on Linux generally, not Deck-hardware
+  specific). Combat-related crashes reported earlier (Bunker, Frigate) may
+  be the same bug via a different trigger; current builds capture full
+  faulting registers in `ge007.crash.log`.
+- Steam Deck / gamepad: front-end menu navigation (main menu, file select,
+  mission-select map) currently requires the right analog stick, not the
+  left (D282) — a planned QoL fix, not done in this release.
 - Assorted further cosmetic defects are tracked in
   [`docs/dev/GRAPHICS-BACKLOG.md`](docs/dev/GRAPHICS-BACKLOG.md).
 - No macOS or ARM support; no controller rebinding UI.
@@ -112,7 +143,13 @@ derived assets), and add the executable as a non-Steam game. SDL2 is bundled, so
 installing. On SteamOS the first launch seeds `ge007.ini` with Deck-friendly
 defaults: native 1280×800 fullscreen, VSync, MSAA 4, and 150% draw/LOD
 distance (the authored N64 fade distances read short on the close-up panel);
-everything is changeable in the options overlay and persists afterwards. The renderer is CPU-bound (software RSP); expect original N64-era
+everything is changeable in the options overlay and persists afterwards.
+**Do that first launch in Game Mode, not Desktop Mode** — an ini created by
+an earlier Desktop Mode launch (e.g. while testing before adding it as a
+Steam shortcut) permanently skips the Deck preset, since any existing ini
+always wins over it (D283). If your resolution isn't 1280×800 on first
+Game Mode boot, just set it manually: F10 → *Resolution*. The renderer is
+CPU-bound (software RSP); expect original N64-era
 performance at 60 fps rather than more. This release was playtested on real
 Deck hardware; the v0.1.0-era Facility crash (D203) did not recur: its root
 cause was identified and fixed (D253), verified on the Deck; one intermittent
@@ -124,6 +161,27 @@ options, **A** steps the selected option forward, **B** steps it back, and
 **Start** (or Select again) closes. Toggles flip, resolution / MSAA /
 filtering cycle, sliders step in increments. With a keyboard attached the same
 overlay is `F10` + arrows/Enter.
+
+## Roadmap
+
+No fixed timeline or committed feature list — this is spare-time work — but
+directionally, on the way to v1.0:
+
+- Working through the [known issues](#status) above and the fuller list in
+  [`docs/dev/findings.md`](docs/dev/findings.md).
+- **PAL and JP ROM support** ([issue #85](https://github.com/jkdansereau/goldeneye-pc-port/issues/85)); NTSC-U is the only supported region today.
+- **Real widescreen** (properly expanding the field of view at 16:9, rather
+  than today's 4:3-stretch).
+- **Controller rebinding UI**, and macOS/ARM builds.
+- **LAN multiplayer**: reviving GoldenEye's original split-screen/deathmatch
+  netplay across multiple PCs on a local network. Genuinely under
+  consideration, but early and not started; no ETA.
+- General polish: performance, remaining rendering/audio defects, save/config
+  robustness.
+
+Not currently planned: new game modes GE never shipped (e.g. co-op), online (non-LAN)
+multiplayer, ray tracing. If any of these matter to you, open an issue —
+it helps prioritize.
 
 ## Beyond playing
 

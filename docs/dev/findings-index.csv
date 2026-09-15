@@ -96,6 +96,9 @@ D270,?,Backfilled (M-132) — this label was never given its own row; only code 
 D271,FIXED,"D236 wall, third pass —","FIXED-but-insufficient (src/game/bg.c #ifdef PORT, uncommitted) —"
 D276,OPEN,"D236 wall, eighth pass —","REFRAMED — oml=0xc81049d8/fmt=3 is the primary suspect now, not D269's CI8 pair; 0x0c184b50 unattributed; wall still open, see D236"
 D279,?,"Backfilled — this label was consumed by an undocumented partial session (2026-09-14 ~23:00) that left artifacts in scratch/ (d279_run.log, d279_imgmap_run.log,…",undocumented — artifacts only
+D281,OPEN,"Game.AllUnlocked (D257) still breaks audio, and can also break right-mouse aim, when enabled before any save has ever been written (v0.2.1 user testing, 2026-0…","OPEN — user-reported regression, not root-caused; mitigation is user-facing guidance only (release notes:"
+D282,OPEN,"QoL ask (v0.2.1 user testing, 2026-09-15):","OPEN — not designed; QoL, port-only."
+D283,OPEN,"Steam Deck first-run preset (D-unnumbered in port/src/video.c/main.c, videoApplySteamOSDefaults()) did not apply for a user who added the game via Steam in Des…","OPEN — mechanism understood, root cause (Desktop-vs-Game-Mode STEAMOS env var difference) unverified on real hardware; user-facing workaround documented in README/release notes."
 D280,?,"D236 wall, ninth pass —","REFRAMED again — no fix; next steps in detail section, see D236"
 D275,?,"D236 wall, eighth pass —","done — probes live, uncommitted; see D276 for what they found"
 D274,OPEN,"D236 wall, seventh pass —","d267_slot_addr fix live (always-on); content/decode question CLOSED; mip-presence CLOSED; wall still open, see D236/D276"
@@ -147,7 +150,7 @@ D251,FIXED,F10 options overlay QoL pass:,"FIXED (port-only, port/src/optionsover
 D252,?,"Particle effects cycle through a rainbow palette (M-124, user playtest of the v0.2.0-pre candidate).",
 D253,FIXED,Facility (and any level with a FORCECROUCH/LADDER linked special tile) SIGSEGV on Linux/Steam Deck —,FIXED — Deck-verified:
 D254,FIXED,Linux crash handler destroyed its own logs:,FIXED — field-verified.
-D255,OPEN,"Facility firefight SIGSEGV on Steam Deck (v0.2.0-pre CI bundle, D253 fix confirmed working —","OPEN — case identified (NULL model on an active OBJ record; destroy-path ordering), reproducible on Deck in combat (Bunker + Frigate); fix pending rule-#2 sign-off."
+D255,OPEN,"Facility firefight SIGSEGV on Steam Deck (v0.2.0-pre CI bundle, D253 fix confirmed working —",OPEN — case identified (NULL model on an active OBJ record; destroy-path ordering); reliable deterministic repro is Facility's door-opening computer terminals on activation (Linux/Steam Deck); earlie…
 D256,FIXED,Saves (and config) silently failed to persist on Linux whenever the game was not launched from the directory containing data/ —,FIXED (path half) — save-flow detail still owed from the user.
 D257,FIXED,New Game.AllUnlocked option (F10; default flipped OFF for v0.2.0 —,FIXED — verified by user playtest (PR #79 merged); default flipped OFF for v0.2.0 (D259).
 D259,FIXED,Game.AllUnlocked (D257) breaks audio on a fresh save:,FIXED in v0.2.1 — the deferred fix was applied:
@@ -155,6 +158,6 @@ D260,FIXED,v0.2.1 (user request):,"FIXED — build green; one-line branch swap, 
 D261,FIXED,v0.2.1 (user request:,FIXED — feel-check received; W/S sensitivity follow-up logged above.
 D262,FIXED,v0.2.1 (user report):,"FIXED (primary cause, D264) —"
 D264,FIXED,"D262's root cause (ABI/layout class, cf.","FIXED — build green, probes removed; visual confirmation pending."
-D263,RESOLVED,v0.2.1 (user report):,RESOLVED (not a bug) —
+D263,RESOLVED,v0.2.1 (user report):,"RESOLVED (not a bug), but refined (v0.2.1 further user testing, 2026-09-15) —"
 D265,?,"D236 investigation (port-layer, port/fast3d/gfx_pc.cpp):",PARKED — reverted to baseline; evidence + suspect list above.
 D258,OPEN,PAL/JP asset conversion is broken at the source-data level —,"OPEN — repair path verified, not applied (out of v0.2.0 scope)."

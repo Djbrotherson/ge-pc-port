@@ -19,11 +19,17 @@ same Rare "Indy" engine family, one hardware generation apart.
 
 **Status: v0.2.1.** The full single-player campaign runs at a steady 60 fps
 and is completable end to end; all 21 missions load and run clean on Windows
-and Linux (one intermittent Steam Deck crash remains, listed below), and
-audio (music + SFX) plays throughout. The known
-rough edges (cutscenes that still glitch, a few music tracks that sound
-wrong, a handful of cosmetic rendering defects) are listed plainly under
-[Honest status](#honest-status).
+and Linux (one intermittent Steam Deck/Linux crash remains, listed below),
+and audio (music + SFX) plays throughout. The known rough edges (cutscenes
+that still glitch, a handful of cosmetic rendering defects, missing features
+like real widescreen) are listed plainly under [Honest status](#honest-status).
+
+**This is a pre-1.0 release, not a finished product** — v1.0 is the target
+for a polished, feature-complete build; expect rough edges and missing
+features until then. See the
+[README's Roadmap section](https://github.com/jkdansereau/goldeneye-pc-port#roadmap)
+for direction (PAL/JP support, real widescreen, LAN multiplayer under
+consideration, and more).
 
 <p align="center">
   <img src="media/goldeneye-gh-preview.gif" width="70%"
@@ -157,11 +163,16 @@ More captures may land here as playtesting continues.
   licensed and yours to extend: new video options, input tweaks, your own
   asset sidecar. [CONTRIBUTING](https://github.com/jkdansereau/goldeneye-pc-port/blob/main/CONTRIBUTING.md)
   has the ground rules that keep it faithful to the original game.
-- **The research angle**: this is also a case study in AI-agent collaboration
-  on a large, low-level codebase: two coding agents (a local open-weight model
-  on a single RTX 5090, and Claude / Claude Code), driven by one person
-  part-time through ~230 translation units of unmodified big-endian MIPS game
-  code. [The full write-up](dev/agentic-development.md): setup, timeline, the
+- **AI disclosure**: development here was agentic — Claude Pro plus a local
+  open-weight model on a single RTX 5090, as of August–September 2026. This
+  project is as much a study of *that process* as it is a port: whether
+  current LLMs can carry a codebase like this, and what actually goes wrong
+  along the way. Game codebases have historically been a rough fit for
+  LLMs — large, stateful, hardware-adjacent, unforgiving of a subtly wrong
+  memory layout — more so for older local models, so this is a useful data
+  point on where that stands now, for better or worse. Judge the result for
+  yourself. I'm one person doing this in my spare time, not a team. See
+  [the full write-up](dev/agentic-development.md) for the setup, timeline,
   handoff workflow, and an honest assessment of what did and didn't work.
 
 ## How it works
@@ -181,12 +192,20 @@ catalogue: [Porting notes](porting-notes.md).
 - **Cutscenes still glitch, mostly with James Bond**: in scripted sequences
   Bond is the one who gets misplaced, hovers, or spins; the other actors are
   fine for the most part now. Still the most visible gap in this release.
-- A few in-level music tracks sound wrong (wrong instruments, occasional garbling).
 - Particle colours drift through a rainbow palette instead of holding grey/orange.
 - Water levels show a moving seam; pixel strips at screen edges at non-integer
   scales; some front-end 3D models mispositioned or absent.
-- The F10 overlay's bottom row duplicates the selected item; one intermittent
-  Steam Deck SIGSEGV in heavy firefights remains open (D255).
+- Surface 1's 2D billboard trees render as a solid wall of tree texture
+  instead of discrete sprites; under active investigation.
+- No true widescreen (16:9 stretches the 4:3 view rather than expanding
+  FOV); distant geometry can drop out on the biggest open levels; gunshot
+  SFX can sound off during sustained/rapid fire.
+- **`All unlocked` is highly experimental** — don't enable it until you have
+  at least one save written, or it can break audio and mouse aim (D281).
+- The F10 overlay's bottom row duplicates the selected item; an intermittent
+  Linux/Steam Deck SIGSEGV remains, reliably reproducible via Facility's
+  door-opening computer terminals (D255); front-end menu navigation needs
+  the right stick, not the left, on gamepad (D282).
 - No macOS/ARM support; no controller rebinding UI yet.
 
 The full list, with root causes and fix status: the

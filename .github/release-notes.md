@@ -1,7 +1,7 @@
 ## GoldenEye 007 PC Port <version>
 
 <p align="center">
-  <img src="https://github.com/jkdansereau/goldeneye-pc-port/raw/v0.2.0/docs/media/goldeneye-gh-preview.gif" width="480"
+  <img src="https://github.com/jkdansereau/goldeneye-pc-port/raw/v0.2.1/docs/media/goldeneye-gh-preview.gif" width="480"
        alt="~32 s gameplay montage from live play sessions (no audio track)">
 </p>
 
@@ -10,15 +10,22 @@
 > is completable end to end: the whole campaign has been playtested through
 > all 21 missions (Agent difficulty). It's an early public cut: all 21 solo
 > missions load and run crash-free, but the known issues below are real;
-> feedback is very welcome.
+> feedback is very welcome. **This is a pre-1.0 release, not a finished
+> product** — expect rough edges and missing features until v1.0; see the
+> [README's Roadmap section](https://github.com/jkdansereau/goldeneye-pc-port#roadmap)
+> for where this is headed.
 
 ### What's new since v0.2.0
 
 Small hotfix batch from user playtest feedback on v0.2.0:
 
-- **Fixed: `All unlocked` + a fresh save produced silent music/SFX** (D259).
-  A brand-new save now seeds max volume the same way the N64 does, whether
-  or not `All unlocked` is on.
+- **Partially fixed: `All unlocked` + a completely fresh EEPROM produced
+  silent music/SFX** (D259). A brand-new save slot now seeds max volume the
+  same way the N64 does. **However, user testing after this fix still found
+  audio (and occasionally right-mouse aim) break when `All unlocked` is
+  turned on *before* a save has ever been written** — see the Known Issues
+  note below; do not enable it on a fresh install until you've completed at
+  least one level normally.
 - **Mouse wheel weapon cycling now matches the on-screen wheel-menu order**:
   scroll up = previous weapon, scroll down = next (D260).
 - **Watch menu: holding a direction now auto-repeats** instead of crawling
@@ -46,7 +53,8 @@ Small hotfix batch from user playtest feedback on v0.2.0:
 - **Steady 60 fps** in normal play (the software RSP runs off the presentation
   critical path); `Video.DisplayFPS` in the F10 overlay shows it.
 - **Audio**: in-level music and sound effects throughout (the alpha was
-  silent). A handful of tracks have wrong-sounding instruments (below).
+  silent). A previous wrong-sounding-instrument bug (bad bass synth on
+  Control/Cavern/Runway) is fixed as of v0.2.0.
 - **Mouse**: click-to-lock capture (click to grab, ESC to release) with a
   proportional GEPD-style aim mode; sensitivity / Y-inversion / aim-turn split
   tunable in `ge007.ini` or the F10 overlay. The legacy always-grab mode is
@@ -66,15 +74,22 @@ Small hotfix batch from user playtest feedback on v0.2.0:
   before they become visible (Dam's alarms and wall switches being the tell);
   F10 → *Draw distance* / *LOD distance* set back to 100 restores the
   console-authentic look. MSAA now defaults to 4× instead of off.
-- **All-unlocked toggle**: F10 → *All unlocked* makes all 21 solo levels
-  selectable at every difficulty from the first launch, adds 007 mode, and
-  fully populates the cheat menu. It is off by default (faithful N64
+- **All-unlocked toggle** *(experimental — see Known Issues before using)*:
+  F10 → *All unlocked* makes all 21 solo levels selectable at every
+  difficulty, adds 007 mode, and fully populates the cheat menu. It is off by
+  default (faithful N64
   progression). No *active* cheats are enabled either way (weapons remain
   per-mission pickups, as on N64).
 - **Steam Deck first-run preset**: on SteamOS the first launch seeds
   Deck-friendly defaults (native 1280×800 fullscreen, VSync, MSAA 4, 150%
-  draw/LOD distance); an existing `ge007.ini` always wins. One more F10 row:
-  *No hit flash* (suppresses the damage-flash overlay).
+  draw/LOD distance); an existing `ge007.ini` always wins. **If you first
+  launch it in Desktop Mode (e.g. to add it via Steam) before ever running
+  it in Game Mode, the preset can be skipped** — an ini gets created before
+  Game Mode's Deck-specific environment is detected, and once an ini exists
+  it always wins over the preset on every later launch. If your resolution
+  isn't 1280×800 on first Game Mode boot, just set it manually: F10 →
+  *Resolution* (D283). One more F10 row: *No hit flash* (suppresses the
+  damage-flash overlay).
 - **Modern dual-stick controller layout** (the scheme used by the console
   re-releases): left stick move/strafe, right stick look, right trigger fire,
   left trigger aim, A/X use, B/Y crouch/cancel, **RB/LB cycle weapons**.
@@ -106,14 +121,39 @@ Small hotfix batch from user playtest feedback on v0.2.0:
 - **Surface 1: the 2D billboard trees near the start render as a solid wall
   of tree texture** instead of discrete sprites (D236). Under active
   investigation; no fix in this release.
-- **Steam Deck: one intermittent crash remains**: the v0.1.0-era Facility
-  crash is confirmed fixed on Deck hardware, but a SIGSEGV can occasionally
-  occur during heavy firefights (D255; seen on Bunker and Frigate). The
-  faulting-register capture in `ge007.crash.log` has pinned it: an object
-  record whose model reference is NULL while the record is still active;
-  i.e. something in a mid-firefight destruction leaves the record live one
-  tick too long. We're tracking down the exact destruction path; more Deck
-  playtime across levels is welcome; please report any Deck-specific faults.
+- **No true widescreen support**: at 16:9 the game stretches the
+  4:3-authored view (world geometry and HUD) rather than properly expanding
+  the horizontal field of view. The F10 *FOV scale %* slider is a manual,
+  imperfect workaround for the resulting distortion, not real widescreen.
+- **No controller rebinding UI, and no macOS or ARM builds.**
+- **Distant geometry can drop out on the biggest open levels** (Streets,
+  Egyptian) at default FOV — a culling/LOD issue that sometimes
+  self-corrects as you keep moving (D249).
+- **Gunshot SFX can sound off during sustained/rapid fire**: cadence can
+  drift from the N64 original's rate, and PP7/AK47 fire can occasionally go
+  silent under heavy automatic fire near another looping sound (e.g. an
+  alarm klaxon) (D240/D241).
+- **`All unlocked` is highly experimental — do not enable it until you have
+  at least one save written.** Complete a level normally first (e.g. Dam on
+  Agent), then turn the toggle on. Enabling it on a brand-new install with
+  no prior save can still cause silent audio and odd right-mouse-aim
+  behavior even after the D259 fix above. We recommend leaving it off unless
+  you specifically want the unlock goodies and are willing to accept an
+  experimental feature (D259/D257).
+- **Linux / Steam Deck: an intermittent SIGSEGV remains, with a reliable
+  repro found this release** — Facility's computer terminals, the ones you
+  activate to open a door for level progression, consistently crash the
+  game on activation (D255; not Deck-hardware-specific, seen on Linux
+  generally). Combat-related crashes reported earlier on Bunker/Frigate may
+  be the same underlying bug (an object record whose model reference goes
+  NULL while the record is still active for one more tick) via a different
+  trigger. We're tracking down the exact cause using the terminal repro;
+  please report any other Deck/Linux-specific faults.
+- **Steam Deck / gamepad: the right analog stick currently navigates the
+  main menu, file select, and mission-select map** — not the left stick.
+  This matches the N64 default but is unintuitive on a modern controller;
+  moving front-end menu navigation to the left stick is a planned QoL fix,
+  not done in this release.
 
 ### Downloads
 
@@ -165,4 +205,9 @@ sha256sum -c goldeneye-pc-port-<version>-linux-x86_64.tar.gz.sha256
 [GoldenEye 007 decompilation](https://github.com/n64decomp/007), architecture
 after the [Perfect Dark PC port](https://github.com/fgsfdsfgs/perfect_dark).
 Non-commercial fan preservation/research project; not affiliated with any
-rights holder.
+rights holder. **AI disclosure:** built through agentic AI coding (Claude
+Code + a local open-weight model), directed by one person in their spare
+time — as much a study of what agentic development gets wrong on a
+game-sized codebase as it is a port. See the README's
+[Background section](https://github.com/jkdansereau/goldeneye-pc-port#background)
+for the full account.
