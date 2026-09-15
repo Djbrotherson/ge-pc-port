@@ -1177,6 +1177,14 @@ unsigned inputComputePad(int idx, signed char *stick_x, signed char *stick_y)
         }
     }
 
+    if (idx == 0 && scriptIsActive()) {
+        /* D263: apply BEFORE the stick is written out -- scripted stick
+         * tokens (SUP/SDOWN/SLEFT/SRIGHT) used to be discarded. */
+        button = scriptApply(button);
+        sx = scriptCurSX;
+        sy = scriptCurSY;
+    }
+
     if (sx > STICK_MAX)  sx = STICK_MAX;
     if (sx < -STICK_MAX) sx = -STICK_MAX;
     if (sy > STICK_MAX)  sy = STICK_MAX;
@@ -1184,12 +1192,6 @@ unsigned inputComputePad(int idx, signed char *stick_x, signed char *stick_y)
 
     if (stick_x) *stick_x = (signed char)sx;
     if (stick_y) *stick_y = (signed char)sy;
-
-    if (idx == 0 && scriptIsActive()) {
-        button = scriptApply(button);
-        sx = scriptCurSX;
-        sy = scriptCurSY;
-    }
 
     if (configGetInputLog() && (button || sx || sy)) {
         sysLogPrintf(LOG_NOTE, "GE_INPUTLOG cont%d: btn=%04x stick=(%d,%d)",
@@ -1297,11 +1299,13 @@ void inputSuspendForOverlay(void)
 
 void inputPostWheel(int notches)
 {
-    /* D223: keep the direction -- up cycles to the next weapon, down to the
-     * previous one. A burst of same-direction notches just re-arms the same
-     * pulse; a direction change mid-sequence restarts it (last wins). */
-    if (notches > 0)      { wheelFwd = WHEEL_FWD_POLLS; wheelBack = 0; }
-    else if (notches < 0) { wheelBack = 2;              wheelFwd = 0; }
+    /* D223: keep the direction. v0.2.1: swapped per user request -- up now
+     * cycles to the PREVIOUS weapon, down to the NEXT one (PC convention
+     * "scroll down = advance list"). A burst of same-direction notches just
+     * re-arms the same pulse; a direction change mid-sequence restarts it
+     * (last wins). */
+    if (notches > 0)      { wheelBack = 2;              wheelFwd = 0; }
+    else if (notches < 0) { wheelFwd = WHEEL_FWD_POLLS; wheelBack = 0; }
 }
 
 /* Called from the host event pump on SDL_CONTROLLERDEVICEADDED/REMOVED.

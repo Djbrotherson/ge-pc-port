@@ -12,6 +12,25 @@
 > missions load and run crash-free, but the known issues below are real;
 > feedback is very welcome.
 
+### What's new since v0.2.0
+
+Small hotfix batch from user playtest feedback on v0.2.0:
+
+- **Fixed: `All unlocked` + a fresh save produced silent music/SFX** (D259).
+  A brand-new save now seeds max volume the same way the N64 does, whether
+  or not `All unlocked` is on.
+- **Mouse wheel weapon cycling now matches the on-screen wheel-menu order**:
+  scroll up = previous weapon, scroll down = next (D260).
+- **Watch menu: holding a direction now auto-repeats** instead of crawling
+  one item per key press/notch (D261).
+- **Fixed: the watch menu's item-preview 3D model wasn't rendering** —
+  weapons now show their model when selected on the watch inventory page
+  (D264).
+- Investigated the Facility report of Ourumov never executing Trevelyan:
+  confirmed it's proximity/line-of-sight-triggered exactly as on the N64
+  (walk toward the room), not a port bug — the full scripted beat, including
+  the execution shot, fires correctly (D263).
+
 ### What's new since v0.1.0
 
 - **Drop-in ROM, no tooling**: unpack the bundle, drop your NTSC-U (US) ROM
@@ -77,6 +96,9 @@
   selected** (e.g. the MSAA value appears both on its own row and again at
   the panel bottom); earlier builds showed it as an intermittent 4K-
   fullscreen ghost of the top row.
+- **Surface 1: the 2D billboard trees near the start render as a solid wall
+  of tree texture** instead of discrete sprites (D236). Under active
+  investigation; no fix in this release.
 - **Steam Deck: one intermittent crash remains**: the v0.1.0-era Facility
   crash is confirmed fixed on Deck hardware, but a SIGSEGV can occasionally
   occur during heavy firefights (D255; seen on Bunker and Frigate). The

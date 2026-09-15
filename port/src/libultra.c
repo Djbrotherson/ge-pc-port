@@ -1278,6 +1278,25 @@ static void geEepromPatchAllCheats(u8 *buf)
 
     int changed = 0;
     for (int i = 0; i < 5; i++) {
+        /* D259: a fresh ge007.eep is zero-filled, so every slot reads as
+         * all-zero. Normally such a slot fails fileValidateSaves' CRC and is
+         * reset to BLANKSAVEDATA (music_vol/sfx_vol = 0xFF); but this patch
+         * gives the slot a valid CRC below, so it survives with volume 0
+         * -> silence. Emulate fileResetSave: seed max volume on all-zero
+         * slots only -- real saves (incl. a deliberately muted one) keep
+         * their bytes. */
+        {
+            const u8 *raw = (const u8 *)&slots[i];
+            int allzero = 1;
+            for (int b = 0; b < (int)sizeof(ge_save_slot); b++)
+                if (raw[b]) { allzero = 0; break; }
+            if (allzero && (slots[i].music_vol != 0xFF ||
+                            slots[i].sfx_vol   != 0xFF)) {
+                slots[i].music_vol = 0xFF;
+                slots[i].sfx_vol   = 0xFF;
+                changed = 1;
+            }
+        }
         /* Cheat ids are level ids 0..19 (CHEAT_INPUT_BUFFER_SIZE == 20):
          * bits 0-7 in _1, 8-15 in _2, 16-19 in the low nibble of _3. */
         if (slots[i].unlocked_cheats_1 != 0xFF ||

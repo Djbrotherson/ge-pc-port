@@ -67,6 +67,44 @@
 #define GE_WATCH_STICK_FASTDOWN(pad) (joyGetStickY(pad) < -0x46)
 #endif
 
+#ifdef PORT
+/* v0.2.1 (user report: "watch menu sensitivity for wasd/controller"): D118d
+ * removed the N64 slam-the-stick fast scroll because digital sources peg
+ * past its threshold -- but that left |stickY| >= 0x46 with NO repeat at all
+ * (the latched path steps once per press), so holding W/S or a full stick
+ * press crawled one item per tap through the list. Restore fast navigation
+ * as a bounded auto-repeat: while the stick is held past the smooth-scroll
+ * band (0x1f..0x45, untouched), step one extra item every GE_WATCH_NAV_RATE
+ * frames after an initial GE_WATCH_NAV_DELAY hold. The first press still goes
+ * through the latched single-step path, so a tap behaves exactly as before.
+ * Returns -1 (up) / +1 (down) on repeat frames, 0 otherwise. */
+#define GE_WATCH_NAV_DELAY  15
+#define GE_WATCH_NAV_RATE   6
+static int s_watchNavHoldDir = 0;    /* -1 up, +1 down, 0 none */
+static int s_watchNavHoldFrames = 0;
+
+static s32 geWatchStickFastStep(void)
+{
+    int dir = 0;
+    if (joyGetStickY(PLAYER_1) >= 0x46)      dir = -1;
+    else if (joyGetStickY(PLAYER_1) <= -0x45) dir = 1;
+
+    if (dir != s_watchNavHoldDir) {
+        s_watchNavHoldDir = dir;
+        s_watchNavHoldFrames = 0;
+        return 0;   /* new direction: the latched press path already stepped */
+    }
+    if (dir == 0)
+        return 0;
+    if (++s_watchNavHoldFrames > GE_WATCH_NAV_DELAY &&
+        s_watchNavHoldFrames % GE_WATCH_NAV_RATE == 0)
+        return dir;
+    return 0;
+}
+#else
+static s32 geWatchStickFastStep(void) { return 0; }
+#endif
+
 // bss
 Mtx gfx_background_8007B0A0;
 Mtx gfx_background_8007B0E0;
@@ -1106,6 +1144,19 @@ after_updown:
     {
         watch_inventory_cursor_pos += 1.0f;
     }
+
+#ifdef PORT
+    /* v0.2.1: bounded auto-repeat for a stick held past the smooth band
+     * (see geWatchStickFastStep). */
+    {
+        s32 fast = geWatchStickFastStep();
+        if (fast < 0 && g_curWatchItemIndex > 0 && !watch_item_is_actively_selected)
+            watch_inventory_cursor_pos += (f32) fast;
+        else if (fast > 0 && (s32) watch_inventory_cursor_pos < count - 1
+                 && !watch_item_is_actively_selected)
+            watch_inventory_cursor_pos += (f32) fast;
+    }
+#endif
 
     if (is_holding_less_than_10_up_on_stick() || is_holding_less_than_10_down_on_stick())
     {

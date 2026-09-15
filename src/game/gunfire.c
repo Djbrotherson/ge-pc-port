@@ -1721,7 +1721,21 @@ void gunRenderFirstPersonGunModels(Gfx **gdlptr)
 
 Gfx *set_enviro_fog_for_items_in_solo_watch_menu(Gfx *gdl, ITEM_IDS itemid, Mtxf *mtx, s32 arg3, s32 arg4)
 {
+#ifdef PORT
+    /* D264 (ABI/layout class, cf. D140): on N64 this 64-byte copy spans two
+     * adjacent globals — D_80035D00 (zero) and D_80035D04 {1, 3, 0..} — i.e.
+     * the ModelRenderData template documented above D_80035D00 in gun.c
+     * (zbufferenabled=TRUE, flags=3, rest zero; CULLMODE_BOTH is 0). The PC
+     * link puts them in separate .bss/.data sections, so the read was all
+     * zeros: flags==0 gates every geometry node in subdraw() and the watch
+     * item preview emitted nothing. Use the explicit template (identical
+     * values to the N64 ROM bytes). */
+    ModelRenderData renderdata = {0};
+    renderdata.zbufferenabled = TRUE;
+    renderdata.flags = 3;
+#else
     ModelRenderData renderdata = *((ModelRenderData *) (&D_80035D00));
+#endif
     ModelHeader model;
     u8 spb8[0x80];
     s32 padb4;
