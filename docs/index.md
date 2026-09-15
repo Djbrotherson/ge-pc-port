@@ -1,10 +1,10 @@
 ---
 title: GoldenEye 007 PC Port
-# v0.2.1 (Bing SEO): meta description trimmed to ~160 chars (was 277).
+# v0.2.1 (Bing SEO round 2): re-shortened to 133 chars (was 161, 1 over
+# Bing's 160 limit) and bumped the stale v0.2.0 mention.
 description: >-
   A native PC port of the 1997 N64 classic, built from decompiled source with
-  a software RSP. v0.2.0 for Windows and Linux (incl. Steam Deck) -- bring
-  your own ROM.
+  a software RSP. v0.2.1 for Windows, Linux and Steam Deck.
 ---
 
 <!-- v0.2.1 (Bing SEO): the "# GoldenEye 007 PC Port" h1 was removed here --
@@ -17,7 +17,7 @@ N64's graphics coprocessor (RSP) running in software, the same architecture
 as the [Perfect Dark PC port](https://github.com/fgsfdsfgs/perfect_dark), the
 same Rare "Indy" engine family, one hardware generation apart.
 
-**Status: v0.2.0.** The full single-player campaign runs at a steady 60 fps
+**Status: v0.2.1.** The full single-player campaign runs at a steady 60 fps
 and is completable end to end; all 21 missions load and run clean on Windows
 and Linux (one intermittent Steam Deck crash remains, listed below), and
 audio (music + SFX) plays throughout. The known

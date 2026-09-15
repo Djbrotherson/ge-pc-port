@@ -12,7 +12,7 @@ in a dedicated `port/` layer, following the architecture of the
 [Perfect Dark PC port](https://github.com/fgsfdsfgs/perfect_dark), the same
 Rare "Indy" engine family, one hardware generation apart.
 
-**v0.2.0** is out for Windows and Linux (including Steam Deck, where the
+**v0.2.1** is out for Windows and Linux (including Steam Deck, where the
 Linux bundle sideloads as-is) and runs the full campaign at a steady 60 fps
 with known rough edges ([Status](#status)). Free to download, build on and
 modify (you bring the ROM).
@@ -43,7 +43,7 @@ See [Background](#background).
 
 Both bundles contain **no ROM and no game assets**: you supply your own
 (see [Requirements](#requirements)), which keeps the release legal to
-distribute. Earlier builds: v0.1.0 alpha, same page. You can also build it
+distribute. Earlier builds: v0.2.0 and v0.1.0 alpha, same page. You can also build it
 yourself; see [Building](#building).
 
 ### Quick start
@@ -57,12 +57,12 @@ included or distributed. Then:
 2. Make a `data/` folder next to the executable and drop the ROM in as `ge007.ntsc-final.z64`.
 3. Launch the executable from that folder. The first run takes a few extra seconds: it detects the ROM and generates the derived asset folders once (no Python or other tooling needed).
 
-Read the [Status](#status) caveats first: v0.2.0 has known rough edges,
+Read the [Status](#status) caveats first: v0.2.1 has known rough edges,
 listed plainly there.
 
 ## Status
 
-**v0.2.0 - playable, with known rough edges.** The full single-player
+**v0.2.1 - playable, with known rough edges.** The full single-player
 campaign is completable end to end (all 21 missions, Agent difficulty,
 playtested), at a steady 60 fps; all 21 solo missions load, render and run
 crash-free, verified on Windows, Linux and real Steam Deck hardware. Feedback
@@ -92,6 +92,8 @@ Windows and Linux.
   white blobs and the Rareware logo's texture filtering looks wrong (D75).
 - The F10 overlay's bottom row duplicates whatever item is currently selected
   (D251).
+- Surface 1's 2D billboard trees render as a solid wall of tree texture
+  instead of discrete sprites (D236). Under active investigation.
 - **Steam Deck:** one intermittent SIGSEGV remains in heavy firefights (D255);
   current builds capture full faulting registers in `ge007.crash.log`.
 - Assorted further cosmetic defects are tracked in
@@ -170,7 +172,7 @@ code with this one.
 | **How** | Decompilation-based source port: human-reconstructed C, compiled for the host; game logic runs as written | Static binary recompilation: the shipped machine code is auto-translated to C; no source-level understanding |
 | **Lineage** | [GoldenEye 007 decompilation](https://github.com/n64decomp/007) + [Perfect Dark PC port](https://github.com/fgsfdsfgs/perfect_dark) engine family | Xbox 360 "…Recompiled" static-recompilation family |
 | **Renderer** | Software RSP → OpenGL | Hardware (Vulkan) |
-| **Status** | v0.2.0 public release; full campaign playable at 60 fps (see [Status](#status)) | Playable full game with online multiplayer |
+| **Status** | v0.2.1 public release; full campaign playable at 60 fps (see [Status](#status)) | Playable full game with online multiplayer |
 | **Why it exists** | To run the *original* N64 game from source, and as a [case study in AI-agent collaboration](#background) on a hard low-level codebase | To get a playable PC release of the remaster |
 
 They answer a different question: how to get the *remaster* onto PC by

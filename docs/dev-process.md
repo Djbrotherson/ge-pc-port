@@ -3,7 +3,7 @@ title: Development Process
 description: The investigation workflow behind the port; task budgets, file partitioning, and the finding-log discipline used across sessions and agents.
 ---
 
-# How this port is developed
+## How this port is developed
 
 Most of this port's work is not writing code; it is **diagnosis**: figuring
 out which N64 hardware or ABI behavior a piece of unmodified game code is
