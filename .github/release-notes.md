@@ -30,6 +30,9 @@ Small hotfix batch from user playtest feedback on v0.2.0:
   confirmed it's proximity/line-of-sight-triggered exactly as on the N64
   (walk toward the room), not a port bug — the full scripted beat, including
   the execution shot, fires correctly (D263).
+- **Removed the `Skip intro` F10 toggle** — user testing found it breaks
+  audio. It was already off by default; it's now also pulled from the menu
+  entirely until root-caused (D216).
 
 ### What's new since v0.1.0
 
@@ -66,8 +69,8 @@ Small hotfix batch from user playtest feedback on v0.2.0:
   per-mission pickups, as on N64).
 - **Steam Deck first-run preset**: on SteamOS the first launch seeds
   Deck-friendly defaults (native 1280×800 fullscreen, VSync, MSAA 4, 150%
-  draw/LOD distance); an existing `ge007.ini` always wins. Two more F10 rows:
-  *No hit flash* (suppresses the damage-flash overlay) and *Skip intro*.
+  draw/LOD distance); an existing `ge007.ini` always wins. One more F10 row:
+  *No hit flash* (suppresses the damage-flash overlay).
 - **Modern dual-stick controller layout** (the scheme used by the console
   re-releases): left stick move/strafe, right stick look, right trigger fire,
   left trigger aim, A/X use, B/Y crouch/cancel, **RB/LB cycle weapons**.
