@@ -64,7 +64,7 @@ D183,OPEN,"M-36 Family A (""texture line/pitch shear"") is DISPROVEN for the Sur
 D173,OPEN,Third-person Bond model spawns too high (user QA report):,"OPEN — observed, not investigated."
 D179,FIXED,Packaged build crashes after the logos —,"Diagnosed, not fixed —"
 D180,PARTIAL,"Native-PC input pass (M-XX QoL run, qol/native-pc-input-menu, port-only).","LANDED, port-only, no #ifdef PORT."
-D181,PARTIAL,Game.ScreenShakeIntensity —,"LANDED behind config, default = original."
+D181,?,Game.ScreenShakeIntensity —,"Menu row pulled (v0.2.1, user testing)."
 D184,PARTIAL,F10 port-layer options overlay —,"LANDED, port-only, no #ifdef PORT in src/."
 D211,PARTIAL,"PC FOV slider — Video.FovScale (M-83 QoL wave, port-only, WIDESCREEN-FOV-PLAN.md Phase 4).",PARTIAL — M-84 refix:
 D212,PARTIAL,Anisotropic-filtering config wiring —,"LANDED, port-only. Build clean."
