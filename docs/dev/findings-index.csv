@@ -90,6 +90,17 @@ D113-D116,FIXED,portal BFS ok · matrix chain ok · player raw-offset audit + gu
 D117,OPEN,frame nondeterminism root-caused; GE_DETERM deferred; framediff.py structural.,"OPEN (mode attempted, not achieved)"
 D118,RESOLVED,SDL input layer (port/src/input.c); M-24 mouse-look rework:,resolved (D118a residual)
 D150,FIXED,watch OBJECTIVES / BRIEF page crash:,FIXED (src/str.c #ifdef PORT); interactive re-verify pending
+D260-D265,PARTIAL,"v0.2.1 hotfix batch: D260 wheel direction swap (fixed) · D261 watch-menu nav auto-repeat (fixed, feel-check owed) · D262 watch item-preview model missing → roo…",partial — see rows
+D266-D269,OPEN,"D236/D265 wall, second pass:","OPEN — probes live in tree (GE_D266/GE_D266W/GE_D267/GE_D268_FORCEA), fixes uncommitted"
+D270,?,Backfilled (M-132) — this label was never given its own row; only code comments and the HANDOFF archive documented it.,dead-ended into D271/D272; infrastructure kept in tree
+D271,FIXED,"D236 wall, third pass —","FIXED-but-insufficient (src/game/bg.c #ifdef PORT, uncommitted) —"
+D276,OPEN,"D236 wall, eighth pass —","REFRAMED — oml=0xc81049d8/fmt=3 is the primary suspect now, not D269's CI8 pair; 0x0c184b50 unattributed; wall still open, see D236"
+D279,?,"Backfilled — this label was consumed by an undocumented partial session (2026-09-14 ~23:00) that left artifacts in scratch/ (d279_run.log, d279_imgmap_run.log,…",undocumented — artifacts only
+D280,?,"D236 wall, ninth pass —","REFRAMED again — no fix; next steps in detail section, see D236"
+D275,?,"D236 wall, eighth pass —","done — probes live, uncommitted; see D276 for what they found"
+D274,OPEN,"D236 wall, seventh pass —","d267_slot_addr fix live (always-on); content/decode question CLOSED; mip-presence CLOSED; wall still open, see D236/D276"
+D273,OPEN,"D236 wall, fifth pass —","RULED OUT (port/fast3d/gfx_pc.cpp palette_to_rgba32, pre-existing/uncommitted GE_D273) —"
+D272,OPEN,"D236 wall, fourth pass —","OPEN — probe GE_D272 added to port/fast3d/gfx_pc.cpp (env-gated, uncommitted); wall still open, see D236"
 D137,FIXED,right-mouse (aim-sight) crash:,FIXED (src/game/gunfire.c #ifdef PORT —
 D119 · D120,FIXED,guard-attack weapons_held[]->chr pun crash · blood-stain PointUsage[] chain hang,D119 fixed · D120 FIXED (M-30)
 D120,FIXED,Blood-decal PointUsage[] chain —,FIXED (tools_pc/d43_emit.py).
@@ -118,7 +129,7 @@ D164,PROPOSED,"Disclaimer / legal screen only draws the first line (D76 root cau
 D165,FIXED,"Front-end menu cursor doesn't feel like a mouse pointer (M-31, user bug B5 follow-up).","FIXED (port/src/input.c; Input.MenuPointerMode, Input.HipfirePitchSpeed added)."
 D166,FIXED,Hipfire mouse pitch is digital while yaw is analog —,FIXED (port/src/input.c).
 D235,OPEN,Wrong textures load after dying/restarting a level —,OPEN — needs: does it repro on a *fresh* level boot (rules out reload-state) vs only after death/restart (confirms it); which surfaces; a screenshot.
-D236,OPEN,"Surface 1: 2D billboard trees render as a wall/sheet of tree texture instead of discrete camera-facing tree sprites (M-106, user QA report).",OPEN — not investigated
+D236,OPEN,"Surface 1: 2D billboard trees render as a wall/sheet of tree texture instead of discrete camera-facing tree sprites (M-106, user QA report).",OPEN — ninth pass closed with no fix; see D276/D280
 D237,OPEN,"QoL ask (M-106, user QA):",OPEN — not designed; port-only
 D238,OPEN,"QoL ask (M-106, user QA):",OPEN — not designed; port-only (port/src/input.c + config.c)
 D239,?,"QoL ask (M-106, user QA):",CLOSED — executed in the v0.2.0 prep pass (port-only):
@@ -139,5 +150,11 @@ D254,FIXED,Linux crash handler destroyed its own logs:,FIXED — field-verified.
 D255,OPEN,"Facility firefight SIGSEGV on Steam Deck (v0.2.0-pre CI bundle, D253 fix confirmed working —","OPEN — case identified (NULL model on an active OBJ record; destroy-path ordering), reproducible on Deck in combat (Bunker + Frigate); fix pending rule-#2 sign-off."
 D256,FIXED,Saves (and config) silently failed to persist on Linux whenever the game was not launched from the directory containing data/ —,FIXED (path half) — save-flow detail still owed from the user.
 D257,FIXED,New Game.AllUnlocked option (F10; default flipped OFF for v0.2.0 —,FIXED — verified by user playtest (PR #79 merged); default flipped OFF for v0.2.0 (D259).
-D259,OPEN,Game.AllUnlocked (D257) breaks audio on a fresh save:,OPEN — quirk documented; default flipped OFF for v0.2.0 (port/src/video.c); fix deferred.
+D259,FIXED,Game.AllUnlocked (D257) breaks audio on a fresh save:,FIXED in v0.2.1 — the deferred fix was applied:
+D260,FIXED,v0.2.1 (user request):,"FIXED — build green; one-line branch swap, trivially reviewable."
+D261,FIXED,v0.2.1 (user request:,FIXED — feel-check received; W/S sensitivity follow-up logged above.
+D262,FIXED,v0.2.1 (user report):,"FIXED (primary cause, D264) —"
+D264,FIXED,"D262's root cause (ABI/layout class, cf.","FIXED — build green, probes removed; visual confirmation pending."
+D263,RESOLVED,v0.2.1 (user report):,RESOLVED (not a bug) —
+D265,?,"D236 investigation (port-layer, port/fast3d/gfx_pc.cpp):",PARKED — reverted to baseline; evidence + suspect list above.
 D258,OPEN,PAL/JP asset conversion is broken at the source-data level —,"OPEN — repair path verified, not applied (out of v0.2.0 scope)."
