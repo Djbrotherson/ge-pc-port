@@ -33,6 +33,10 @@ Small hotfix batch from user playtest feedback on v0.2.0:
 - **Removed the `Skip intro` F10 toggle** — user testing found it breaks
   audio. It was already off by default; it's now also pulled from the menu
   entirely until root-caused (D216).
+- **Removed the `Screen shake` F10 slider** — it only scaled explosion/effect
+  camera shake, not the always-on walking head-bob or any getting-shot
+  reaction, so it read as broken/useless. Pulled from the menu until it
+  covers all screen-shake/view-bob sources (D181).
 
 ### What's new since v0.1.0
 
