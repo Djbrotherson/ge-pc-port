@@ -1,13 +1,15 @@
 ---
 title: GoldenEye 007 PC Port
+# v0.2.1 (Bing SEO): meta description trimmed to ~160 chars (was 277).
 description: >-
-  A native PC port of the original Nintendo 64 GoldenEye 007, built from its
-  decompiled source with a software RSP. v0.2.0 is out for Windows
-  and Linux (including Steam Deck): download it, drop in your own ROM, and
-  play; or dig into the code and the engineering record behind it.
+  A native PC port of the 1997 N64 classic, built from decompiled source with
+  a software RSP. v0.2.0 for Windows and Linux (incl. Steam Deck) -- bring
+  your own ROM.
 ---
 
-# GoldenEye 007 PC Port
+<!-- v0.2.1 (Bing SEO): the "# GoldenEye 007 PC Port" h1 was removed here --
+the Cayman masthead already renders the site title as an <h1>, so the page
+was emitting two h1 tags. -->
 
 A native PC port of the original 1997 Nintendo 64 _GoldenEye 007_, compiled
 from the game's [decompiled source](https://github.com/n64decomp/007) with the

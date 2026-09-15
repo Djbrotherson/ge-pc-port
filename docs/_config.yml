@@ -1,10 +1,12 @@
 # GitHub Pages config. Site is served from the /docs folder on the default
 # branch (Settings -> Pages -> Deploy from a branch -> main / docs).
 title: GoldenEye 007 PC Port
-description: >-
-  A native PC port of the original Nintendo 64 GoldenEye 007, built from its
-  decompiled source with a software RSP — plus the engineering record:
-  internals, porting notes, and the two-agent development workflow.
+# v0.2.1 (Bing SEO): keep this SHORT -- jekyll-seo-tag splices it into the
+# home page <title> whenever the page title equals the site title, and the
+# long version made a ~230-char title. It also renders as the masthead
+# tagline on every page. Per-page meta/og descriptions come from each page's
+# front matter `description:` (see index.md), not from here.
+description: N64 GoldenEye 007, decompiled for PC.
 theme: jekyll-theme-cayman
 show_downloads: false
 
