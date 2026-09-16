@@ -1,4 +1,4 @@
-name: Build GoldenEye AArch64
+name: GoldenEye AArch64 Build
 
 on:
   workflow_dispatch:
