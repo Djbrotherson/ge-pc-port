@@ -26,3 +26,9 @@ jobs:
         run: |
           file build-pc/ge007*
           ls -lh build-pc/ge007*
+
+      - name: Upload AArch64 binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: goldeneye-aarch64
+          path: build-pc/ge007.aarch64
