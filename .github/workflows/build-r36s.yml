@@ -1,0 +1,26 @@
+name: Build GoldenEye AArch64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    container:
+      image: ghcr.io/monkeyx-net/portmaster-build-templates/portmaster-builder:aarch64-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build-pc -DROMID=ntsc-final
+
+      - name: Build
+        run: cmake --build build-pc -j$(nproc)
+
+      - name: Show binary
+        run: |
+          file build-pc/ge007*
+          ls -lh build-pc/ge007*
