@@ -22,6 +22,57 @@ jobs:
       - name: Show commit
         run: git log -1 --oneline
 
+      - name: Patch host controller status handshake
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/joy.c')
+          s = p.read_text()
+          old = '''void joyCheckStatusThreadSafe(void)
+          {
+              OSMesg  msg;
+
+              if (g_ContQueuesCreated)
+              {
+                  osSendMesg(&g_ContDisablePollSendMessageQueue, &msg, OS_MESG_NOBLOCK);
+                  osRecvMesg(&g_ContDisablePollReceiveMessageQueue, &msg, OS_MESG_BLOCK);
+
+                  joyCheckStatus();
+
+                  osSendMesg(&g_ContEnablePollSendMessageQueue, &msg, OS_MESG_NOBLOCK);
+                  osRecvMesg(&g_ContEnablePollReceiveMessageQueue, &msg, OS_MESG_BLOCK);
+              }
+          }
+          '''
+          new = '''void joyCheckStatusThreadSafe(void)
+          {
+          #ifdef PORT
+              /* Host controller queries are synchronous. There is no SI hardware
+               * transaction to protect, so avoid the N64 disable/enable poll
+               * handshake which can deadlock against the host scheduler. */
+              joyCheckStatus();
+              return;
+          #else
+              OSMesg  msg;
+
+              if (g_ContQueuesCreated)
+              {
+                  osSendMesg(&g_ContDisablePollSendMessageQueue, &msg, OS_MESG_NOBLOCK);
+                  osRecvMesg(&g_ContDisablePollReceiveMessageQueue, &msg, OS_MESG_BLOCK);
+
+                  joyCheckStatus();
+
+                  osSendMesg(&g_ContEnablePollSendMessageQueue, &msg, OS_MESG_NOBLOCK);
+                  osRecvMesg(&g_ContEnablePollReceiveMessageQueue, &msg, OS_MESG_BLOCK);
+              }
+          #endif
+          }
+          '''
+          if old not in s:
+              raise SystemExit('joyCheckStatusThreadSafe block not found; refusing unsafe patch')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
       - name: Install dependencies
         run: |
           sudo apt-get update
