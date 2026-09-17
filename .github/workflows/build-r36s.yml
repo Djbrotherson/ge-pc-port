@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - r36s-native-gles
 
 jobs:
   build:
@@ -30,11 +31,13 @@ jobs:
             libegl1-mesa-dev \
             zlib1g-dev
 
-      - name: Configure for GLES
+      - name: Configure native GLES build
         run: |
           cmake -S . -B build-pc \
             -DROMID=ntsc-final \
-            -DGL_LIBRARY=GLESv2
+            -DGL_LIBRARY=GLESv2 \
+            -DCMAKE_C_FLAGS="-DUSE_GLES=1" \
+            -DCMAKE_CXX_FLAGS="-DUSE_GLES=1"
 
       - name: Build ge007.aarch64
         run: cmake --build build-pc -j$(nproc)
@@ -47,6 +50,6 @@ jobs:
       - name: Upload ge007.aarch64
         uses: actions/upload-artifact@v4
         with:
-          name: ge007-aarch64
+          name: ge007-aarch64-native-gles
           path: build-pc/ge007.aarch64
           if-no-files-found: error
