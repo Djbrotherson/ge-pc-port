@@ -113,14 +113,10 @@ jobs:
               'void musicTrack2FadeIn(f32 fadeTime, u16 volume)',
               'void musicTrack3FadeIn(f32 fadeTime, u16 volume)',
           ]
+          guard = "\n{\n    if (g_sndBootswitchSound)\n    {\n        return;\n    }\n"
           for sig in signatures:
               old = sig + '\n{\n'
-              new = sig + '''\n{
-              if (g_sndBootswitchSound)
-              {
-                  return;
-              }
-'''
+              new = sig + guard
               if old not in s:
                   raise SystemExit(f'{sig} block not found; refusing unsafe patch')
               s = s.replace(old, new, 1)
