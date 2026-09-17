@@ -1,34 +1,52 @@
-name: GoldenEye AArch64 Build
+name: GoldenEye AArch64 R36S GLES Build
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-24.04-arm
 
     steps:
-      - name: Checkout
+      - name: Checkout latest commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Show commit
+        run: git log -1 --oneline
 
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libsdl2-dev libgl-dev zlib1g-dev
+          sudo apt-get install -y \
+            cmake \
+            libsdl2-dev \
+            libgles2-mesa-dev \
+            libegl1-mesa-dev \
+            zlib1g-dev
 
-      - name: Configure
-        run: cmake -S . -B build-pc -DROMID=ntsc-final
+      - name: Configure for GLES
+        run: |
+          cmake -S . -B build-pc \
+            -DROMID=ntsc-final \
+            -DGL_LIBRARY=GLESv2
 
-      - name: Build
+      - name: Build ge007.aarch64
         run: cmake --build build-pc -j$(nproc)
 
-      - name: Show binary
+      - name: Verify binary
         run: |
-          file build-pc/ge007*
-          ls -lh build-pc/ge007*
+          file build-pc/ge007.aarch64
+          ls -lh build-pc/ge007.aarch64
 
-      - name: Upload AArch64 binary
+      - name: Upload ge007.aarch64
         uses: actions/upload-artifact@v4
         with:
-          name: goldeneye-aarch64
+          name: ge007-aarch64
           path: build-pc/ge007.aarch64
+          if-no-files-found: error
