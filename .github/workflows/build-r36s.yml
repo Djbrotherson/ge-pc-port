@@ -47,9 +47,6 @@ jobs:
           new = '''void joyCheckStatusThreadSafe(void)
           {
           #ifdef PORT
-              /* Host controller queries are synchronous. There is no SI hardware
-               * transaction to protect, so avoid the N64 disable/enable poll
-               * handshake which can deadlock against the host scheduler. */
               joyCheckStatus();
               return;
           #else
@@ -84,11 +81,6 @@ jobs:
           '''
           new = '''void musicFadeTick(void)
           {
-              /* The R36S first-frame build sets g_sndBootswitchSound before
-               * game startup, so musicSeqPlayerInit() intentionally creates no
-               * ALCSPlayer objects. The scheduler still calls this worker every
-               * retrace; do not touch those absent players while sound boot is
-               * disabled. */
               if (g_sndBootswitchSound)
               {
                   return;
@@ -121,6 +113,28 @@ jobs:
                   raise SystemExit(f'{sig} block not found; refusing unsafe patch')
               s = s.replace(old, new, 1)
           p.write_text(s)
+          PY
+
+      - name: Preserve 64-bit texture bitstream pointers
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          c = Path('src/game/image_bank.c')
+          s = c.read_text()
+          old = 'void texSetBitstring(s32 pos) {\n    img_curpos = pos;\n'
+          new = 'void texSetBitstring(u8 *pos) {\n    img_curpos = pos;\n'
+          if old not in s:
+              raise SystemExit('texSetBitstring definition not found; refusing unsafe patch')
+          c.write_text(s.replace(old, new, 1))
+
+          h = Path('src/game/image_bank.h')
+          s = h.read_text()
+          old = 'void texSetBitstring(s32 pos);'
+          new = 'void texSetBitstring(u8 *pos);'
+          if old not in s:
+              raise SystemExit('texSetBitstring declaration not found; refusing unsafe patch')
+          h.write_text(s.replace(old, new, 1))
           PY
 
       - name: Install dependencies
