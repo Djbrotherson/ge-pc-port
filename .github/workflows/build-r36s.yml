@@ -6,6 +6,7 @@ on:
     branches:
       - main
       - r36s-native-gles
+      - r36s-first-frame-noaudio
 
 jobs:
   build:
@@ -50,6 +51,6 @@ jobs:
       - name: Upload ge007.aarch64
         uses: actions/upload-artifact@v4
         with:
-          name: ge007-aarch64-native-gles
+          name: ge007-aarch64-native-gles-noaudio
           path: build-pc/ge007.aarch64
           if-no-files-found: error
