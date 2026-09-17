@@ -99,6 +99,34 @@ jobs:
           p.write_text(s.replace(old, new, 1))
           PY
 
+      - name: Guard no-audio compact sequence player entry points
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/music.c')
+          s = p.read_text()
+          signatures = [
+              'void musicTrack1ApplySeqpVol(u16 volume)',
+              'void musicTrack2ApplySeqpVol(u16 volume)',
+              'void musicTrack3ApplySeqpVol(u16 volume)',
+              'void musicTrack1FadeIn(f32 fadeTime, u16 volume)',
+              'void musicTrack2FadeIn(f32 fadeTime, u16 volume)',
+              'void musicTrack3FadeIn(f32 fadeTime, u16 volume)',
+          ]
+          for sig in signatures:
+              old = sig + '\n{\n'
+              new = sig + '''\n{
+              if (g_sndBootswitchSound)
+              {
+                  return;
+              }
+'''
+              if old not in s:
+                  raise SystemExit(f'{sig} block not found; refusing unsafe patch')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+
       - name: Install dependencies
         run: |
           sudo apt-get update
