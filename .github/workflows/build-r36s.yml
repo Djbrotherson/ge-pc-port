@@ -137,6 +137,61 @@ jobs:
           h.write_text(s.replace(old, new, 1))
           PY
 
+      - name: Patch remaining 64-bit image pointer arithmetic
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/game/image.c')
+          s = p.read_text()
+          replacements = [
+              ('outptr = (u8 *)(((u32)outptr + 7) & ~7);',
+               'outptr = (u8 *)(((uintptr_t)outptr + 7u) & ~(uintptr_t)7u);'),
+              ('u32 *dst32 = (u32 *)(((u32)dst + 0xf) & ~0xf);',
+               'u32 *dst32 = (u32 *)(((uintptr_t)dst + 0xfu) & ~(uintptr_t)0xfu);'),
+              ('u16 *dst16 = (u16 *)(((u32)dst + 7) & ~7);',
+               'u16 *dst16 = (u16 *)(((uintptr_t)dst + 7u) & ~(uintptr_t)7u);'),
+              ('u8 *dst8 = (u8 *)(((u32)dst + 7) & ~7);',
+               'u8 *dst8 = (u8 *)(((uintptr_t)dst + 7u) & ~(uintptr_t)7u);'),
+              ('return (u32)arg0->rightpos - (u32)arg0->leftpos;',
+               'return (s32)((u8 *)arg0->rightpos - (u8 *)arg0->leftpos);'),
+              ('texLoad((u32 *)((s32)bytes + 4), arg1);',
+               'texLoad((u32 *)(bytes + 4), arg1);'),
+          ]
+          for old, new in replacements:
+              if old not in s:
+                  raise SystemExit(f'image.c pattern not found: {old}')
+              s = s.replace(old, new, 1)
+          p.write_text(s)
+          PY
+
+      - name: Run 64-bit pointer regression
+        run: |
+          cat >/tmp/r36s_pointer_regression.c <<'EOF'
+          #include <stdint.h>
+          #include <stdio.h>
+          #include <stdlib.h>
+          typedef uint8_t u8; typedef uint16_t u16; typedef uint32_t u32;
+          static u8 *align8(u8 *p) { return (u8 *)(((uintptr_t)p + 7u) & ~(uintptr_t)7u); }
+          static u32 *align16_u32(u8 *p) { return (u32 *)(((uintptr_t)p + 15u) & ~(uintptr_t)15u); }
+          static u16 *align8_u16(u8 *p) { return (u16 *)(((uintptr_t)p + 7u) & ~(uintptr_t)7u); }
+          static u32 *gdl_word1(u8 *p) { return (u32 *)(p + 4); }
+          int main(void) {
+              u8 *p = malloc(256);
+              if (!p) return 2;
+              uintptr_t b = (uintptr_t)p;
+              if ((b >> 32) == 0) return 3;
+              if ((uintptr_t)align8(p + 1) < b) return 10;
+              if ((uintptr_t)align16_u32(p + 3) < b) return 11;
+              if ((uintptr_t)align8_u16(p + 5) < b) return 12;
+              if ((uintptr_t)gdl_word1(p + 16) != b + 20) return 13;
+              puts("64-bit pointer regression PASS");
+              free(p);
+              return 0;
+          }
+          EOF
+          cc -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer /tmp/r36s_pointer_regression.c -o /tmp/r36s_pointer_regression
+          ASAN_OPTIONS=detect_leaks=0 /tmp/r36s_pointer_regression
+
       - name: Install dependencies
         run: |
           sudo apt-get update
