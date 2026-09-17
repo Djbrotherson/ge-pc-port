@@ -993,15 +993,26 @@ static void gfx_opengl_init_extensions(void) {
 }
 
 static void gfx_opengl_init(void) {
-    if (!gladLoadGLLoader(gl_load_proc) || glGetString == NULL || glEnable == NULL) {
-        sysFatalError("Could not load OpenGL.\nReported SDL error: %s", SDL_GetError());
-    }
-
-    // check if we're using ES or core, which have more limited feature sets
+    // Determine the context profile before loading GL entry points.  On GLES
+    // contexts, using the desktop GLAD loader probes a large desktop-only API
+    // and leaves useful GLES entry points in the wrong loader path.
     int val = 0;
     SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &val);
     gl_core_profile = (val == SDL_GL_CONTEXT_PROFILE_CORE);
     gl_es = (val == SDL_GL_CONTEXT_PROFILE_ES);
+
+    sysLogPrintf(LOG_NOTE, "GL: context profile is %s; loading %s entry points",
+        gl_es ? "ES" : (gl_core_profile ? "core" : "compatibility"),
+        gl_es ? "GLES2/3" : "desktop GL");
+
+    const int glad_loaded = gl_es
+        ? gladLoadGLES2Loader(gl_load_proc)
+        : gladLoadGLLoader(gl_load_proc);
+
+    if (!glad_loaded || glGetString == NULL || glEnable == NULL) {
+        sysFatalError("Could not load %s.\nReported SDL error: %s",
+            gl_es ? "OpenGL ES" : "OpenGL", SDL_GetError());
+    }
 
     gfx_opengl_init_extensions();
 
