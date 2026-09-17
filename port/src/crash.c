@@ -72,8 +72,6 @@ static void crashStackTraceRaw(char *msg, PEXCEPTION_POINTERS exinfo)
         CRASH_MSG("FAULT ADDR: %p\n",
                   (void *)exinfo->ExceptionRecord->ExceptionInformation[1]);
     }
-    /* Raw stack window around RSP: survives even when the EBP chain is
-     * broken (tail calls, corrupted frames). 16 qwords up from RSP. */
     {
         const uint64_t *sp = (const uint64_t *)context.Rsp;
         CRASH_MSG("STACK@RSP:");
@@ -84,9 +82,6 @@ static void crashStackTraceRaw(char *msg, PEXCEPTION_POINTERS exinfo)
         }
         CRASH_MSG("\n");
     }
-    /* FPU state: for STATUS_FLOATING_POINT_* we want to know whether the
-     * exception masks were actually cleared (MxCsr bits 7..10 / x87 CW
-     * mask bits) or this is a stale status bit. */
     CRASH_MSG("MxCsr=0x%08lx  x87CW=0x%04x x87SW=0x%04x\n",
               (unsigned long)context.MxCsr,
               (unsigned)(context.FloatSave.ControlWord & 0xffff),
@@ -104,15 +99,6 @@ static void crashStackTraceRaw(char *msg, PEXCEPTION_POINTERS exinfo)
     CRASH_MSG("MAIN MODULE: [%p]\n", crashGetModuleBase(crashInit));
 }
 
-/*
- * Phase 2 — backtrace by walking the EBP chain manually. The build keeps
- * frame pointers (-fno-omit-frame-pointer), so every frame is a pair of
- * qwords at RBP: [saved RBP, return address]. No dbghelp, no allocation:
- * each pointer is validated against the thread's stack bounds BEFORE being
- * dereferenced, and the chain must strictly ascend (x64 stacks grow down),
- * so a corrupted chain terminates instead of re-faulting. Addresses are
- * symbolicated offline with addr2line when needed.
- */
 static void crashStackTraceSym(char *msg, PEXCEPTION_POINTERS exinfo)
 {
     CONTEXT context = *exinfo->ContextRecord;
@@ -130,7 +116,6 @@ static void crashStackTraceSym(char *msg, PEXCEPTION_POINTERS exinfo)
     CRASH_MSG("\nBACKTRACE:\n#00: %p  (crash PC)\n", exinfo->ExceptionRecord->ExceptionAddress);
 
     while (i < CRASH_MAX_FRAMES - 1) {
-        /* The frame record must live inside the committed stack. */
         if (fp < (uintptr_t)low || fp > (uintptr_t)high) break;
 
         const uintptr_t *frame = (const uintptr_t *)fp;
@@ -145,7 +130,6 @@ static void crashStackTraceSym(char *msg, PEXCEPTION_POINTERS exinfo)
         }
         CRASH_MSG("\n");
 
-        /* Chain must ascend; stop on the first frame that doesn't. */
         if (saved_fp <= fp || saved_fp > (uintptr_t)high) break;
         fp = saved_fp;
         ++i;
@@ -168,25 +152,12 @@ static void crashWriteLog(const char *msg, int append)
     }
 }
 
-/*
- * Thread dump: unwind every thread in this process and print a short
- * backtrace for each, labelled with the game-thread name when known.
- * Called from the kernel heartbeat when no frame has rendered for a while,
- * so a hang shows WHERE every thread is stuck instead of as silence.
- *
- * tids/names: parallel arrays (may be NULL/0). Threads not in the list are
- * labelled by TID only. Uses SuspendThread + GetThreadContext + StackWalk64;
- * each thread is resumed before the next is touched, so a hang in one walk
- * cannot wedge the others.
- */
 void crashDumpThreads(const unsigned long *tids, const char **names, int count)
 {
     HANDLE process = GetCurrentProcess();
     HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
     if (snap == INVALID_HANDLE_VALUE) return;
 
-    /* Function symbols only — line tables are slow to load and the dump
-     * prints function+offset, which is enough to find a hang. */
     SymSetOptions(SymGetOptions() | SYMOPT_DEBUG);
     SymInitialize(process, NULL, TRUE);
 
@@ -197,7 +168,7 @@ void crashDumpThreads(const unsigned long *tids, const char **names, int count)
         return;
     }
 
-        do {
+    do {
         if (te.th32OwnerProcessID != GetCurrentProcessId()) continue;
 
         char label[64] = "?";
@@ -209,9 +180,6 @@ void crashDumpThreads(const unsigned long *tids, const char **names, int count)
                 break;
             }
         }
-        /* When a specific thread list is given, skip everything else —
-         * walking ~20 system threads with symbol resolution is slow and
-         * buries the interesting frames. */
         if (count > 0 && !matched) continue;
 
         HANDLE hth = OpenThread(THREAD_SUSPEND_RESUME | THREAD_GET_CONTEXT | THREAD_QUERY_INFORMATION, FALSE, te.th32ThreadID);
@@ -279,15 +247,12 @@ static LONG __stdcall crashHandler(PEXCEPTION_POINTERS exinfo)
         return EXCEPTION_CONTINUE_EXECUTION;
     }
 
-    /* Phase 1: raw info, guaranteed to survive. */
     crashStackTraceRaw(msg, exinfo);
     sysLogPrintf(LOG_ERROR, "FATAL: %s", msg);
     fflush(stderr);
     fflush(stdout);
     crashWriteLog(msg, 0);
 
-    /* Phase 2: EBP-chain backtrace (validated reads only — see
-     * crashStackTraceSym). The raw data is already on disk either way. */
     {
         char sym[CRASH_MAX_MSG + 1] = { 0 };
         crashStackTraceSym(sym, exinfo);
@@ -297,8 +262,6 @@ static LONG __stdcall crashHandler(PEXCEPTION_POINTERS exinfo)
         }
     }
 
-    /* Terminate directly — abort() raises SIGABRT which can re-enter the
-     * exception machinery while we are already inside it. */
     TerminateProcess(GetCurrentProcess(), exinfo->ExceptionRecord->ExceptionCode);
     return EXCEPTION_CONTINUE_EXECUTION;
 }
@@ -357,6 +320,22 @@ static void crashStackTrace(char *msg, int sig, void *pc, ucontext_t *ucontext, 
                   (void *)ucontext->uc_mcontext.gregs[REG_RSP],
                   (void *)ucontext->uc_mcontext.gregs[REG_RBP]);
     }
+#elif defined(__aarch64__)
+    if (ucontext) {
+        CRASH_MSG("REGS: X0=%p X1=%p X2=%p X3=%p X4=%p X5=%p X6=%p X7=%p\n",
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[0],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[1],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[2],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[3],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[4],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[5],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[6],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[7]);
+        CRASH_MSG("FP=%p LR=%p SP=%p\n",
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[29],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.regs[30],
+                  (void *)(uintptr_t)ucontext->uc_mcontext.sp);
+    }
 #endif
     CRASH_MSG("PC: ");
     if (pc) {
@@ -390,12 +369,6 @@ static void crashStackTrace(char *msg, int sig, void *pc, ucontext_t *ucontext, 
     free(strings);
 }
 
-/* D254: re-entrancy guard. The handler used to call sysFatalError() ->
- * abort() -> SIGABRT, which re-entered this handler and TRUNCATED the log
- * ("wb"), destroying the original SEGV block — the one with the faulting
- * PC/registers. Field crash logs then only showed the abort. Guard against
- * re-entry and terminate directly instead (the Windows path already did).
- */
 static sig_atomic_t inCrashHandler = 0;
 
 static void crashHandler(int sig, siginfo_t *siginfo, void *ctx)
@@ -409,15 +382,26 @@ static void crashHandler(int sig, siginfo_t *siginfo, void *ctx)
 
     ucontext_t *ucontext = ctx ? (ucontext_t *)ctx : NULL;
     void *pc = NULL;
+    void *lr = NULL;
+    void *sp = NULL;
     if (ucontext) {
 #ifdef PLATFORM_X86
         pc = (void *)ucontext->uc_mcontext.gregs[REG_EIP];
 #elif defined(PLATFORM_X86_64)
         pc = (void *)ucontext->uc_mcontext.gregs[REG_RIP];
+#elif defined(__aarch64__)
+        pc = (void *)(uintptr_t)ucontext->uc_mcontext.pc;
+        lr = (void *)(uintptr_t)ucontext->uc_mcontext.regs[30];
+        sp = (void *)(uintptr_t)ucontext->uc_mcontext.sp;
 #endif
     }
 
+#if defined(__aarch64__)
+    sysLogPrintf(LOG_ERROR, "FATAL: Crashed: PC=%p LR=%p SP=%p FAULT=%p SIGNAL=%d",
+                 pc, lr, sp, siginfo ? (void *)siginfo->si_addr : NULL, sig);
+#else
     sysLogPrintf(LOG_ERROR, "FATAL: Crashed: PC=%p SIGNAL=%d", pc, sig);
+#endif
 
     fflush(stderr);
     fflush(stdout);
@@ -432,16 +416,9 @@ static void crashHandler(int sig, siginfo_t *siginfo, void *ctx)
         }
     }
 
-    /* D254: terminate directly — sysFatalError() raises SIGABRT which used
-     * to re-enter this handler and truncate the log we just wrote. */
     _exit(128 + sig);
 }
 
-/* D38: called by the kernel heartbeat watchdog (port/src/libultra.c) when a
- * hang is detected. A full cross-thread backtrace on POSIX would need a
- * signal-based stack-walk of every peer thread; for now log the live thread
- * roster plus the calling (watchdog) thread's own backtrace, which is enough
- * to see the watchdog fired and which threads were still up. */
 void crashDumpThreads(const unsigned long *tids, const char **names, int count)
 {
     char msg[CRASH_MAX_MSG + 1] = { 0 };
