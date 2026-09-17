@@ -73,6 +73,32 @@ jobs:
           p.write_text(s.replace(old, new, 1))
           PY
 
+      - name: Patch no-audio music fade worker
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('src/music.c')
+          s = p.read_text()
+          old = '''void musicFadeTick(void)
+          {
+          '''
+          new = '''void musicFadeTick(void)
+          {
+              /* The R36S first-frame build sets g_sndBootswitchSound before
+               * game startup, so musicSeqPlayerInit() intentionally creates no
+               * ALCSPlayer objects. The scheduler still calls this worker every
+               * retrace; do not touch those absent players while sound boot is
+               * disabled. */
+              if (g_sndBootswitchSound)
+              {
+                  return;
+              }
+          '''
+          if old not in s:
+              raise SystemExit('musicFadeTick block not found; refusing unsafe patch')
+          p.write_text(s.replace(old, new, 1))
+          PY
+
       - name: Install dependencies
         run: |
           sudo apt-get update
