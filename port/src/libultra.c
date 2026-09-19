@@ -44,7 +44,7 @@
 
 #include "platform.h"
 #include "system.h"
-#include "crash.h"
+#include "../include/crash.h"
 #if defined(__aarch64__) && defined(USE_GLES)
 extern s8 g_sndBootswitchSound;
 #endif   /* D38: crashDumpThreads() */
@@ -53,7 +53,7 @@ extern s8 g_sndBootswitchSound;
 #include "input.h"
 #include "fs.h"
 #include "romdata.h"
-#include "crash.h"
+#include "../include/crash.h"
 
 #if defined(PLATFORM_WINDOWS)
 #include <windows.h> /* GetCurrentThreadId for thread-dump labels */
