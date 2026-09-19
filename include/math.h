@@ -99,6 +99,10 @@ float  cosf(float);
 double cos(double);
 
 float  sqrtf(float);
+#ifdef PORT
+float  floorf(float);
+long   lround(double);
+#endif
 
 #endif
 
