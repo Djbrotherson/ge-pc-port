@@ -272,7 +272,7 @@ jobs:
           unzip -Z1 "$OUT" | grep -F 'ge007/ge007.aarch64'
           unzip -Z1 "$OUT" | grep -F 'ge007/prepare-assets/ge007-convert'
           unzip -Z1 "$OUT" | grep -F 'ge007/.force-first-run-extract'
-          if unzip -Z1 "$OUT" | grep -Eqi '\.(z64|n64|v64); then
+          if unzip -Z1 "$OUT" | grep -Eqi '[.](z64|n64|v64)$'; then
             echo "error: ROM image present in package"
             exit 1
           fi
