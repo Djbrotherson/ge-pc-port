@@ -5962,9 +5962,15 @@ void modelResetAnimationsScratchBuffer(void)
 }
 
 
+#ifdef PORT
 #define PROMOTE(var) \
     if (var) \
-        var = (void *)((u32)var + diff)
+        var = (void *)((uintptr_t)(var) + diff)
+#else
+#define PROMOTE(var) \
+    if (var) \
+        var = (void *)((u32)(var) + diff)
+#endif
 
 #ifdef PORT
 /* PC port (D43/D45): Vertex.LinkedTo is a raw vma (u32), not a pointer —
@@ -5974,9 +5980,9 @@ void modelResetAnimationsScratchBuffer(void)
         var = (u32)((u32)var + diff)
 #endif
 
-void modelPromoteNodeOffsetsToPointers(ModelNode *node, u32 vma, u32 fileramaddr)
+void modelPromoteNodeOffsetsToPointers(ModelNode *node, u32 vma, uintptr_t fileramaddr)
 {
-    s32 diff = fileramaddr - vma;
+    intptr_t diff = (intptr_t)fileramaddr - (intptr_t)vma;
     s32 i;
 
     while (node)
@@ -6178,8 +6184,8 @@ void modelPromoteNodeOffsetsToPointers(ModelNode *node, u32 vma, u32 fileramaddr
 /**
  * Address 7F075A90.
 */
-void sub_GAME_7F075A90(ModelFileHeader *header, s32 vma, u32 addr) {
-    s32 diff = addr - vma;
+void sub_GAME_7F075A90(ModelFileHeader *header, s32 vma, uintptr_t addr) {
+    intptr_t diff = (intptr_t)addr - (intptr_t)vma;
     s32 i;
 
     for(i = 0;i < header->numSwitches;i++)
