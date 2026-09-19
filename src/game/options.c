@@ -22,6 +22,10 @@
 
 #define WATCH_VOL_ADJUST_STEP 1024
 
+/* Language banks are byte strings; the watch/text renderer consumes them as
+ * ordinary C strings. Keep the representation boundary explicit here. */
+#define OPTIONS_TEXT(id) ((char *)langGet(id))
+
 #if defined(VERSION_US)
 #define WATCH_ROTATION_FRAMES speedgraphframes
 #else
@@ -1730,8 +1734,8 @@ Gfx *draw_background_health_and_armor(Gfx *gdl, Mtx *arg1, s32 zoom_squish)
 
     f32 scale;
 
-    sp48 = dynAllocateVertices(WATCH_BACKGROUND_VERTEX_COUNT);
-    sp44 = dynAllocateVertices(WATCH_BACKGROUND_VERTEX_COUNT);
+    sp48 = (struct WatchVertex *)dynAllocateVertices(WATCH_BACKGROUND_VERTEX_COUNT);
+    sp44 = (struct WatchVertex *)dynAllocateVertices(WATCH_BACKGROUND_VERTEX_COUNT);
     sp40 = dynAllocate(0xF8);
     sp3C = dynAllocate(0xF8);
 
@@ -1868,7 +1872,7 @@ Gfx *draw_background_health_and_armor(Gfx *gdl, Mtx *arg1, s32 zoom_squish)
     if (g_WatchBackgroundGreen < 0xE0)
     {
         // Create the thin green scanline that moves up the screen while the watch does static.
-        build_watch_static_scanline_vertices(g_CurrentPlayer->buffer_for_watch_static_vertices);
+        build_watch_static_scanline_vertices((Vtx *)g_CurrentPlayer->buffer_for_watch_static_vertices);
 
         gDPSetRenderMode(gdl++, G_RM_AA_XLU_SURF, G_RM_AA_XLU_SURF2);
         gSPDisplayList(gdl++, OS_PHYSICAL_TO_K0(g_CurrentPlayer->buffer_for_watch_static_DL));
@@ -1903,9 +1907,9 @@ Gfx *draw_abort_cancel_confirm(Gfx *gdl)
 
     pFontFile = ptrFontBankGothic;
     pFontChars = ptrFontBankGothicChars;
-    sp54 = langGet(getStringID(LOPTIONS, OPTION_STR_24_ABORT_LF)); //abort:
-    sp50 = langGet(getStringID(LOPTIONS, OPTION_STR_25_CONFIRM_LF)); //confirm
-    sp4C = langGet(getStringID(LOPTIONS, OPTION_STR_26_CANCEL_LF)); //cancel
+    sp54 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_24_ABORT_LF)); //abort:
+    sp50 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_25_CONFIRM_LF)); //confirm
+    sp4C = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_26_CANCEL_LF)); //cancel
     sp7C = 0x51;
 
     sp78 = (j_text_trigger ? 0xF : 0) + 0xBD;
@@ -1970,8 +1974,8 @@ Gfx *draw_abort_cancel_confirm(Gfx *gdl)
 Gfx *draw_text_mission_status(Gfx *gdl)
 {
 #ifdef PORT
-    u8 *txtptr_1;
-    u8 *txtptr_2;
+    char *txtptr_1;
+    char *txtptr_2;
 #else
     s32 txtptr_1;
     s32 txtptr_2;
@@ -1985,19 +1989,19 @@ Gfx *draw_text_mission_status(Gfx *gdl)
     s32 sp4C;
     s32 joffset;
 
-    txtptr_1 = langGet(getStringID(LOPTIONS, OPTION_STR_27_MISSIONSTATUS_LF)); //mission status:
+    txtptr_1 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_27_MISSIONSTATUS_LF)); //mission status:
     pFontFile = ptrFontBankGothic;
     pFontChars = ptrFontBankGothicChars;
 
     if (objectiveIsAllComplete())
     {
         sp4C = 0xFF00B0;
-        txtptr_2 = langGet(getStringID(LOPTIONS, OPTION_STR_28_COMPLETE_LF)); //complete
+        txtptr_2 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_28_COMPLETE_LF)); //complete
     }
     else
     {
         sp4C = D_80040AF4;
-        txtptr_2 = langGet(getStringID(LOPTIONS, OPTION_STR_29_INCOMPLETE_LF)); //incomplete
+        txtptr_2 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_29_INCOMPLETE_LF)); //incomplete
     }
 
     gdl = microcode_constructor(gdl);
@@ -2033,7 +2037,7 @@ Gfx *empty_draw_function(Gfx *gdl) {
 Gfx *draw_text_q_watch_v201_beta(Gfx *gdl)
 {
 #ifdef PORT
-    u8 *txtptr;
+    char *txtptr;
 #else
     s32 txtptr;
 #endif
@@ -2045,7 +2049,7 @@ Gfx *draw_text_q_watch_v201_beta(Gfx *gdl)
     struct fontchar *pFontChars;
     s32 joffset;
 
-    txtptr = langGet(getStringID(LOPTIONS, OPTION_STR_2B_QWATCHVERSION_LF)); //q watch v2.01 beta
+    txtptr = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2B_QWATCHVERSION_LF)); //q watch v2.01 beta
 
     if (j_text_trigger)
     {
@@ -2117,8 +2121,8 @@ Gfx* draw_current_hand_item_and_ammo(Gfx* gdl) {
     f32 sp60;
     f32 rotx;
     f32 roty;
-    s8* text;
-    s8* text2;
+    char *text;
+    char *text2;
     struct GunModelFileRecord *gitem;
 
     sp114 = dynAllocateMatrix();
@@ -2136,8 +2140,8 @@ Gfx* draw_current_hand_item_and_ammo(Gfx* gdl) {
     sp60 = bondinvGetDifferent45AngleForIndex(temp_v0);
     rotx = bondinvGetXrotWatchForIndex(temp_v0);
     roty = bondinvGetYrotWatchForIndex(temp_v0);
-    text = bondinvGetFirstTitlebyIndex(temp_v0);
-    text2 = bondinvGetSecondTitlebyIndex(temp_v0);
+    text = (char *)bondinvGetFirstTitlebyIndex(temp_v0);
+    text2 = (char *)bondinvGetSecondTitlebyIndex(temp_v0);
 
     if (get_debug_gunwatchpos_flag() != 0) {
         gitem = &gitem_structs[getCurrentPlayerWeaponId(0)];
@@ -2281,7 +2285,6 @@ extern f32 bondinvGetVoffsetForIndex(s32 index);
 extern f32 bondinvGetDepthForIndex(s32 index);
 extern f32 bondinvGetXrotWatchForIndex(s32 index);
 extern f32 bondinvGetYrotWatchForIndex(s32 index);
-extern u16 *bondinvGetNameByIndex(s32 index);
 
 
 Gfx *draw_watch_inventory_page(Gfx *gdl, Mtx *param_2)
@@ -2422,7 +2425,7 @@ Gfx *draw_watch_inventory_page(Gfx *gdl, Mtx *param_2)
 
             for (i = 0; i < bondinvCountTotalItemsInInv(); i++)
             {
-                char *name = bondinvGetNameByIndex(i);
+                char *name = (char *)bondinvGetNameByIndex(i);
 
                 strcat(string_builder_allocation, name);
             }
@@ -2462,7 +2465,7 @@ Gfx *draw_watch_inventory_page(Gfx *gdl, Mtx *param_2)
 
                 pFontFile = ptrFontBankGothic;
                 pFontChars = ptrFontBankGothicChars;
-                invItemName = bondinvGetNameByIndex(g_curWatchItemIndex);
+                invItemName = (char *)bondinvGetNameByIndex(g_curWatchItemIndex);
 
                 sprintf(formattedString, "%d, %d\n%d %f\n", watch_inventory_text_y, watch_inventory_text_target_y, g_curWatchItemIndex, (f64) watch_inventory_cursor_pos);
 
@@ -2512,7 +2515,7 @@ Gfx *unused_draw_watch_inventory_page(Gfx *gdl, Mtx *param_2) {
     struct font *pFontFile;
     struct fontchar *pFontChars;
 
-    u16 *long_name;
+    char *long_name;
     s32 temp_2;
 
     sp58 = 0;
@@ -2521,7 +2524,7 @@ Gfx *unused_draw_watch_inventory_page(Gfx *gdl, Mtx *param_2) {
     pFontFile = ptrFontBankGothic;
     pFontChars = ptrFontBankGothicChars;
 
-    long_name = bondinvGetLongNameByIndex(g_curWatchItemIndex);
+    long_name = (char *)bondinvGetLongNameByIndex(g_curWatchItemIndex);
     gdl = draw_background_health_and_armor(gdl, param_2, 0);
 
     if (check_watch_page_transistion_running() != 1)
@@ -2957,7 +2960,7 @@ Gfx *draw_controller_style_text(Gfx *gdl)
     struct font *font;
     struct fontchar *chars;
     s32 tmp;
-    u8 *selectedtext;
+    char *selectedtext;
 
     font = ptrFontBankGothic;
     chars = ptrFontBankGothicChars;
@@ -2972,7 +2975,7 @@ Gfx *draw_controller_style_text(Gfx *gdl)
 
         do
         {
-            strcat(text, langGet(*stringids));
+            strcat(text, OPTIONS_TEXT(*stringids));
             i++;
             stringids += 10;
             if (i);
@@ -3000,7 +3003,7 @@ Gfx *draw_controller_style_text(Gfx *gdl)
 
     if (g_CurrentPlayer->has_set_control_type_data != 0)
     {
-        selectedtext = langGet(*(u16 *)((u8 *) game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20)));
+        selectedtext = OPTIONS_TEXT(*(u16 *)((u8 *) game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20)));
 
         textMeasure(&textheight, &textwidth, selectedtext, chars, font, (j_text_trigger) ? (0xe) : (0xa));
 
@@ -3016,7 +3019,7 @@ Gfx *draw_controller_style_text(Gfx *gdl)
 selected_y_set:
         y = 0x1a;
 
-        selectedtext = langGet(*(u16 *)((u8 *) game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20)));
+        selectedtext = OPTIONS_TEXT(*(u16 *)((u8 *) game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20)));
 
         gdl = textRender(gdl, &x, &y, selectedtext, chars, font, 0xa0ffa0f0, textwidth, 0x64, 0, (j_text_trigger) ? (0xe) : (0xa));
     }
@@ -3027,18 +3030,18 @@ selected_y_set:
  
 Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
 {
-    u8 *dirtext1;
-    u8 *dirtext2;
+    char *dirtext1;
+    char *dirtext2;
  
     if (game_options_entries[0].current_value == 1)
     {
-        dirtext1 = langGet(getStringID(LOPTIONS, OPTION_STR_2D_UP_LF));
-        dirtext2 = langGet(getStringID(LOPTIONS, OPTION_STR_2C_DOWN_LF));
+        dirtext1 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2D_UP_LF));
+        dirtext2 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2C_DOWN_LF));
     }
     else
     {
-        dirtext1 = langGet(getStringID(LOPTIONS, OPTION_STR_2C_DOWN_LF));
-        dirtext2 = langGet(getStringID(LOPTIONS, OPTION_STR_2D_UP_LF));
+        dirtext1 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2C_DOWN_LF));
+        dirtext2 = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2D_UP_LF));
     }
  
     {
@@ -3051,8 +3054,8 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
         char strPlus[] = "(+)\n";
         char strS[] = "(S)\n";
         char str3D[] = "(3D)\n";
-        u8 *ctext;
-        u8 *dpadtext;
+        char *ctext;
+        char *dpadtext;
         s32 buttons;
         s32 showmovesight;
         volatile unsigned int y;
@@ -3063,7 +3066,7 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
  
         if (joyGetButtons(PLAYER_1, L_TRIG))
         {
-            gdl = draw_options_labels(gdl, 0x32, OPTLABELS_ROW1_Y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 8)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0);
+            gdl = draw_options_labels(gdl, 0x32, OPTLABELS_ROW1_Y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 8)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0);
  
             if (*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 8) == getStringID(LOPTIONS, OPTION_STR_01_AIM_LF))
             {
@@ -3072,14 +3075,14 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
         }
         else
         {
-            gdl = draw_options_labels(gdl, 0x32, OPTLABELS_ROW1_Y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 8)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
+            gdl = draw_options_labels(gdl, 0x32, OPTLABELS_ROW1_Y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 8)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
         }
  
         y = OPTLABELS_ROW2_Y;
  
         if (controller_options_index != 1 || !watch_item_is_actively_selected || !joyGetButtons(PLAYER_1, U_JPAD | D_JPAD | L_JPAD | R_JPAD))
         {
-            gdl = draw_options_labels(gdl, 0x32, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 14)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
+            gdl = draw_options_labels(gdl, 0x32, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 14)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
         }
         else
         {
@@ -3087,7 +3090,7 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
             {
                 if (*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 14) == getStringID(LOPTIONS, OPTION_STR_05_MOVE_LF))
                 {
-                    dpadtext = langGet(getStringID(LOPTIONS, OPTION_STR_30_FORWARD_LF));
+                    dpadtext = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_30_FORWARD_LF));
                 }
                 else
                 {
@@ -3098,7 +3101,7 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
             {
                 if (*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 14) == getStringID(LOPTIONS, OPTION_STR_05_MOVE_LF))
                 {
-                    dpadtext = langGet(getStringID(LOPTIONS, OPTION_STR_31_BACK_LF));
+                    dpadtext = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_31_BACK_LF));
                 }
                 else
                 {
@@ -3107,23 +3110,23 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
             }
             else if (joyGetButtons(PLAYER_1, L_JPAD))
             {
-                dpadtext = langGet(getStringID(LOPTIONS, OPTION_STR_2F_SIDESTEP_LF));
+                dpadtext = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2F_SIDESTEP_LF));
             }
             else if (joyGetButtons(PLAYER_1, R_JPAD))
             {
-                dpadtext = langGet(getStringID(LOPTIONS, OPTION_STR_2E_SIDESTEP_LF));
+                dpadtext = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2E_SIDESTEP_LF));
             }
  
             gdl = draw_options_labels(gdl, 0x32, y, dpadtext, -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0);
         }
  
         y += OPTLABELS_ROW_PITCH;
-        gdl = draw_options_labels(gdl, 0x32, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 16)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
+        gdl = draw_options_labels(gdl, 0x32, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 16)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
         y += OPTLABELS_ROW_PITCH;
  
         if (joyGetButtons(PLAYER_1, Z_TRIG))
         {
-            gdl = draw_options_labels(gdl, 0x32, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 6)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0);
+            gdl = draw_options_labels(gdl, 0x32, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 6)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0);
  
             if (*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 6) == getStringID(LOPTIONS, OPTION_STR_01_AIM_LF))
             {
@@ -3132,14 +3135,14 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
         }
         else
         {
-            gdl = draw_options_labels(gdl, 0x32, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 6)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
+            gdl = draw_options_labels(gdl, 0x32, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 6)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
         }
  
         y -= OPTLABELS_COL_RET;
  
         if (joyGetButtons(PLAYER_1, R_TRIG))
         {
-            gdl = draw_options_labels(gdl, 0x10e, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 10)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0x10e, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 10)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
  
             if (*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 10) == getStringID(LOPTIONS, OPTION_STR_01_AIM_LF))
             {
@@ -3148,14 +3151,14 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
         }
         else
         {
-            gdl = draw_options_labels(gdl, 0x10e, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 10)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0x10e, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 10)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
         }
  
         y += OPTLABELS_ROW_PITCH;
  
         if (controller_options_index != 1 || !watch_item_is_actively_selected || !joyGetButtons(PLAYER_1, U_CBUTTONS | D_CBUTTONS | L_CBUTTONS | R_CBUTTONS))
         {
-            gdl = draw_options_labels(gdl, 0x10e, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 12)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0x10e, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 12)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
         }
         else
         {
@@ -3168,7 +3171,7 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
                 {
                     if (*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 12) == getStringID(LOPTIONS, OPTION_STR_05_MOVE_LF))
                     {
-                        ctext = langGet(getStringID(LOPTIONS, OPTION_STR_30_FORWARD_LF));
+                        ctext = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_30_FORWARD_LF));
                     }
                     else
                     {
@@ -3179,7 +3182,7 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
                 {
                     if (*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 12) == getStringID(LOPTIONS, OPTION_STR_05_MOVE_LF))
                     {
-                        ctext = langGet(getStringID(LOPTIONS, OPTION_STR_31_BACK_LF));
+                        ctext = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_31_BACK_LF));
                     }
                     else
                     {
@@ -3188,18 +3191,18 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
                 }
                 else if (joyGetButtons(PLAYER_1, L_CBUTTONS))
                 {
-                    ctext = langGet(getStringID(LOPTIONS, OPTION_STR_2F_SIDESTEP_LF));
+                    ctext = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2F_SIDESTEP_LF));
                 }
                 else if (joyGetButtons(PLAYER_1, R_CBUTTONS))
                 {
-                    ctext = langGet(getStringID(LOPTIONS, OPTION_STR_2E_SIDESTEP_LF));
+                    ctext = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_2E_SIDESTEP_LF));
                 }
  
                 gdl = draw_options_labels(gdl, 0x10e, y, ctext, -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
             }
             else
             {
-                gdl = draw_options_labels(gdl, 0x10e, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 12)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
+                gdl = draw_options_labels(gdl, 0x10e, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 12)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
             }
         }
  
@@ -3207,31 +3210,31 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
  
         if (joyGetButtons(PLAYER_1, B_BUTTON))
         {
-            gdl = draw_options_labels(gdl, 0x10e, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 4)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0x10e, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 4)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
         }
         else
         {
-            gdl = draw_options_labels(gdl, 0x10e, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 4)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0x10e, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 4)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
         }
  
         y += OPTLABELS_ROW_PITCH;
  
         if (joyGetButtons(PLAYER_1, A_BUTTON))
         {
-            gdl = draw_options_labels(gdl, 0x10e, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 2)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0x10e, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 2)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
         }
         else
         {
-            gdl = draw_options_labels(gdl, 0x10e, y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 2)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0x10e, y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 2)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
         }
  
         if (showmovesight)
         {
-            gdl = draw_options_labels(gdl, 0xfa, OPTLABELS_HINT_Y, langGet(getStringID(LOPTIONS, OPTION_STR_08_MOVESIGHT_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0xfa, OPTLABELS_HINT_Y, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_08_MOVESIGHT_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1);
         }
         else
         {
-            gdl = draw_options_labels(gdl, 0xfa, OPTLABELS_HINT_Y, langGet(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 18)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
+            gdl = draw_options_labels(gdl, 0xfa, OPTLABELS_HINT_Y, OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 18)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
         }
  
         return gdl;
@@ -3241,35 +3244,35 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
 
 Gfx *display_text_buttons_dual_control(Gfx *gdl)
 {
-    u8 *textptr_aux;
+    char *textptr_aux;
 
     gdl = microcode_constructor(gdl);
 
     if (joyGetButtons(PLAYER_1, A_BUTTON))
     {
-        gdl = draw_options_labels(gdl, 0x5A, YOFFSET_WEAPTEXT, langGet(getStringID(LOPTIONS, OPTION_STR_03_WEAPON_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0); //weapon
+        gdl = draw_options_labels(gdl, 0x5A, YOFFSET_WEAPTEXT, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_03_WEAPON_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0); //weapon
     }
     else
     {
-        gdl = draw_options_labels(gdl, 0x5A, YOFFSET_WEAPTEXT, langGet(getStringID(LOPTIONS, OPTION_STR_03_WEAPON_LF)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0); //weapon
+        gdl = draw_options_labels(gdl, 0x5A, YOFFSET_WEAPTEXT, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_03_WEAPON_LF)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0); //weapon
     }
 
     if (joyGetButtons(PLAYER_1, B_BUTTON))
     {
-        gdl = draw_options_labels(gdl, 0x5A, YOFFSET_ACTIONTEXT, langGet(getStringID(LOPTIONS, OPTION_STR_02_ACTION_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0); //action
+        gdl = draw_options_labels(gdl, 0x5A, YOFFSET_ACTIONTEXT, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_02_ACTION_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0); //action
     }
     else
     {
-        gdl = draw_options_labels(gdl, 0x5A, YOFFSET_ACTIONTEXT, langGet(getStringID(LOPTIONS, OPTION_STR_02_ACTION_LF)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0); //action
+        gdl = draw_options_labels(gdl, 0x5A, YOFFSET_ACTIONTEXT, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_02_ACTION_LF)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0); //action
     }
 
     if ((g_CurrentPlayer->cur_player_control_type_0 == CONTROLLER_CONFIG_PLENTY) || (g_CurrentPlayer->cur_player_control_type_0 == CONTROLLER_CONFIG_GALORE))
     {
-        textptr_aux = langGet(getStringID(LOPTIONS, OPTION_STR_00_FIRE_LF)); //fire
+        textptr_aux = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_00_FIRE_LF)); //fire
     }
     else
     {
-        textptr_aux = langGet(getStringID(LOPTIONS, OPTION_STR_01_AIM_LF)); //aim
+        textptr_aux = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_01_AIM_LF)); //aim
     }
 
     if (joyGetButtons(PLAYER_1, Z_TRIG))
@@ -3283,40 +3286,40 @@ Gfx *display_text_buttons_dual_control(Gfx *gdl)
 
     if ((g_CurrentPlayer->cur_player_control_type_0 == CONTROLLER_CONFIG_PLENTY) || (g_CurrentPlayer->cur_player_control_type_0 == CONTROLLER_CONFIG_DOMINO))
     {
-        textptr_aux = langGet(getStringID(LOPTIONS, OPTION_STR_05_MOVE_LF)); //move
+        textptr_aux = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_05_MOVE_LF)); //move
     }
     else
     {
-        textptr_aux = langGet(getStringID(LOPTIONS, OPTION_STR_06_LOOK_LF)); //look
+        textptr_aux = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_06_LOOK_LF)); //look
     }
 
     gdl = draw_options_labels(gdl, 0x5A, YOFFSET_4, textptr_aux, 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 0);
 
     if (joyGetButtons(1, A_BUTTON))
     {
-        gdl = draw_options_labels(gdl, 0xE6, YOFFSET_WEAPTEXT, langGet(getStringID(LOPTIONS, OPTION_STR_03_WEAPON_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1); //weapon
+        gdl = draw_options_labels(gdl, 0xE6, YOFFSET_WEAPTEXT, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_03_WEAPON_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1); //weapon
     }
     else
     {
-        gdl = draw_options_labels(gdl, 0xE6, YOFFSET_WEAPTEXT, langGet(getStringID(LOPTIONS, OPTION_STR_03_WEAPON_LF)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1); //weapon
+        gdl = draw_options_labels(gdl, 0xE6, YOFFSET_WEAPTEXT, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_03_WEAPON_LF)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1); //weapon
     }
 
     if (joyGetButtons(1, B_BUTTON))
     {
-        gdl = draw_options_labels(gdl, 0xE6, YOFFSET_ACTIONTEXT, langGet(getStringID(LOPTIONS, OPTION_STR_02_ACTION_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1); //action
+        gdl = draw_options_labels(gdl, 0xE6, YOFFSET_ACTIONTEXT, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_02_ACTION_LF)), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 1); //action
     }
     else
     {
-        gdl = draw_options_labels(gdl, 0xE6, YOFFSET_ACTIONTEXT, langGet(getStringID(LOPTIONS, OPTION_STR_02_ACTION_LF)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1); //action
+        gdl = draw_options_labels(gdl, 0xE6, YOFFSET_ACTIONTEXT, OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_02_ACTION_LF)), 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1); //action
     }
 
     if ((g_CurrentPlayer->cur_player_control_type_0 == CONTROLLER_CONFIG_PLENTY) || (g_CurrentPlayer->cur_player_control_type_0 == CONTROLLER_CONFIG_GALORE))
     {
-        textptr_aux = langGet(getStringID(LOPTIONS, OPTION_STR_01_AIM_LF)); //aim
+        textptr_aux = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_01_AIM_LF)); //aim
     }
     else
     {
-        textptr_aux = langGet(getStringID(LOPTIONS, OPTION_STR_00_FIRE_LF)); //fire
+        textptr_aux = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_00_FIRE_LF)); //fire
     }
 
     if (joyGetButtons(1, Z_TRIG))
@@ -3330,11 +3333,11 @@ Gfx *display_text_buttons_dual_control(Gfx *gdl)
 
     if ((g_CurrentPlayer->cur_player_control_type_0 == CONTROLLER_CONFIG_PLENTY) || (g_CurrentPlayer->cur_player_control_type_0 == CONTROLLER_CONFIG_DOMINO))
     {
-        textptr_aux = langGet(getStringID(LOPTIONS, OPTION_STR_06_LOOK_LF)); //look
+        textptr_aux = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_06_LOOK_LF)); //look
     }
     else
     {
-        textptr_aux = langGet(getStringID(LOPTIONS, OPTION_STR_05_MOVE_LF)); //move
+        textptr_aux = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_05_MOVE_LF)); //move
     }
 
     gdl = draw_options_labels(gdl, 0xE6, YOFFSET_4, textptr_aux, 0xAA00B0, 0, -1, 0, 0, 0x3000B0, 1);
@@ -3524,7 +3527,7 @@ u32 return_arg0_7F0AB4B0(u32 uParm1) {
 
 Gfx *draw_watch_control_options_page(Gfx *gdl, Mtx *param_2) {
     s32 phi_s1;
-    u16 *textptr;
+    char *textptr;
     s32 sp5C;
     s32 sp58;
     s32 sp54;
@@ -3541,7 +3544,7 @@ Gfx *draw_watch_control_options_page(Gfx *gdl, Mtx *param_2) {
         pFontChars = ptrFontBankGothicChars;
 
         gdl = microcode_constructor(gdl);
-        textptr = langGet(getStringID(LOPTIONS, OPTION_STR_32_CONTROLSTYLE_LF)); //control style
+        textptr = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_32_CONTROLSTYLE_LF)); //control style
 
         sp5C = XOFFSET_1;
         sp58 = 0x1A;
@@ -3566,13 +3569,13 @@ Gfx *draw_watch_control_options_page(Gfx *gdl, Mtx *param_2) {
         }
 
         gdl = draw_controller_style_text(gdl);
-        textptr = langGet(getStringID(LOPTIONS, OPTION_STR_33_CONTROLLER_LF)); //controller;
+        textptr = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_33_CONTROLLER_LF)); //controller;
 
         phi_s1 = 0xFF00B0;
 
         if (controllerCheckDualControllerTypesAllowed())
         {
-            textptr = langGet(getStringID(LOPTIONS, OPTION_STR_34_CONTROLLERS_LF)); //controllers;
+            textptr = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_34_CONTROLLERS_LF)); //controllers;
         }
         sp5C = XOFFSET_1;
         sp58 = 0x2B;
@@ -3777,12 +3780,12 @@ after_state:
 
         drawentry = entry;
 
-        gdl = draw_options_labels(gdl, x1, y, langGet(drawentry->text[1]), colour1, 0, -1, 1, 0, 0x3000B0, 0); // Draw text of option's first value e.g. "Full" for the Screen option.
-        gdl = draw_options_labels(gdl, x2, y, langGet(drawentry->text[2]), colour2, 0, -1, 1, 0, 0x3000B0, 0); // Draw text of option's second value e.g. "Wide" for the Screen option.
+        gdl = draw_options_labels(gdl, x1, y, OPTIONS_TEXT(drawentry->text[1]), colour1, 0, -1, 1, 0, 0x3000B0, 0); // Draw text of option's first value e.g. "Full" for the Screen option.
+        gdl = draw_options_labels(gdl, x2, y, OPTIONS_TEXT(drawentry->text[2]), colour2, 0, -1, 1, 0, 0x3000B0, 0); // Draw text of option's second value e.g. "Wide" for the Screen option.
 
         if (drawentry->text[3])
         {
-            gdl = draw_options_labels(gdl, 0x10E, y, langGet(drawentry->text[3]), colour3, 0, -1, 1, 0, 0x3000B0, 0); // Draw text of option's third value e.g. "Cinema" for the Screen option.
+            gdl = draw_options_labels(gdl, 0x10E, y, OPTIONS_TEXT(drawentry->text[3]), colour3, 0, -1, 1, 0, 0x3000B0, 0); // Draw text of option's third value e.g. "Cinema" for the Screen option.
         }
 
     return gdl;
@@ -3803,18 +3806,18 @@ Gfx *draw_toggle_options(Gfx *gdl)
             // Draw option that is highlighted and selected, if there is one.
             if (watch_item_is_actively_selected)
             {
-                gdl = draw_toggle_option_values(draw_options_labels(gdl, XOFFSET_1, y_offset, langGet(game_options_entries[i].text[0]), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0), y_offset, i, 2);
+                gdl = draw_toggle_option_values(draw_options_labels(gdl, XOFFSET_1, y_offset, OPTIONS_TEXT(game_options_entries[i].text[0]), -1, 1, 0x7000A0, 0, 0, 0x3000B0, 0), y_offset, i, 2);
             }
             // Draw option that is highlighted but not selected, if there is one.
             else
             {
-                gdl = draw_toggle_option_values(draw_options_labels(gdl, XOFFSET_1, y_offset, langGet(game_options_entries[i].text[0]), 0xA0FFA0F0, 0, -1, 0, 0, 0x3000B0, 0), y_offset, i, 1);
+                gdl = draw_toggle_option_values(draw_options_labels(gdl, XOFFSET_1, y_offset, OPTIONS_TEXT(game_options_entries[i].text[0]), 0xA0FFA0F0, 0, -1, 0, 0, 0x3000B0, 0), y_offset, i, 1);
             }
         }
         // Draw the options that are neither highlighted nor selected.
         else
         {
-            gdl = draw_toggle_option_values(draw_options_labels(gdl, XOFFSET_1, y_offset, langGet(game_options_entries[i].text[0]), 0xFF00B0, 0, -1, 0, 0, 0x3000B0, 0), y_offset, i, 0);
+            gdl = draw_toggle_option_values(draw_options_labels(gdl, XOFFSET_1, y_offset, OPTIONS_TEXT(game_options_entries[i].text[0]), 0xFF00B0, 0, -1, 0, 0, 0x3000B0, 0), y_offset, i, 0);
         }
 
     }
@@ -3825,7 +3828,7 @@ Gfx *draw_toggle_options(Gfx *gdl)
 
 Gfx *draw_watch_game_options_page(Gfx *gdl, Mtx *param_2) {
     s32 sp5C;
-    u16 *textptr;
+    char *textptr;
     s32 sp54;
     s32 sp50;
     s32 sp4C;
@@ -3844,7 +3847,7 @@ Gfx *draw_watch_game_options_page(Gfx *gdl, Mtx *param_2) {
         pFontChars = ptrFontBankGothicChars;
         gdl = microcode_constructor(gdl);
 
-        textptr = langGet(getStringID(LOPTIONS, OPTION_STR_35_MUSIC_LF)); //music
+        textptr = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_35_MUSIC_LF)); //music
 
         sp54 = XOFFSET_1;
         sp50 = YOFFSET_8;
@@ -3872,7 +3875,7 @@ Gfx *draw_watch_game_options_page(Gfx *gdl, Mtx *param_2) {
         }
 
         sp5C = 0xFF00B0;
-        textptr = langGet(getStringID(LOPTIONS, OPTION_STR_36_FX_LF)); //fx
+        textptr = OPTIONS_TEXT(getStringID(LOPTIONS, OPTION_STR_36_FX_LF)); //fx
 
         sp54 = XOFFSET_1;
         sp50 = YOFFSET_9;
@@ -4002,9 +4005,9 @@ Gfx *draw_watch_mission_briefing_page(Gfx *gdl, Mtx *param_2)
         s32 objY;
         s32 objX;
 
-        completeText = langGet(0xac28);
-        incompleteText = langGet(0xac29);
-        failedText = langGet(0xac37);
+        completeText = OPTIONS_TEXT(0xac28);
+        incompleteText = OPTIONS_TEXT(0xac29);
+        failedText = OPTIONS_TEXT(0xac37);
         titleText = get_ptr_text_for_watch_breifing_page(BRIEFING_TITLE);
 
 #if defined(VERSION_EU)
@@ -4027,25 +4030,25 @@ Gfx *draw_watch_mission_briefing_page(Gfx *gdl, Mtx *param_2)
         switch (mission_brief_index)
         {
             case BRIEF_INDEX_BACKGROUND:
-                sprintf(pageTitle, langGet(0xac38));
+                sprintf(pageTitle, OPTIONS_TEXT(0xac38));
                 textWrap(0xd2, get_ptr_text_for_watch_breifing_page(BRIEFING_OVERVIEW), wrappedText, chars, font);
                 mission_brief_background_navigation();
                 break;
 
             case BRIEF_INDEX_M:
-                sprintf(pageTitle, langGet(0xac39));
+                sprintf(pageTitle, OPTIONS_TEXT(0xac39));
                 textWrap(0xd2, get_ptr_text_for_watch_breifing_page(BRIEFING_M), wrappedText, chars, font);
                 mission_brief_m_briefing_navigation();
                 break;
 
             case BRIEF_INDEX_Q:
-                sprintf(pageTitle, langGet(0xac3a));
+                sprintf(pageTitle, OPTIONS_TEXT(0xac3a));
                 textWrap(0xd2, get_ptr_text_for_watch_breifing_page(BRIEFING_Q), wrappedText, chars, font);
                 mission_brief_q_branch_navigation();
                 break;
 
             case BRIEF_INDEX_MONEYPENNY:
-                sprintf(pageTitle, langGet(0xac3b));
+                sprintf(pageTitle, OPTIONS_TEXT(0xac3b));
                 textWrap(0xd2, get_ptr_text_for_watch_breifing_page(BRIEFING_MONEYPENNY), wrappedText, chars, font);
                 mission_brief_moneypenny_navigation();
                 break;
@@ -4070,7 +4073,7 @@ Gfx *draw_watch_mission_briefing_page(Gfx *gdl, Mtx *param_2)
                 visibleObjectiveIndex = 0;
 
                 setTextOverlapCorrection((j_text_trigger) ? (1) : (5));
-                sprintf(pageTitle, langGet(0xac3c));
+                sprintf(pageTitle, OPTIONS_TEXT(0xac3c));
 
                 for (i = 0; i < objectiveGetCount(); i++)
                 {
