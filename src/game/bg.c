@@ -20,6 +20,9 @@
 #include "stan.h"
 #include "explosion.h"
 #include "bgroomtrans.h"
+#ifdef PORT
+#include "system.h"
+#endif
 
 
 #define BG_STACK_SIZE 20
