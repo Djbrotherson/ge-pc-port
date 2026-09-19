@@ -28,6 +28,84 @@ extern resource_lookup_data_entry resource_lookup_data_array[]; /* ob.c */
 */
 void sub_GAME_7F0762E0(ModelFileHeader *objheader, u8 *name, u8 *dst, struct texpool *buffer)
 {
+#ifdef PORT
+    ModelNode *node = NULL;
+    Gfx *gdl = NULL;
+    s32 romremaining;
+    s32 pcremaining;
+    s32 filenum;
+    u8 *filebase;
+
+    filenum = fileGetIndex((char *)name);
+    romremaining = get_rom_remaining_buffer_for_index(filenum);
+    pcremaining = get_pc_remaining_buffer_for_index(filenum);
+    filebase = (u8 *)objheader->Switches;
+
+    /*
+     * Model display-list fields intentionally remain 0x05xxxxxx segmented
+     * tokens after node promotion. Keep only those tokens 32-bit; all
+     * arithmetic involving the loaded model buffer stays native-width.
+     *
+     * The original decomp's pointer/int algebra simplifies to:
+     *   delta     = romremaining - pcremaining
+     *   tailbytes = pcremaining - first_gdl_offset
+     */
+    modelIterateDisplayLists(objheader, &node, &gdl);
+
+    if (gdl != NULL)
+    {
+        u32 firsttoken = (u32)(uintptr_t)gdl;
+        u32 firstoff = firsttoken & 0x00ffffffu;
+        s32 delta = romremaining - pcremaining;
+        s32 tailbytes = pcremaining - (s32)firstoff;
+        u32 replacementgdl = firsttoken;
+
+        texCopyGdls((Gfx *)(filebase + firstoff),
+                    (Gfx *)(filebase + firstoff + delta),
+                    tailbytes);
+
+        texLoadFromModelFileHeader(objheader, buffer);
+
+        if (node != NULL)
+        {
+            do
+            {
+                ModelNode *curnode = node;
+                Gfx *curgdl = gdl;
+                u32 curtoken = (u32)(uintptr_t)curgdl;
+                u32 curoff = curtoken & 0x00ffffffu;
+                s32 gdllen;
+
+                modelIterateDisplayLists(objheader, &node, &gdl);
+
+                if (gdl != NULL)
+                {
+                    u32 nexttoken = (u32)(uintptr_t)gdl;
+                    gdllen = (s32)(nexttoken - curtoken);
+                }
+                else
+                {
+                    gdllen = pcremaining - (s32)curoff;
+                }
+
+                modelNodeReplaceGdl((uintptr_t)objheader, curnode, curgdl,
+                                    (Gfx *)(uintptr_t)replacementgdl);
+
+                replacementgdl += (u32)texLoadFromGdl(
+                    (Gfx *)(filebase + curoff + delta),
+                    gdllen,
+                    (Gfx *)(filebase + (replacementgdl & 0x00ffffffu)),
+                    buffer);
+            }
+            while (node != NULL);
+        }
+
+        {
+            s32 newsize = (s32)(replacementgdl & 0x00ffffffu);
+            fileSetSize(filenum, filebase, (newsize + 0xf) & ~0xf, dst == 0);
+        }
+    }
+#else
     ModelNode *node;
     s32 romremaining;
     Gfx *gdl;
@@ -50,12 +128,12 @@ void sub_GAME_7F0762E0(ModelFileHeader *objheader, u8 *name, u8 *dst, struct tex
     if (gdl != 0)
     {
         name = (u8 *) ((pcremaining - ((s32) (((u8 *) objheader->Switches) + (((u32) gdl) & 0x00ffffff)))) + ((s32) filedata));
-        
+
         /* The signed lvalue cast is required for the compiler to choose the target registers. */
         replacementgdl = (u32)*(s32 *)&gdl;
-        
+
         delta = ((s32) ((romremaining + filedata) - (s32) name)) - ((s32) (((u8 *) objheader->Switches) + (((u32) gdl) & 0x00ffffff)));
-        
+
         texCopyGdls((Gfx *) (((u8 *) objheader->Switches) + (((u32) gdl) & 0x00ffffff)), (Gfx *) ((romremaining + filedata) - (s32) name), (s32) name);
 
         texLoadFromModelFileHeader(objheader, buffer);
@@ -67,7 +145,7 @@ void sub_GAME_7F0762E0(ModelFileHeader *objheader, u8 *name, u8 *dst, struct tex
                 curnode = node;
                 curgdl = gdl;
                 modelIterateDisplayLists(objheader, &node, &gdl);
-                
+
                 if (gdl != 0)
                 {
                     name = (u8 *) (((s32) gdl) - ((s32) curgdl));
@@ -76,11 +154,11 @@ void sub_GAME_7F0762E0(ModelFileHeader *objheader, u8 *name, u8 *dst, struct tex
                 {
                     name = (u8 *) ((((s32) (filedata + pcremaining)) - ((s32) objheader->Switches)) - (((u32) curgdl) & 0x00ffffff));
                 }
-                
+
                 modelNodeReplaceGdl((u32) objheader, curnode, curgdl, (Gfx *) replacementgdl);
-                
+
                 replacementgdl += texLoadFromGdl( (Gfx *) ((((u8 *) objheader->Switches) + (((u32) curgdl) & 0x00ffffff)) + delta), (s32) name, (Gfx *) (((u8 *) objheader->Switches) + (replacementgdl & 0x00ffffff)), buffer);
-            } 
+            }
             while (node != 0);
         }
 
@@ -88,8 +166,8 @@ void sub_GAME_7F0762E0(ModelFileHeader *objheader, u8 *name, u8 *dst, struct tex
 
         fileSetSize(filenum, (u8 *) filedata, (((s32) name + 0xf) & (~0xf)), dst == 0);
     }
+#endif
 }
-
 
 /***
  * NTSC addres 0x7F0764A4.
