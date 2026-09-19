@@ -1198,7 +1198,13 @@ void bondviewCalcIntroSwirlCamera(s32 index, f32 time, coord3d *pos, coord3d *lo
         lookat->y = g_CurrentPlayer->field_3C8;
         lookat->z = g_CurrentPlayer->field_3CC;
 
+#ifdef PORT
+        /* SetupIntroSwirl remains a fixed 0x20-byte serialized record on PORT;
+         * advance the native base pointer without narrowing it to u32. */
+        swirl = (struct SetupIntroSwirl *)((u8 *)g_IntroSwirl + ((uintptr_t)(u32)index << 5));
+#else
         swirl = (void *)(((u32) g_IntroSwirl) + (u32) base);
+#endif
 
         if (!(swirl->bitflags & 4))
         {
@@ -8856,7 +8862,11 @@ void mp_respawn_handler(void)
             switch (intro_record->type) 
             {
                 case 0: // INTROTYPE_SPAWN
+                    #ifdef PORT
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroSpawn));
+#else
                     intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroSpawn));
+#endif
                     break;
                 case 1: // INTROTYPE_ITEM
                     if (check_ramrom_flags() == ((struct SetupIntroAmmo*)intro_record)->is_demo_playback) {
@@ -8866,28 +8876,56 @@ void mp_respawn_handler(void)
                             bondinvAddInvItem(((struct SetupIntroItem*)intro_record)->item_right);
                         }
                     }
+                    #ifdef PORT
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroItem));
+#else
                     intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroItem));
+#endif
                     break;
                 case 2: // INTROTYPE_AMMO
                     if (check_ramrom_flags() == ((struct SetupIntroAmmo*)intro_record)->is_demo_playback) {
                         give_cur_player_ammo(((struct SetupIntroAmmo*)intro_record)->ammo_type, ((struct SetupIntroAmmo*)intro_record)->ammo_amount);
                     }
+                    #ifdef PORT
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroAmmo));
+#else
                     intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroAmmo));
+#endif
                     break;
                 case 3: // INTROTYPE_SWIRL
+                    #ifdef PORT
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroSwirl));
+#else
                     intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroSwirl));
+#endif
                     break;
                 case 4: // INTROTYPE_ANIM
+                    #ifdef PORT
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroAnim));
+#else
                     intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroAnim));
+#endif
                     break;
                 case 5: // INTROTYPE_CUFF
+                    #ifdef PORT
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroCuff));
+#else
                     intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroCuff));
+#endif
                     break;
                 case 6: // INTROTYPE_CAMERA
+                    #ifdef PORT
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroCamera));
+#else
                     intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroCamera));
+#endif
                     break;
                 default: // INTROTYPE_WATCH, INTROTYPE_CREDITS
+                    #ifdef PORT
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroEmpty));
+#else
                     intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroEmpty));
+#endif
                     break;
             }
     #ifdef DEBUG
@@ -10915,7 +10953,11 @@ void sub_GAME_7F08BEEC(Mtxf *matrices, s32 count)
 
     for (i = 0, j = 0; i < count; i++, j += sizeof(Mtxf))
     {
+#ifdef PORT
+        matrix_4x4_multiply_homogeneous(currentPlayerGetViewToWorldMtxf(), matrices + i, &sp40);
+#else
         matrix_4x4_multiply_homogeneous(currentPlayerGetViewToWorldMtxf(), (Mtxf *)((u32)matrices + j), &sp40);
+#endif
 
         sp40.m[3][0] -= g_CurrentPlayer->current_model_pos.f[0];
         sp40.m[3][1] -= g_CurrentPlayer->current_model_pos.f[1];

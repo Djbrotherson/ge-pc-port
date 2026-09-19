@@ -186,7 +186,11 @@ s32 D_80036420 = 0;
 s32 g_bondviewForceDisarm = 0;
 
 //D:80036428
+#ifdef PORT
+uintptr_t resolution = 0;
+#else
 s32 resolution = 0;
+#endif
 //D:8003642C
 s32 cameraBufferToggle = 0;
 //D:80036430
