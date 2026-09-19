@@ -48,7 +48,7 @@ void init_load_objpos_table(void)
     g_ActivePropsTail = g_ActivePropsHead = NULL;
     g_OnScreenPropCount = 0;
     g_OnScreenPropList[0] = NULL;
-    g_LastOnScreenProp = (PropRecord *) g_OnScreenPropList;
+    g_LastOnScreenProp = g_OnScreenPropList;
     g_FreeProps = g_Props;
 
     for (i = 0; i < (MAX_PROPS - 1); i++)

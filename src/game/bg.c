@@ -1797,7 +1797,7 @@ s32 sub_GAME_7F0B5528(s32 portalnum, f32 arg1, coord3d *arg2)
         point->z = (&g_BgPortals[portalnum].offset_portal->point)[i].z;
 
         if (arg1 != 0.0f) {
-            sub_GAME_7F0B96CC(portalnum, (f32 *) &metric);
+            sub_GAME_7F0B96CC(portalnum, &metric);
 
             point->x += metric.normal.x * arg1;
             point->y += metric.normal.y * arg1;
@@ -5550,7 +5550,7 @@ void sub_GAME_7F0B95D8(s32 roomID)
 //#ifdef
 //assert(levelportals[p].p->n>=3)
 //#endif
-void sub_GAME_7F0B96CC(s32 portalnum, f32 *out)
+void sub_GAME_7F0B96CC(s32 portalnum, struct PortalMetric *out)
 {
     f32 sp6c[3];
     f32 sp60[3];
@@ -5570,20 +5570,20 @@ void sub_GAME_7F0B96CC(s32 portalnum, f32 *out)
         sp60[i] = (&g_BgPortals[portalnum].offset_portal->point)[2].f[i] - (&g_BgPortals[portalnum].offset_portal->point)[1].f[i];
     }
 
-    out[0] = (sp6c[1] * sp60[2]) - (sp6c[2] * sp60[1]);
-    out[1] = (sp6c[2] * sp60[0]) - (sp6c[0] * sp60[2]);
-    out[2] = (sp6c[0] * sp60[1]) - (sp6c[1] * sp60[0]);
+    out->normal.f[0] = (sp6c[1] * sp60[2]) - (sp6c[2] * sp60[1]);
+    out->normal.f[1] = (sp6c[2] * sp60[0]) - (sp6c[0] * sp60[2]);
+    out->normal.f[2] = (sp6c[0] * sp60[1]) - (sp6c[1] * sp60[0]);
 
-    dot = sqrtf(((out[0] * out[0]) + (out[1] * out[1])) + (out[2] * out[2]));
+    dot = sqrtf(((out->normal.f[0] * out->normal.f[0]) + (out->normal.f[1] * out->normal.f[1])) + (out->normal.f[2] * out->normal.f[2]));
 
     if (dot != 0.0f)
     {
         dot = 1.0f / dot;
     }
 
-    out[0] *= dot;
-    out[1] *= dot;
-    out[2] *= dot;
+    out->normal.f[0] *= dot;
+    out->normal.f[1] *= dot;
+    out->normal.f[2] *= dot;
 
     portal = g_BgPortals[portalnum].offset_portal;
 
@@ -5592,12 +5592,12 @@ void sub_GAME_7F0B96CC(s32 portalnum, f32 *out)
 
     for (i = 0; i < portal->numPoints; i++)
     {
-        min = (((((&portal->point)[i].f[0] * out[0]) + ((&portal->point)[i].f[1] * out[1])) + ((&portal->point)[i].f[2] * out[2])) < min) ? ((((&portal->point)[i].f[0] * out[0]) + ((&portal->point)[i].f[1] * out[1])) + ((&portal->point)[i].f[2] * out[2])) : (min);
-        max = (((((&portal->point)[i].f[0] * out[0]) + ((&portal->point)[i].f[1] * out[1])) + ((&portal->point)[i].f[2] * out[2])) > max) ? ((((&portal->point)[i].f[0] * out[0]) + ((&portal->point)[i].f[1] * out[1])) + ((&portal->point)[i].f[2] * out[2])) : (max);
+        min = (((((&portal->point)[i].f[0] * out->normal.f[0]) + ((&portal->point)[i].f[1] * out->normal.f[1])) + ((&portal->point)[i].f[2] * out->normal.f[2])) < min) ? ((((&portal->point)[i].f[0] * out->normal.f[0]) + ((&portal->point)[i].f[1] * out->normal.f[1])) + ((&portal->point)[i].f[2] * out->normal.f[2])) : (min);
+        max = (((((&portal->point)[i].f[0] * out->normal.f[0]) + ((&portal->point)[i].f[1] * out->normal.f[1])) + ((&portal->point)[i].f[2] * out->normal.f[2])) > max) ? ((((&portal->point)[i].f[0] * out->normal.f[0]) + ((&portal->point)[i].f[1] * out->normal.f[1])) + ((&portal->point)[i].f[2] * out->normal.f[2])) : (max);
     }
 
-    out[3] = min;
-    out[4] = max;
+    out->min = min;
+    out->max = max;
 
     if (dot);
 }
