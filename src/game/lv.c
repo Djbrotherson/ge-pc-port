@@ -585,20 +585,48 @@ void lvlStageLoad(s32 stage)
     R36S_LV_BREADCRUMB("lv:something_with_stage_objectives");
     something_with_stage_objectives();
     R36S_LV_BREADCRUMB("lv:post-something_with_stage_objectives");
+    R36S_LV_BREADCRUMB("lv:mpwatchUnpauseGame");
     mpwatchUnpauseGame();
+    R36S_LV_BREADCRUMB("lv:post-mpwatchUnpauseGame");
+    R36S_LV_BREADCRUMB("lv:vtxstore_reset");
     sub_GAME_7F09B820();
+    R36S_LV_BREADCRUMB("lv:post-vtxstore_reset");
+    R36S_LV_BREADCRUMB("lv:initModelHitEntryFreeList");
     initModelHitEntryFreeList();
+    R36S_LV_BREADCRUMB("lv:post-initModelHitEntryFreeList");
+    R36S_LV_BREADCRUMB("lv:modelmgrResetSlotCounts");
     modelmgrResetSlotCounts();
+    R36S_LV_BREADCRUMB("lv:post-modelmgrResetSlotCounts");
+    R36S_LV_BREADCRUMB("lv:init_load_objpos_table");
     init_load_objpos_table();
+    R36S_LV_BREADCRUMB("lv:post-init_load_objpos_table");
+    R36S_LV_BREADCRUMB("lv:reinit_between_menus");
     reinit_between_menus();
+    R36S_LV_BREADCRUMB("lv:post-reinit_between_menus");
+    R36S_LV_BREADCRUMB("lv:init_sound_effects_registers");
     init_sound_effects_registers();
+    R36S_LV_BREADCRUMB("lv:post-init_sound_effects_registers");
+    R36S_LV_BREADCRUMB("lv:init_guards");
     init_guards();
+    R36S_LV_BREADCRUMB("lv:post-init_guards");
+    R36S_LV_BREADCRUMB("lv:bodiesReset");
     bodiesReset(stage);
+    R36S_LV_BREADCRUMB("lv:post-bodiesReset");
+    R36S_LV_BREADCRUMB("lv:proplvreset2");
     proplvreset2(stage);
+    R36S_LV_BREADCRUMB("lv:post-proplvreset2");
+    R36S_LV_BREADCRUMB("lv:alloc_explosion_buffers");
     alloc_explosion_smoke_casing_scorch_impact_buffers();
+    R36S_LV_BREADCRUMB("lv:post-alloc_explosion_buffers");
+    R36S_LV_BREADCRUMB("lv:alloc_shattered_window_pieces");
     alloc_shattered_window_pieces();
+    R36S_LV_BREADCRUMB("lv:post-alloc_shattered_window_pieces");
+    R36S_LV_BREADCRUMB("lv:sub_GAME_7F007290");
     sub_GAME_7F007290();
+    R36S_LV_BREADCRUMB("lv:post-sub_GAME_7F007290");
+    R36S_LV_BREADCRUMB("lv:initCheatTextBuffer");
     initCheatTextBuffer();
+    R36S_LV_BREADCRUMB("lv:post-initCheatTextBuffer");
 
     if (g_CurrentStageToLoad == LEVELID_TITLE)
     {
