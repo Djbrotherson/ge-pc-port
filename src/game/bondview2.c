@@ -9825,7 +9825,7 @@ void hudmsgsSetOff(s32 flags)
 
 
 #ifdef VERSION_US
-void setFontTables(s32 arg0, s32 arg1)
+void setFontTables(struct fontchar *arg0, struct font *arg1)
 {
     copy_2ndfonttable = arg0;
     copy_1stfonttable = arg1;
