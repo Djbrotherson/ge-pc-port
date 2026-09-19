@@ -18,6 +18,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#ifdef PORT
+#include <SDL2/SDL.h>
+#endif
 #if defined(__linux__)
 #include <unistd.h>
 #include <time.h>
@@ -53,6 +56,135 @@ static const struct { const char *name; const char *num; } kSoloLevels[] = {
     {"Caverns","39"}, {"Cradle","41"}, {"Aztec","28"}, {"Egypt","32"},
     {"Cuba","54"},
 };
+
+
+#ifdef PORT
+/* R36S pre-game level picker.  It deliberately lives before the game's
+ * video/input initialization so selecting a mission does not touch game state.
+ * No SDL_ttf dependency: a tiny 5x7 font keeps the PortMaster package lean. */
+static const unsigned char *portGlyph(char c)
+{
+    static const unsigned char blank[7]={0,0,0,0,0,0,0};
+    static const unsigned char A[7]={14,17,17,31,17,17,17},B[7]={30,17,17,30,17,17,30};
+    static const unsigned char C[7]={14,17,16,16,16,17,14},D[7]={30,17,17,17,17,17,30};
+    static const unsigned char E[7]={31,16,16,30,16,16,31},F[7]={31,16,16,30,16,16,16};
+    static const unsigned char G[7]={14,17,16,23,17,17,15},H[7]={17,17,17,31,17,17,17};
+    static const unsigned char I[7]={31,4,4,4,4,4,31},J[7]={7,2,2,2,18,18,12};
+    static const unsigned char K[7]={17,18,20,24,20,18,17},L[7]={16,16,16,16,16,16,31};
+    static const unsigned char M[7]={17,27,21,21,17,17,17},N[7]={17,25,21,19,17,17,17};
+    static const unsigned char O[7]={14,17,17,17,17,17,14},P[7]={30,17,17,30,16,16,16};
+    static const unsigned char Q[7]={14,17,17,17,21,18,13},R[7]={30,17,17,30,20,18,17};
+    static const unsigned char S[7]={15,16,16,14,1,1,30},T[7]={31,4,4,4,4,4,4};
+    static const unsigned char U[7]={17,17,17,17,17,17,14},V[7]={17,17,17,17,17,10,4};
+    static const unsigned char W[7]={17,17,17,21,21,21,10},X[7]={17,17,10,4,10,17,17};
+    static const unsigned char Y[7]={17,17,10,4,4,4,4},Z[7]={31,1,2,4,8,16,31};
+    static const unsigned char n0[7]={14,17,19,21,25,17,14},n1[7]={4,12,4,4,4,4,14};
+    static const unsigned char n2[7]={14,17,1,2,4,8,31},n3[7]={30,1,1,14,1,1,30};
+    static const unsigned char n4[7]={2,6,10,18,31,2,2},n5[7]={31,16,16,30,1,1,30};
+    static const unsigned char n6[7]={14,16,16,30,17,17,14},n7[7]={31,1,2,4,8,8,8};
+    static const unsigned char n8[7]={14,17,17,14,17,17,14},n9[7]={14,17,17,15,1,1,14};
+    static const unsigned char dash[7]={0,0,0,31,0,0,0};
+    switch (c) {
+#define GLYPH(x) case #x[0]: return x
+        GLYPH(A);GLYPH(B);GLYPH(C);GLYPH(D);GLYPH(E);GLYPH(F);GLYPH(G);GLYPH(H);
+        GLYPH(I);GLYPH(J);GLYPH(K);GLYPH(L);GLYPH(M);GLYPH(N);GLYPH(O);GLYPH(P);
+        GLYPH(Q);GLYPH(R);GLYPH(S);GLYPH(T);GLYPH(U);GLYPH(V);GLYPH(W);GLYPH(X);
+        GLYPH(Y);GLYPH(Z);
+#undef GLYPH
+        case '0': return n0; case '1': return n1; case '2': return n2; case '3': return n3;
+        case '4': return n4; case '5': return n5; case '6': return n6; case '7': return n7;
+        case '8': return n8; case '9': return n9; case '-': return dash;
+        default: return blank;
+    }
+}
+
+static void portDrawText(SDL_Renderer *r, int x, int y, int scale, const char *text)
+{
+    for (; *text; ++text, x += 6 * scale) {
+        char c=*text;
+        if (c>='a' && c<='z') c=(char)(c-'a'+'A');
+        const unsigned char *g=portGlyph(c);
+        for (int row=0; row<7; ++row)
+            for (int col=0; col<5; ++col)
+                if (g[row] & (1u << (4-col))) {
+                    SDL_Rect p={x+col*scale,y+row*scale,scale,scale};
+                    SDL_RenderFillRect(r,&p);
+                }
+    }
+}
+
+static int portLevelPicker(void)
+{
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) != 0) {
+        sysLogPrintf(LOG_WARNING, "level picker: SDL init failed: %s", SDL_GetError());
+        return -1;
+    }
+
+    SDL_Window *w=SDL_CreateWindow("GoldenEye R36S Level Select",
+        SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,640,480,SDL_WINDOW_SHOWN);
+    SDL_Renderer *r=w ? SDL_CreateRenderer(w,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC) : NULL;
+    if (!r && w) r=SDL_CreateRenderer(w,-1,SDL_RENDERER_SOFTWARE);
+    if (!w || !r) {
+        sysLogPrintf(LOG_WARNING, "level picker: window/renderer failed: %s", SDL_GetError());
+        if (r) SDL_DestroyRenderer(r); if (w) SDL_DestroyWindow(w);
+        SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS);
+        return -1;
+    }
+
+    SDL_GameController *pad=NULL;
+    for (int i=0;i<SDL_NumJoysticks();++i) if (SDL_IsGameController(i)) { pad=SDL_GameControllerOpen(i); break; }
+
+    int sel=0, done=0, result=-1, axisHeld=0;
+    const int count=(int)(sizeof(kSoloLevels)/sizeof(kSoloLevels[0]));
+    while (!done) {
+        SDL_Event e;
+        while (SDL_PollEvent(&e)) {
+            if (e.type==SDL_QUIT) { done=1; result=-2; }
+            else if (e.type==SDL_KEYDOWN && !e.key.repeat) {
+                if (e.key.keysym.sym==SDLK_UP) sel=(sel+count-1)%count;
+                else if (e.key.keysym.sym==SDLK_DOWN) sel=(sel+1)%count;
+                else if (e.key.keysym.sym==SDLK_RETURN || e.key.keysym.sym==SDLK_SPACE) {result=sel;done=1;}
+                else if (e.key.keysym.sym==SDLK_ESCAPE) {result=-1;done=1;}
+            } else if (e.type==SDL_CONTROLLERBUTTONDOWN) {
+                if (e.cbutton.button==SDL_CONTROLLER_BUTTON_DPAD_UP) sel=(sel+count-1)%count;
+                else if (e.cbutton.button==SDL_CONTROLLER_BUTTON_DPAD_DOWN) sel=(sel+1)%count;
+                else if (e.cbutton.button==SDL_CONTROLLER_BUTTON_A) {result=sel;done=1;}
+                else if (e.cbutton.button==SDL_CONTROLLER_BUTTON_B) {result=-1;done=1;}
+            } else if (e.type==SDL_CONTROLLERAXISMOTION && e.caxis.axis==SDL_CONTROLLER_AXIS_LEFTY) {
+                if (e.caxis.value < -16000 && axisHeld!= -1) {sel=(sel+count-1)%count;axisHeld=-1;}
+                else if (e.caxis.value > 16000 && axisHeld!=1) {sel=(sel+1)%count;axisHeld=1;}
+                else if (e.caxis.value > -8000 && e.caxis.value < 8000) axisHeld=0;
+            }
+        }
+
+        SDL_SetRenderDrawColor(r,8,12,8,255); SDL_RenderClear(r);
+        SDL_SetRenderDrawColor(r,220,210,150,255);
+        portDrawText(r,28,22,3,"GOLDENEYE LEVEL SELECT");
+        SDL_SetRenderDrawColor(r,150,160,150,255);
+        portDrawText(r,28,55,2,"DPAD SELECT   A START   B NORMAL BOOT");
+
+        int first=sel-6; if(first<0) first=0; if(first>count-12) first=count-12; if(first<0) first=0;
+        int last=first+12; if(last>count) last=count;
+        for(int i=first;i<last;++i) {
+            int y=92+(i-first)*29;
+            if(i==sel) {
+                SDL_Rect hi={18,y-5,604,25};
+                SDL_SetRenderDrawColor(r,55,90,55,255); SDL_RenderFillRect(r,&hi);
+                SDL_SetRenderDrawColor(r,255,255,190,255);
+            } else SDL_SetRenderDrawColor(r,195,205,195,255);
+            char line[64]; snprintf(line,sizeof(line),"%02d  %s",i+1,kSoloLevels[i].name);
+            portDrawText(r,34,y,2,line);
+        }
+        SDL_RenderPresent(r);
+        SDL_Delay(8);
+    }
+
+    if (pad) SDL_GameControllerClose(pad);
+    SDL_DestroyRenderer(r); SDL_DestroyWindow(w);
+    SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS);
+    return result;
+}
+#endif
 
 
 #if defined(__linux__)
@@ -225,6 +357,31 @@ static void portAtExit(void)
 int main(int argc, char **argv)
 {
     sysSetArgs(argc, argv);
+
+#ifdef PORT
+    /* Unless an explicit direct-level argument was supplied, show a controller
+     * friendly pre-game picker. B/Escape preserves the normal front end. */
+    {
+        int hasLevel=0;
+        for (int i=1;i<argc;++i) if (!strncmp(argv[i], "-level_", 7)) { hasLevel=1; break; }
+        if (!hasLevel && !getenv("GE_SKIP_LEVEL_PICKER")) {
+            int picked=portLevelPicker();
+            if (picked == -2) return 0;
+            if (picked >= 0) {
+                static char levelArg[16];
+                char **newv=(char **)calloc((size_t)argc+2,sizeof(char *));
+                if (!newv) return 2;
+                for (int i=0;i<argc;++i) newv[i]=argv[i];
+                snprintf(levelArg,sizeof(levelArg),"-level_%s",kSoloLevels[picked].num);
+                newv[argc++]=levelArg;
+                newv[argc]=NULL;
+                argv=newv;
+                sysSetArgs(argc,argv);
+                sysLogPrintf(LOG_INFO,"level picker: selected %s (%s)",kSoloLevels[picked].name,levelArg);
+            }
+        }
+    }
+#endif
 
     if (sysArgCheck("--version")) { portPrintVersion(); return 0; }
     if (sysArgCheck("--help") || sysArgCheck("-h")) {
