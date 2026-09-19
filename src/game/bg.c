@@ -1868,7 +1868,7 @@ s32 sub_GAME_7F0B5864(s32 portalnum, bbox2d *bbox)
     s32 j;
     coord3d points[19];
     coord2d screenpos;
-    bbox2d bounds;
+    bbox2d bounds = {0};
     s32 pointcount;
     s32 onscreencount;
     s32 i;
