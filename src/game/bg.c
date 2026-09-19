@@ -839,10 +839,23 @@ void load_bg_file(LEVEL_INDEX levelid)
  
     levelentry_index = 0;
 
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE,
+                 "R36S BG ENTER levelid=%d rooms=%d stages=%d roominfo=%p levelinfo=%p",
+                 (int)levelid, (int)MAXROOMCOUNT, (int)STAGES_MAX,
+                 (void *)g_BgRoomInfo, (void *)levelinfotable);
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE clear-roominfo begin");
+#endif
+
     for (i = 0; i < MAXROOMCOUNT; i++) 
     {
         g_BgRoomInfo[i].vtx_batch_bounds = NULL;
     }
+
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE clear-roominfo done");
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE find-level begin");
+#endif
  
     for (i = 0; i < STAGES_MAX; i++)
     {
@@ -851,8 +864,21 @@ void load_bg_file(LEVEL_INDEX levelid)
             levelentry_index = i;
         }
     }
+
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE,
+                 "R36S BG PHASE find-level done index=%d bg=%p stan=%p",
+                 (int)levelentry_index,
+                 (void *)levelinfotable[levelentry_index].bg_seg_filename,
+                 (void *)levelinfotable[levelentry_index].bg_stan_filename);
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE light-fixture-reset begin");
+#endif
  
     lightFixtureInitTables();
+
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE light-fixture-reset done");
+#endif
  
     /* Host stacks live above 4 GiB on AArch64. Do not route this temporary
      * header pointer through the N64-era s32 ptr_bg_data global: that truncates
