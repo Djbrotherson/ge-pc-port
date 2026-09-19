@@ -1,0 +1,101 @@
+name: R36S Compatibility Sweep
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - r36s-first-frame-noaudio
+    paths:
+      - 'src/**'
+      - 'port/**'
+      - 'include/**'
+      - 'tools/r36s_compat_audit.py'
+      - 'tools/r36s_symbolize.py'
+      - 'cmake/**'
+      - '.github/workflows/r36s-compat-sweep.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'port/**'
+      - 'include/**'
+      - 'tools/r36s_compat_audit.py'
+      - 'cmake/**'
+
+jobs:
+  whole-port-audit:
+    name: Whole-port 32/64 compatibility audit
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run static compatibility audit
+        run: |
+          python3 tools/r36s_compat_audit.py --repo . --outdir compat-out
+          cat compat-out/compat-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload compatibility report
+        uses: actions/upload-artifact@v4
+        with:
+          name: r36s-whole-port-compat-audit
+          path: |
+            compat-out/compat-report.md
+            compat-out/compat-findings.tsv
+          if-no-files-found: error
+
+  armhf-build:
+    name: Experimental ARMHF build
+    runs-on: ubuntu-24.04-arm
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARMHF cross toolchain and target libraries
+        run: |
+          sudo dpkg --add-architecture armhf
+          sudo apt-get update
+          sudo apt-get install -y             gcc-arm-linux-gnueabihf             g++-arm-linux-gnueabihf             binutils-arm-linux-gnueabihf             libc6-dev:armhf             libsdl2-dev:armhf             zlib1g-dev:armhf             libgles2-mesa-dev:armhf             libegl1-mesa-dev:armhf
+
+      - name: Verify ARMHF runtime inputs
+        run: |
+          test -e /usr/arm-linux-gnueabihf/lib/ld-linux-armhf.so.3 ||           test -e /lib/arm-linux-gnueabihf/ld-linux-armhf.so.3
+          test -e /usr/lib/arm-linux-gnueabihf/libSDL2.so
+          test -e /usr/lib/arm-linux-gnueabihf/libGLESv2.so
+          arm-linux-gnueabihf-gcc -v
+
+      - name: Configure ARMHF GLES build
+        env:
+          PKG_CONFIG_LIBDIR: /usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/share/pkgconfig
+          PKG_CONFIG_SYSROOT_DIR: /
+        run: |
+          cmake -S . -B build-armhf             -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/armhf-linux.cmake             -DROMID=ntsc-final             -DSDL2_INCLUDE_DIR=/usr/include/SDL2             -DSDL2_LIBRARY=/usr/lib/arm-linux-gnueabihf/libSDL2.so             -DZLIB_INCLUDE_DIR=/usr/include             -DZLIB_LIBRARY=/usr/lib/arm-linux-gnueabihf/libz.so             -DGL_LIBRARY=/usr/lib/arm-linux-gnueabihf/libGLESv2.so             -DCMAKE_C_FLAGS="-DUSE_GLES=1"             -DCMAKE_CXX_FLAGS="-DUSE_GLES=1"             -DCMAKE_EXE_LINKER_FLAGS="-Wl,-Map=ge007.armhf.link.map -Wl,--cref"
+
+      - name: Build ARMHF
+        run: |
+          set -o pipefail
+          cmake --build build-armhf -j$(nproc) 2>&1 | tee build-armhf.log
+
+      - name: Normalize binary and emit symbols
+        if: success()
+        run: |
+          BIN="$(find build-armhf -maxdepth 1 -type f -name 'ge007*' -perm -111 | head -n1)"
+          test -n "$BIN"
+          cp "$BIN" build-armhf/ge007.armhf
+          file build-armhf/ge007.armhf
+          arm-linux-gnueabihf-readelf -h build-armhf/ge007.armhf
+          arm-linux-gnueabihf-nm -n build-armhf/ge007.armhf > build-armhf/ge007.armhf.symbols.txt
+          arm-linux-gnueabihf-objdump -d build-armhf/ge007.armhf > build-armhf/ge007.armhf.disasm.txt
+
+      - name: Upload ARMHF result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ge007-armhf-experiment
+          path: |
+            build-armhf/ge007.armhf
+            build-armhf/ge007.armhf.link.map
+            build-armhf/ge007.armhf.symbols.txt
+            build-armhf/ge007.armhf.disasm.txt
+            build-armhf.log
+            build-armhf/CMakeFiles/CMakeError.log
+            build-armhf/CMakeFiles/CMakeOutput.log
+          if-no-files-found: warn
