@@ -423,6 +423,30 @@ int videoInit(void)
     };
 
     gfx_init(&set);
+    gfx_sdl_update_cached_size();
+
+#if defined(__aarch64__)
+    {
+        int sw = 0, sh = 0;
+        int dw = 0, dh = 0;
+        GLint vp[4] = {0, 0, 0, 0};
+        GLint fbo = -1;
+        SDL_Window *window = wmAPI && wmAPI->get_window_handle
+                           ? (SDL_Window *)wmAPI->get_window_handle() : NULL;
+        if (window) {
+            SDL_GetWindowSize(window, &sw, &sh);
+            SDL_GL_GetDrawableSize(window, &dw, &dh);
+        }
+        glGetIntegerv(GL_VIEWPORT, vp);
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbo);
+        sysLogPrintf(LOG_NOTE,
+            "R36S display diagnostic: SDL window=%dx%d drawable=%dx%d "
+            "gfx=%ux%u viewport=%d,%d %dx%d fbo=%d",
+            sw, sh, dw, dh,
+            gfx_current_dimensions.width, gfx_current_dimensions.height,
+            vp[0], vp[1], vp[2], vp[3], (int)fbo);
+    }
+#endif
 
     /* VSync + optional fps cap; fast3d paces the window itself. */
     wmAPI->set_swap_interval(cfgVSync ? 1 : 0);
