@@ -1033,7 +1033,11 @@ void load_bg_file(LEVEL_INDEX levelid)
 #ifdef PORT
         sysLogPrintf(LOG_NOTE, "R36S BG PHASE room-table-scan begin ptr=%p", (void *)ptr_bgdata_room_fileposition_list);
 #endif
-        for (i = 1; ptr_bgdata_room_fileposition_list[i].pPriMappingBin != NULL; i++) 
+#ifdef PORT
+        for (i = 1; ptr_bgdata_room_fileposition_list[i].pPriMappingBin != 0; i++)
+#else
+        for (i = 1; ptr_bgdata_room_fileposition_list[i].pPriMappingBin != NULL; i++)
+#endif
         {
             g_MaxNumRooms++;
 #ifdef PORT
@@ -1102,7 +1106,11 @@ void load_bg_file(LEVEL_INDEX levelid)
             g_BgRoomInfo[i].model_bin_loaded = 0;
             g_BgRoomInfo[i].field_35 = 0;
  
-            if (ptr_bgdata_room_fileposition_list[i].pPriMappingBin != (NULL))
+#ifdef PORT
+            if (ptr_bgdata_room_fileposition_list[i].pPriMappingBin != 0)
+#else
+            if (ptr_bgdata_room_fileposition_list[i].pPriMappingBin != NULL)
+#endif
             {
                 s32 primaryindex;
                 s32 secondaryindex;
@@ -1123,7 +1131,11 @@ void load_bg_file(LEVEL_INDEX levelid)
                 g_BgRoomInfo[i].csize_primary_DL_binary = 0;
             }
  
-            if (ptr_bgdata_room_fileposition_list[i].pSecMappingBin != (NULL))
+#ifdef PORT
+            if (ptr_bgdata_room_fileposition_list[i].pSecMappingBin != 0)
+#else
+            if (ptr_bgdata_room_fileposition_list[i].pSecMappingBin != NULL)
+#endif
             {
                 s32 primaryindex;
                 s32 secondaryindex;
@@ -1144,7 +1156,11 @@ void load_bg_file(LEVEL_INDEX levelid)
                 g_BgRoomInfo[i].csize_secondary_DL_binary = 0;
             }
  
-            if (ptr_bgdata_room_fileposition_list[i].pPointTableBin != (NULL))
+#ifdef PORT
+            if (ptr_bgdata_room_fileposition_list[i].pPointTableBin != 0)
+#else
+            if (ptr_bgdata_room_fileposition_list[i].pPointTableBin != NULL)
+#endif
             {
                 s32 pointindex;
                 pointindex = getPointTableBinCount(i + 1);
@@ -5017,7 +5033,7 @@ void *sub_GAME_7F0B8A24(s32 *pc)
     assert( pc->type==RS_STOP)
     #endif
 
-    return parse_global_vis_command_list(pc, 1);
+    return parse_global_vis_command_list((GlobalVisCommand *)pc, 1);
 }
 
 
@@ -5793,6 +5809,7 @@ s8 bgSwapConnectedRooms(s32 index)
     t = g_BgPortals[index].connectedRoom1;
     g_BgPortals[index].connectedRoom1 = g_BgPortals[index].connectedRoom2;
     g_BgPortals[index].connectedRoom2 = t;
+    return (s8)t;
 }
 
 
