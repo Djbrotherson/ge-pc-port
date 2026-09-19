@@ -453,6 +453,17 @@ void lvlStageLoad(s32 stage)
         }
 
         load_bg_file(g_CurrentStageToLoad);
+#ifdef PORT
+        {
+            int loaded = 0;
+            for (int ri = 1; ri < g_MaxNumRooms; ++ri) {
+                if (g_BgRoomInfo[ri].model_bin_loaded) ++loaded;
+            }
+            osSyncPrintf("R36S LEVEL LOAD stage=%d rooms=%d preloaded=%d bg=%p stan=%p\n",
+                (int)g_CurrentStageToLoad, (int)g_MaxNumRooms, loaded,
+                (void *)(uintptr_t)ptr_bg_data, (void *)(uintptr_t)gptr_stan);
+        }
+#endif
         skySetStageNum(g_CurrentStageToLoad);
 
         // HACK: This method call is wrong. The function takes one argument, but the asm calls it without
@@ -786,7 +797,37 @@ Gfx* lvlRender(Gfx* DL)
             }
 
             propsTickPlayer();
+#ifdef PORT
+            {
+                static int r36sMissionProbe = 0;
+                Gfx *bgBefore = DL;
+                int visrooms[32];
+                int viscount = bgCopyVisibleRoomsToList(visrooms, 32);
+                int loaded = 0;
+                for (int ri = 1; ri < g_MaxNumRooms; ++ri) {
+                    if (g_BgRoomInfo[ri].model_bin_loaded) ++loaded;
+                }
+
+                DL = bgLevelRender(DL);
+
+                if (g_CurrentStageToLoad != LEVELID_TITLE &&
+                    (r36sMissionProbe < 12 || (r36sMissionProbe % 60) == 0)) {
+                    osSyncPrintf(
+                        "R36S MISSION frame=%d stage=%d playerRoom=%d visible=%d loaded=%d "
+                        "bgcmds=%ld vi=%dx%d firstRooms=%d,%d,%d,%d\n",
+                        r36sMissionProbe, (int)g_CurrentStageToLoad,
+                        (int)bondviewGetCurrentPlayersRoom(), viscount, loaded,
+                        (long)(DL - bgBefore), (int)viGetX(), (int)viGetY(),
+                        viscount > 0 ? visrooms[0] : -1,
+                        viscount > 1 ? visrooms[1] : -1,
+                        viscount > 2 ? visrooms[2] : -1,
+                        viscount > 3 ? visrooms[3] : -1);
+                }
+                ++r36sMissionProbe;
+            }
+#else
             DL = bgLevelRender(DL);
+#endif
 
             if (get_debug_portal_flag())
             {
