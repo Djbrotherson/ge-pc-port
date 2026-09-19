@@ -10,7 +10,13 @@ s32 init_pathtable_something(struct PadRecord *pad, char *tilename, struct Stand
 {
     struct coord3d coord;
    
+#ifdef PORT
+    /* stanMatchTileName overlays the StandTile header as StandTilePoint while
+     * searching; the returned address is still the StandTile base. */
+    *tile_stack = (StandTile *)stanMatchTileName(tilename);
+#else
     *tile_stack = stanMatchTileName(tilename);
+#endif
     
     if ((*tile_stack == NULL) || (isPointInsideTriStandTileUnscaled_Maybe(*tile_stack, pad->pos.f[0], pad->pos.f[2]) == 0))
     {

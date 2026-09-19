@@ -279,7 +279,13 @@ void stanBuildRoomData(void)
     // Must remain on one line for matching.
     for (k = 0; k < 139; k++) firststaninroom[k] = NULL;
 
+    /* PORT: ptr_firstroom is a StandTile base; this routine overlays the first
+     * 8 bytes with StandTilePoint fields to match the packed tile name. */
+#ifdef PORT
+    tile = (StandTilePoint *)stan_prefix->ptr_firstroom;
+#else
     tile = stan_prefix->ptr_firstroom;
+#endif
 
 #if defined(PORT)
     /* TEMP D69: log the tile walk (env GE_D69STAN=1) */
