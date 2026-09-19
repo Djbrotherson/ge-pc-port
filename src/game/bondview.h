@@ -369,11 +369,17 @@ struct player
    * Used as parameter to gbi macro.
    * Offset 0x005c.
    */
+#ifdef PORT
+  uintptr_t field_5C;
+  uintptr_t field_60;
+  uintptr_t field_64;
+  uintptr_t field_68;
+#else
   s32 field_5C;
-
   /* 0x0060 */ s32 field_60;
   /* 0x0064 */ s32 field_64;
   /* 0x0068 */ s32 field_68;
+#endif
 
   /**
    * Collision / clipping related.
