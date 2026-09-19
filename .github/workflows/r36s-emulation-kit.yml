@@ -1,0 +1,55 @@
+name: Build Local R36S Emulation Kit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - r36s-first-frame-noaudio
+    paths:
+      - '.github/workflows/r36s-emulation-kit.yml'
+
+jobs:
+  kit:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM64 runtime stack
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libsdl2-2.0-0 \
+            libgles2 \
+            libegl1 \
+            libgl1-mesa-dri \
+            libglx-mesa0 \
+            libstdc++6 \
+            libgcc-s1 \
+            zlib1g \
+            libx11-6 libxext6 libxrandr2 libxcursor1 libxi6 libxfixes3 libxrender1 \
+            libwayland-client0 libwayland-egl1
+
+      - name: Stage ARM64 sysroot
+        run: |
+          set -eux
+          mkdir -p kit/sysroot/lib kit/sysroot/usr/lib
+          cp -a /lib/aarch64-linux-gnu kit/sysroot/lib/
+          cp -a /usr/lib/aarch64-linux-gnu kit/sysroot/usr/lib/
+          cp -a /lib/ld-linux-aarch64.so.1 kit/sysroot/lib/ || true
+          find kit/sysroot -type l -o -type f | wc -l
+
+      - name: Download static x86_64 QEMU AArch64 user emulator
+        run: |
+          curl -L --fail --retry 3 \
+            -o kit/qemu-aarch64-static \
+            https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static
+          chmod +x kit/qemu-aarch64-static
+          file kit/qemu-aarch64-static
+
+      - name: Upload emulation kit
+        uses: actions/upload-artifact@v4
+        with:
+          name: r36s-local-emulation-kit
+          path: kit/
+          compression-level: 6
+          if-no-files-found: error
