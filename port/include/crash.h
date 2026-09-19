@@ -1,6 +1,8 @@
 #ifndef PORT_CRASH_H
 #define PORT_CRASH_H
 
+#include <stdint.h>
+
 /*
  * Crash handler: installs an unhandled-exception filter (Windows) or signal
  * handlers (POSIX) that print a symbolicated backtrace and write
