@@ -98,7 +98,11 @@ struct TlbManageMap g_tlbMappingTable[MAPPING_TABLE_COUNT];
 /** 
  * @brief Marks the end of the TLB mapping table in memory.
  */
+#ifdef PORT
+uintptr_t g_tlbmanageMappingTableEnd;
+#else
 u32 g_tlbmanageMappingTableEnd;
+#endif
 
 /** 
  * @brief Pointer to the block of memory allocated for TLB operations.
@@ -130,8 +134,15 @@ void tlbmanageEstablishManagementTable(void)
         g_tlbMappingTable[i].entry0 = 1;
     }
 
+#ifdef PORT
+    g_tlbmanageTlbAllocatedBlock = (u8 (*)[TLB_BLOCK_SIZE])
+        ((((uintptr_t)&sp_boot) & ~((uintptr_t)PAGE_SIZE - 1u))
+         - ((uintptr_t)MAPPING_TABLE_COUNT * PAGE_SIZE));
+    g_tlbmanageMappingTableEnd = (uintptr_t)&g_tlbManagementTable + 0xFFC08000u;
+#else
     g_tlbmanageTlbAllocatedBlock = (u8(*)[TLB_BLOCK_SIZE]) (((u32)&sp_boot & ~(PAGE_SIZE - 1)) - (MAPPING_TABLE_COUNT * PAGE_SIZE));
     g_tlbmanageMappingTableEnd = ((u32)&g_tlbManagementTable) + 0xFFC08000;
+#endif
 }
 
 /**
@@ -277,7 +288,13 @@ void tlbmanageTranslateLoadRomFromTlbAddress(u32 address)
     tlbEntryPointer = &(*g_tlbmanageTlbAllocatedBlock)[GET_TLB_MASK_INDEX(tlbSegmentIndex)];
 
     // Copy the ROM data into the TLB memory block
+#ifdef PORT
+    romCopy(tlbEntryPointer,
+            (void *)((uintptr_t)&_gameSegmentRomStart + (uintptr_t)maskedAddress),
+            TLB_BLOCK_SIZE);
+#else
     romCopy(tlbEntryPointer, (void*)(((u32)&_gameSegmentRomStart) + (u32)maskedAddress), TLB_BLOCK_SIZE);
+#endif
 
     // Invalidate the instruction cache and data cache
     osInvalICache((void *)0x40000000, 0x40000000);
