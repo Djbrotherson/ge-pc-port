@@ -26,6 +26,7 @@ void init_path_table_links(void)
     waypoint *waypoints;
     s32 waypointIndex;
     waygroup *currentWaypoint;
+    waypoint *currentWaypointEntry;
 
     hasError = 0;
     setup = &g_CurrentSetup;
@@ -42,13 +43,13 @@ void init_path_table_links(void)
         s32 neighbourNum;
 
         waypointIndex = 0;
-        currentWaypoint = waypoints;
+        currentWaypointEntry = waypoints;
 
-        while (((waypoint *) currentWaypoint)->padID >= 0)
+        while (currentWaypointEntry->padID >= 0)
         {
             neighbourIndex = 0;
 
-            while ((neighbourNum = ((waypoint *) currentWaypoint)->neighbours[neighbourIndex]) >= 0)
+            while ((neighbourNum = currentWaypointEntry->neighbours[neighbourIndex]) >= 0)
             {
                 if (neighbourNum == waypointIndex)
                 {
@@ -56,7 +57,7 @@ void init_path_table_links(void)
                     {
 #ifdef DEBUG
                         osSyncPrintf("loc '%s' has a link to itself!\n",
-                            g_CurrentSetup.padnames[((waypoint *) currentWaypoint)->padID].p);
+                            g_CurrentSetup.padnames[currentWaypointEntry->padID].p);
 #endif
                     }
                     else if (1)
@@ -102,7 +103,7 @@ void init_path_table_links(void)
             }
  
             waypointIndex++;
-            currentWaypoint = &waypoints[waypointIndex];
+            currentWaypointEntry = &waypoints[waypointIndex];
         }
  
     }
