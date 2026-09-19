@@ -12,7 +12,11 @@ s32 z_buffer_width; // 0x8008e8f0
 s32 z_buffer_height; // 0x8008e8f4
 
 // data
+#ifdef PORT
+uintptr_t z_buffer = 0; // native host address on LP64
+#else
 s32 z_buffer = 0; // 0x8004f010
+#endif
 
 /*
  * Address: 0x7f0d2870
@@ -46,15 +50,24 @@ void zbufAllocate(void)
         }
     }
 
+#ifdef PORT
+    z_buffer = (uintptr_t)mempAllocBytesInBank((z_buffer_width * z_buffer_height * 2) + 64, MEMPOOL_STAGE);
+    z_buffer = (z_buffer + 0x3fu) & ~(uintptr_t)0x3fu;
+#else
     z_buffer = mempAllocBytesInBank((z_buffer_width * z_buffer_height * 2) + 64, MEMPOOL_STAGE);
     z_buffer = ALIGN64_V1(z_buffer);
+#endif
 }
 
 
 /*
  * Address: 0x7f0d2938
 */
+#ifdef PORT
+void zbufSetBuffer(uintptr_t buffer, s32 width, s32 height) {
+#else
 void zbufSetBuffer(s32 buffer, s32 width, s32 height) {
+#endif
     z_buffer = buffer;
     z_buffer_width = width;
     z_buffer_height = height;
@@ -66,7 +79,11 @@ void zbufSetBuffer(s32 buffer, s32 width, s32 height) {
 */
 Gfx *zbufInit(Gfx *gdl) {
     s32 phi_a3;
+#ifdef PORT
+    uintptr_t test;
+#else
     s32 test;
+#endif
     if (z_buffer == 0) {
         zbufAllocate();
     }
@@ -75,8 +92,12 @@ Gfx *zbufInit(Gfx *gdl) {
     } else {
         phi_a3 = 0;
     }
+#ifdef PORT
+    test = (z_buffer - (uintptr_t)phi_a3) & ~(uintptr_t)0x3f;
+#else
     test = (z_buffer - phi_a3);
     test = test & ~0x3F;
+#endif
     gDPPipeSync(gdl++);
     gDPSetDepthImage(gdl++, test);
     return gdl;
