@@ -20,6 +20,13 @@
 #include "stan.h"
 #include "explosion.h"
 #include "bgroomtrans.h"
+#ifdef PORT
+extern volatile const char *g_R36SMainBreadcrumb;
+#define R36S_BG_BREADCRUMB(x) do { g_R36SMainBreadcrumb = (x); } while (0)
+#else
+#define R36S_BG_BREADCRUMB(x) do { } while (0)
+#endif
+
 
 
 #define BG_STACK_SIZE 20
@@ -852,7 +859,9 @@ void load_bg_file(LEVEL_INDEX levelid)
         }
     }
  
+    R36S_BG_BREADCRUMB("bg:lightFixtureInitTables");
     lightFixtureInitTables();
+    R36S_BG_BREADCRUMB("bg:post-lightFixtureInitTables");
  
     /* Host stacks live above 4 GiB on AArch64. Do not route this temporary
      * header pointer through the N64-era s32 ptr_bg_data global: that truncates
@@ -861,7 +870,9 @@ void load_bg_file(LEVEL_INDEX levelid)
      * only after mempAllocBytesInBank returns the deliberately low mapped
      * game-DRAM allocation used by the rest of the background code. */
     s32 *header_data = header;
+    R36S_BG_BREADCRUMB("bg:read-header");
     obLoadBGFileBytesAtOffset(levelinfotable[levelentry_index].bg_seg_filename, (u8 *)header_data, 0, 0x40);
+    R36S_BG_BREADCRUMB("bg:post-read-header");
 
     if (((levelid && header_data) && levelentry_index));
 
@@ -871,13 +882,23 @@ void load_bg_file(LEVEL_INDEX levelid)
  
     size = (((((u32) ptr_bgdata_room_fileposition_list[1].pPointTableBin) & 0x00ffffff) - 1) | 0xf) + 1;
  
+    R36S_BG_BREADCRUMB("bg:alloc-main");
     ptr_bg_data = (s32) mempAllocBytesInBank(size, 4);
+    R36S_BG_BREADCRUMB("bg:post-alloc-main");
+    R36S_BG_BREADCRUMB("bg:read-main");
     obLoadBGFileBytesAtOffset(levelinfotable[levelentry_index].bg_seg_filename, (u8 *) ptr_bg_data, 0, size);
+    R36S_BG_BREADCRUMB("bg:post-read-main");
  
+    R36S_BG_BREADCRUMB("bg:load-stan-file");
     gptr_stan = (s32) _fileNameLoadToBank(levelinfotable[levelentry_index].bg_stan_filename, 2, 0, 4);
+    R36S_BG_BREADCRUMB("bg:post-load-stan-file");
  
+    R36S_BG_BREADCRUMB("bg:stanDetermineEOF");
     stanDetermineEOF((struct StanPrefixRecord *) gptr_stan, 0, (u8 *) gptr_stan);
+    R36S_BG_BREADCRUMB("bg:post-stanDetermineEOF");
+    R36S_BG_BREADCRUMB("bg:stanLoadFile");
     stanLoadFile((struct StanPrefixRecord *) gptr_stan);
+    R36S_BG_BREADCRUMB("bg:post-stanLoadFile");
  
     sub_GAME_7F0B4810(levelinfotable[levelentry_index].levelscale);
     setLevelScale(levelinfotable[levelentry_index].levelscale);
@@ -902,6 +923,7 @@ void load_bg_file(LEVEL_INDEX levelid)
         // Keep this fake goto for matching.
         goto dummy_label_543534; dummy_label_543534: ;
  
+        R36S_BG_BREADCRUMB("bg:scan-room-table");
         g_MaxNumRooms = 0;
 
         for (i = 1; ptr_bgdata_room_fileposition_list[i].pPriMappingBin != NULL; i++) 
@@ -1008,25 +1030,31 @@ void load_bg_file(LEVEL_INDEX levelid)
             g_BgRoomInfo[i].cur_room_totalsize = -1;
         }
  
+        R36S_BG_BREADCRUMB("bg:initializeRoomData");
         initializeRoomData();
+        R36S_BG_BREADCRUMB("bg:post-initializeRoomData");
  
         for (i = 1; i < g_MaxNumRooms; i++)
         {
+            R36S_BG_BREADCRUMB("bg:bgRoomCalcBB");
             bgRoomCalcBB(i);
         }
  
         for (i = 0; g_BgPortals[i].offset_portal != (NULL); i++)
         {
+            R36S_BG_BREADCRUMB("bg:portal-metrics");
             D_800443C4[i] = sub_GAME_7F0B993C(i);
         }
  
         for (i = 0; g_BgPortals[i].offset_portal != (NULL); i++)
         {
+            R36S_BG_BREADCRUMB("bg:bgOrderPortal");
             bgOrderPortal(i);
         }
  
         for (i = 0; i < g_MaxNumRooms; i++)
         {
+            R36S_BG_BREADCRUMB("bg:room-finalize");
             sub_GAME_7F0B95D8(i);
         }
  
