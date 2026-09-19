@@ -2413,7 +2413,12 @@ s32 stanIsSpecialBit1Set(StandTile *arg0, struct StandTileLocusCallbackRecord *a
     s32 val = arg0->mid.half >> 0xC;
     if (g_StanTileSpecialFlags[val] & STANTILEFLAG_FORCECROUCH)
     {
+#ifdef PORT
+        /* This callback uses rooms as a boolean sentinel, not as an address. */
+        arg1->rooms = (s32 *)(uintptr_t)1;
+#else
         arg1->rooms = 1;
+#endif
     }
 
     return 0;
@@ -2533,7 +2538,12 @@ s32 stanTileDistanceRelated(StandTile **arg0, f32 arg1, f32 arg2, f32 arg3, stru
 
 s32 stanGetLocusField0(struct StandTileLocusCallbackRecord *arg0)
 {
+#ifdef PORT
+    /* Sentinel accessor: callers consume 0/1, never the rooms pointer itself. */
+    return (s32)(uintptr_t)arg0->rooms;
+#else
     return arg0->rooms;
+#endif
 }
 
 
