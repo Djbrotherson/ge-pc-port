@@ -1861,7 +1861,7 @@ void bondviewTankModelRotationRelated(void) {
         g_TankModelPositionOffset.f[0] = sp68->f[0];
         g_TankModelPositionOffset.f[1] = sp68->f[1];
         g_TankModelPositionOffset.f[2] = sp68->f[2];
-        mtx4RotateVecInPlace(&sp24, g_TankModelPositionOffset.f);
+        mtx4RotateVecInPlace(&sp24, &g_TankModelPositionOffset);
         g_TankModelPositionOffset.f[0] += sp64->f[0];
         g_TankModelPositionOffset.f[1] += sp64->f[1];
         g_TankModelPositionOffset.f[2] += sp64->f[2];
@@ -1980,9 +1980,9 @@ s32 bondviewTankCollisionStatus(struct coord3d *collision_position, StandTile *a
             sp8C = obj->model;
             switches = sp8C->obj->Switches;
 
-            temp_v1 = switches[3]->Data;
-            temp_a1 = switches[4]->Data;
-            temp_a2 = switches[2]->Data;
+            temp_v1 = (struct coord3d *)switches[3]->Data;
+            temp_a1 = (struct coord3d *)switches[4]->Data;
+            temp_a2 = (struct coord3d *)switches[2]->Data;
 
             sp74.f[0] = temp_a1->f[0] + temp_v1->f[0] - temp_a2->f[0];
             sp74.f[1] = 0.0f;
@@ -2001,7 +2001,7 @@ s32 bondviewTankCollisionStatus(struct coord3d *collision_position, StandTile *a
             }
 
             matrix_4x4_set_rotation_around_y(M_TAU_F - temp_f0, &sp34);
-            mtx4RotateVecInPlace(&sp34, (f32*)&sp74);
+            mtx4RotateVecInPlace(&sp34, &sp74);
 
             sp74.f[0] *= sp8C->scale;
             sp74.f[2] *= sp8C->scale;
@@ -6959,7 +6959,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
                 sp25C.f[0] = g_TankModelPositionOffset.f[0];
                 sp25C.f[1] = g_TankModelPositionOffset.f[1];
                 sp25C.f[2] = g_TankModelPositionOffset.f[2];
-                mtx4RotateVecInPlace(&sp268, (f32*)&sp25C);
+                mtx4RotateVecInPlace(&sp268, &sp25C);
 
                 sp25C.f[0] += tank_obj->runtime_pos.f[0];
                 sp25C.f[1] += tank_obj->runtime_pos.f[1];

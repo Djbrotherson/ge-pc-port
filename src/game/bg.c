@@ -6170,8 +6170,15 @@ void sub_GAME_7F0BA2D4(coord3d *bbmin, coord3d *bbmax, s32 *room_list, s32 *coun
                         goto next_portal;
                     }
                     
-                    portal_min = *(coord3d *) &D_80044904;
-                    portal_max = *(coord3d *) &D_80044910;
+                    /* These legacy globals encode +/-FLT_MAX as three adjacent
+                     * words. Do not rely on cross-object contiguity/aliasing on the
+                     * host; construct the bounds explicitly. */
+                    portal_min.f[0] = 3.402823466e+38F;
+                    portal_min.f[1] = 3.402823466e+38F;
+                    portal_min.f[2] = 3.402823466e+38F;
+                    portal_max.f[0] = -3.402823466e+38F;
+                    portal_max.f[1] = -3.402823466e+38F;
+                    portal_max.f[2] = -3.402823466e+38F;
                     portal_pts = g_BgPortals[portal_idx].offset_portal;
                     
                     for (j = 0; j < portal_pts->numPoints; j++)

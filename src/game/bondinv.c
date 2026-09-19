@@ -1485,4 +1485,6 @@ s32 bondinvGetWeaponOfChoice(s32 *weapon1, s32 *weapon2)
             *weapon2 = g_CurrentPlayer->gunheldarr[i].weapon2;
         }
     }
+
+    return mosttime;
 }
