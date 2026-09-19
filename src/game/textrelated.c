@@ -8,6 +8,7 @@
 /* D50: font segments are re-laid out from the N64 ROM layout to the PC C
  * layout (see romdataFixupFont). */
 #include "romdata.h"
+#include "system.h"
 #include <stdio.h>
 #include <stdlib.h>
 #endif
@@ -161,6 +162,23 @@ void load_font_tables(void)
 	for (i = 0; i < 94; i++) {
 		ptrFontZurichBoldChars[i].pixeldata += (uintptr_t)ptrFontZurichBold;
 	}
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE,
+        "R36S font Zurich base=%p chars=%p H{k=%d w=%d h=%d p=%p} T{k=%d w=%d h=%d p=%p} W{k=%d w=%d h=%d p=%p}",
+        (void *)ptrFontZurichBold, (void *)ptrFontZurichBoldChars,
+        ptrFontZurichBoldChars['H' - 0x21].kerningindex,
+        ptrFontZurichBoldChars['H' - 0x21].width,
+        ptrFontZurichBoldChars['H' - 0x21].height,
+        (void *)ptrFontZurichBoldChars['H' - 0x21].pixeldata,
+        ptrFontZurichBoldChars['T' - 0x21].kerningindex,
+        ptrFontZurichBoldChars['T' - 0x21].width,
+        ptrFontZurichBoldChars['T' - 0x21].height,
+        (void *)ptrFontZurichBoldChars['T' - 0x21].pixeldata,
+        ptrFontZurichBoldChars['W' - 0x21].kerningindex,
+        ptrFontZurichBoldChars['W' - 0x21].width,
+        ptrFontZurichBoldChars['W' - 0x21].height,
+        (void *)ptrFontZurichBoldChars['W' - 0x21].pixeldata);
+#endif
 }
 
 Gfx *microcode_constructor(Gfx *gdl) //fontGfxSetup
@@ -817,7 +835,35 @@ void textMeasure(s32 *textheight, s32 *textwidth, char *text, struct fontchar *f
         else if (*text < 0x80)
         {
             // Normal single-byte character
+#ifdef PORT
+            {
+                s32 prevkern = font1[prevchar - 0x21].kerningindex;
+                s32 curkern = font1[*text - 0x21].kerningindex;
+
+                if ((u32)prevkern >= 13u || (u32)curkern >= 13u)
+                {
+                    static s32 s_badKerningLogged = 0;
+                    if (!s_badKerningLogged)
+                    {
+                        s_badKerningLogged = 1;
+                        sysLogPrintf(LOG_ERROR,
+                            "R36S font diagnostic: bad kerning prev='%c'(%d) cur='%c'(%d) font=%p chars=%p text=%p",
+                            prevchar, prevkern, *text, curkern,
+                            (void *)font2, (void *)font1, (void *)text);
+                    }
+
+                    /* Diagnostic containment: keep the legal-screen bring-up
+                     * alive instead of indexing gigabytes outside kerning[].
+                     * Once the font-layout source is fixed this branch is inert. */
+                    prevkern = 0;
+                    curkern = 0;
+                }
+
+                tmp = font2->kerning[prevkern * 13 + curkern] + text_spacing - 1;
+            }
+#else
             tmp = font2->kerning[font1[prevchar - 0x21].kerningindex * 13 + font1[*text - 0x21].kerningindex] + text_spacing - 1;
+#endif
             *textwidth = font1[*text - 0x21].width + *textwidth - tmp;
 
             prevchar = *text;
