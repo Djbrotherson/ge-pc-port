@@ -2453,7 +2453,7 @@ struct tex *texFindInPool(s32 texturenum, struct texpool *arg1)
 s32 texFreeBytesInBuffer(struct texpool *arg0)
 {
 #ifdef PORT
-    return (s32)(arg0->rightpos - arg0->leftpos);
+    return (s32)((u8 *)arg0->rightpos - arg0->leftpos);
 #else
 	return (u32)arg0->rightpos - (u32)arg0->leftpos;
 #endif
