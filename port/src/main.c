@@ -85,12 +85,13 @@ static const unsigned char *portGlyph(char c)
     static const unsigned char n8[7]={14,17,17,14,17,17,14},n9[7]={14,17,17,15,1,1,14};
     static const unsigned char dash[7]={0,0,0,31,0,0,0};
     switch (c) {
-#define GLYPH(x) case #x[0]: return x
-        GLYPH(A);GLYPH(B);GLYPH(C);GLYPH(D);GLYPH(E);GLYPH(F);GLYPH(G);GLYPH(H);
-        GLYPH(I);GLYPH(J);GLYPH(K);GLYPH(L);GLYPH(M);GLYPH(N);GLYPH(O);GLYPH(P);
-        GLYPH(Q);GLYPH(R);GLYPH(S);GLYPH(T);GLYPH(U);GLYPH(V);GLYPH(W);GLYPH(X);
-        GLYPH(Y);GLYPH(Z);
-#undef GLYPH
+        case 'A': return A; case 'B': return B; case 'C': return C; case 'D': return D;
+        case 'E': return E; case 'F': return F; case 'G': return G; case 'H': return H;
+        case 'I': return I; case 'J': return J; case 'K': return K; case 'L': return L;
+        case 'M': return M; case 'N': return N; case 'O': return O; case 'P': return P;
+        case 'Q': return Q; case 'R': return R; case 'S': return S; case 'T': return T;
+        case 'U': return U; case 'V': return V; case 'W': return W; case 'X': return X;
+        case 'Y': return Y; case 'Z': return Z;
         case '0': return n0; case '1': return n1; case '2': return n2; case '3': return n3;
         case '4': return n4; case '5': return n5; case '6': return n6; case '7': return n7;
         case '8': return n8; case '9': return n9; case '-': return dash;
