@@ -6696,7 +6696,11 @@ void modelIterateDisplayLists(ModelFileHeader *fileheader, ModelNode **nodeptr, 
 }
 
 
+#ifdef PORT
+void modelNodeReplaceGdl(uintptr_t arg0, ModelNode *node, Gfx *find, Gfx *replacement)
+#else
 void modelNodeReplaceGdl(u32 arg0, ModelNode *node, Gfx *find, Gfx *replacement)
+#endif
 {
     union ModelRoData *rodata;
     u32 type = node->Opcode & 0xff;
