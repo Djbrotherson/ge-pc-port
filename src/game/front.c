@@ -2173,7 +2173,7 @@ void load_walletbond(void)
             b = (struct ModelNode *)mnode;
             srecord = b->Data;
 
-            arg0 = (s32)srecord->BaseAddr + ((s32)srecord->Primary & 0xffffff);
+            arg0 = (Gfx *)((u8 *)srecord->BaseAddr + ((uintptr_t)srecord->Primary & 0x00ffffffu));
             bgApplyDynamicCCRMLUT(arg0, NULL, CCRMLUT_WALLETBOND);
         }
     }
@@ -2203,7 +2203,7 @@ void frontCleanUpWalletBond(void)
 void init_menu05_fileselect(void)
 {
     s32 size = 0x6e000;
-    Gfx* DL = (s32)(ptr_logo_and_walletbond_DL) + (s32)(4096*10);
+    Gfx *DL = (Gfx *)((u8 *)ptr_logo_and_walletbond_DL + (4096 * 10));
     int i;
 
     prev_keypresses = FALSE;
@@ -6590,7 +6590,7 @@ void load_briefing_text_for_stage(void)
     s32 argg;
 
     // what is this
-    temp_s0 = (s32)(ptr_logo_and_walletbond_DL) + (s32)(4096*10);
+    temp_s0 = (Gfx *)((u8 *)ptr_logo_and_walletbond_DL + (4096 * 10));
 
     // alright
     argg = 0x200;
@@ -7413,7 +7413,7 @@ Gfx *constructor_menu0D_missioncomplete(Gfx *DL)
     x = 0x37;
     y = 0xDC;
     DL = frontPrintText(DL, &x, &y, text, ptrFontZurichBoldChars, ptrFontZurichBold, 0xFF, viGetX(), viGetY(), 0, 0);
-    strcpy(stagename, frontGetPlayersFavoriteWeaponInHand(0, 0));
+    strcpy(stagename, (char *)frontGetPlayersFavoriteWeaponInHand(0, 0));
     if ((array_favweapon[0][0] > 0) && (array_favweapon[0][1] == array_favweapon[0][0]))
     {
         temp = strlen(stagename)-1;
