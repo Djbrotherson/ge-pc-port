@@ -1950,14 +1950,14 @@ earlyreturn:
 }
 
 
-void sub_GAME_7F0634D8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void sub_GAME_7F0634D8(Gfx *arg0, ITEM_IDS arg1, Mtxf *arg2, s32 arg3)
 {
     set_enviro_fog_for_items_in_solo_watch_menu(arg0, arg1, arg2, arg3, -256);
 }
 
 
 // Unreferenced
-void sub_GAME_7F0634FC(s32 arg0, s32 arg1, s32 arg2)
+void sub_GAME_7F0634FC(Gfx *arg0, ITEM_IDS arg1, Mtxf *arg2)
 {
     sub_GAME_7F0634D8(arg0, arg1, arg2, 0xFF);
 }
@@ -6113,9 +6113,9 @@ Gfx *generate_ammo_total_microcode(Gfx *gdl)
     s32 rightx;
     s32 reserveammo;
     s32 magammo;
-    u32 imageoffset_r;
+    uintptr_t imageoffset_r;
     s32 textwidth_r;
-    u32 imageoffset_l;
+    uintptr_t imageoffset_l;
     s32 textwidth_l;
 
     if (g_CurrentPlayer->gunammooff == 0)
@@ -6289,7 +6289,7 @@ Gfx *gunDrawWatchAmmoDisplay(Gfx *gdl)
     s32 ammotype;
     s32 reserveammo;
     s32 magammo;
-    u32 imageoffset;
+    uintptr_t imageoffset;
     s32 textwidth;
     s32 pad;
 
