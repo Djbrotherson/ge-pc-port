@@ -3904,7 +3904,7 @@ s32 sub_GAME_7F0448A8(struct PropRecord *argProp)
             if ((prop->type == PROP_TYPE_VIEWER) || (prop->type == PROP_TYPE_CHR))
             {
                 temp_v0_2 = prop->obj;
-                if ((temp_v0_2 == NULL) || !((s32) temp_v0_2->model & 0x400))
+                if ((temp_v0_2 == NULL) || !((uintptr_t)temp_v0_2->model & (uintptr_t)0x400u))
                 {
                     chrpropGetCollisionBounds(prop, &radius, &height, &arbitratyNumber);
 

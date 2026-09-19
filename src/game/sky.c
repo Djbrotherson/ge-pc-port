@@ -1981,7 +1981,7 @@ static Gfx *skyPortRenderPoly(Gfx *gdl, SkyRelated38 **v, s32 nverts)
                         (double) screenX, (double) screenY,
                         (double) v[i]->unk20, (double) v[i]->unk24,
                         tcShiftS, tcShiftT, vtx[i].v.tc[0], vtx[i].v.tc[1],
-                        (s32) s_skyTileCmdOk);
+                        (s32)(s_skyTileCmdOk[0] || s_skyTileCmdOk[1]));
         }
     }
 
