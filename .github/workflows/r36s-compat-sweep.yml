@@ -53,7 +53,8 @@ jobs:
         run: |
           sudo dpkg --add-architecture armhf
           sudo apt-get update
-          sudo apt-get install -y             gcc-arm-linux-gnueabihf             g++-arm-linux-gnueabihf             binutils-arm-linux-gnueabihf             libc6-dev:armhf             libsdl2-dev:armhf             zlib1g-dev:armhf             libgles2-mesa-dev:armhf             libegl1-mesa-dev:armhf
+          sudo apt-get install -y             gcc-arm-linux-gnueabihf             g++-arm-linux-gnueabihf             binutils-arm-linux-gnueabihf             libc6-dev:armhf             libsdl2-dev:armhf             zlib1g-dev:armhf             libgles2-mesa-dev:armhf             libegl1-mesa-dev:armhf \
+            qemu-user
 
       - name: Verify ARMHF runtime inputs
         run: |
@@ -85,6 +86,11 @@ jobs:
           arm-linux-gnueabihf-nm -n build-armhf/ge007.armhf > build-armhf/ge007.armhf.symbols.txt
           arm-linux-gnueabihf-objdump -d build-armhf/ge007.armhf > build-armhf/ge007.armhf.disasm.txt
 
+      - name: ARMHF loader smoke test
+        if: success()
+        run: |
+          qemu-arm -L /usr/arm-linux-gnueabihf build-armhf/ge007.armhf --version | tee build-armhf/ge007.armhf.smoke.txt
+
       - name: Upload ARMHF result
         if: always()
         uses: actions/upload-artifact@v4
@@ -95,6 +101,7 @@ jobs:
             build-armhf/ge007.armhf.link.map
             build-armhf/ge007.armhf.symbols.txt
             build-armhf/ge007.armhf.disasm.txt
+            build-armhf/ge007.armhf.smoke.txt
             build-armhf.log
             build-armhf/CMakeFiles/CMakeError.log
             build-armhf/CMakeFiles/CMakeOutput.log
