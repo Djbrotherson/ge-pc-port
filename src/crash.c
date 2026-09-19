@@ -581,21 +581,37 @@ char g_indyReadBuffer[g_indyReadBuffer_LEN];
  */
 u8 *crashIndyFileGetAddressSubsequentData(u8 *arg0)
 {
+#ifdef PORT
+    uintptr_t returnAddress;
+#else
     u32 returnAddress;
+#endif
 
     romCopy(&g_indyReadBuffer, arg0, g_indyReadBuffer_LEN);
-    
+
+#ifdef PORT
+    /* The leading word is a serialized 32-bit Indy resource token, while
+     * the two strings are native pointers into g_indyReadBuffer. Keep the
+     * token zero-extended and all buffer arithmetic native-width. */
+    g_indyCurrentReadBufferResourceId = (u32 *)(uintptr_t)*(u32 *)&g_indyReadBuffer;
+    g_indyReadBufferString1 = (u8 *)&g_indyReadBuffer[4];
+    g_indyReadBufferString2 = g_indyReadBufferString1
+        + crashGetStrLen(g_indyReadBufferString1) + 1;
+    returnAddress = (uintptr_t)arg0
+        + crashGetStrLen(g_indyReadBufferString1)
+        + crashGetStrLen(g_indyReadBufferString2) + 6u;
+#else
     g_indyCurrentReadBufferResourceId = (u32*)(*(s32*) &g_indyReadBuffer);
     g_indyReadBufferString1 = (u8*)&g_indyReadBuffer[4];
     g_indyReadBufferString2 = (u8 *) (
         crashGetStrLen(g_indyReadBufferString1)
         + (u32)g_indyReadBufferString1
         + 1);
-    
-    returnAddress = 
-        crashGetStrLen(g_indyReadBufferString1) 
+    returnAddress =
+        crashGetStrLen(g_indyReadBufferString1)
         + ((u32)arg0 + crashGetStrLen(g_indyReadBufferString2))
         + 6;
+#endif
 
     if (returnAddress & 3)
     {
@@ -612,13 +628,24 @@ u8 *crashIndyFileGetAddressSubsequentData(u8 *arg0)
  */
 s32 crashIndyScanLoadResourceIdFromBuffer(u32 arg0)
 {
+#ifdef PORT
+    u8 *this = (u8 *)(uintptr_t)0x00e00004u;
+    u8 *prev = this;
+#else
 	u32 this = 0x00e00004;
 	u32 prev = 0x00e00004;
+#endif
 
 	while (TRUE) {
+#ifdef PORT
+        u8 *next = crashIndyFileGetAddressSubsequentData(this);
+        u32 resourceId = (u32)(uintptr_t)g_indyCurrentReadBufferResourceId;
+#else
 		u32 next = crashIndyFileGetAddressSubsequentData(this);
+        u32 resourceId = (u32)g_indyCurrentReadBufferResourceId;
+#endif
 
-		if (arg0 >= (u32)g_indyCurrentReadBufferResourceId) {
+		if (arg0 >= resourceId) {
 			prev = this;
 
 			if (g_indyCurrentReadBufferResourceId == 0) {
@@ -643,7 +670,11 @@ s32 crashIndyScanLoadResourceIdFromBuffer(u32 arg0)
 u32 crashIndyIsValidReadBufferResourceId(void)
 {
     crashIndyFileGetAddressSubsequentData((u8*)0xe00000);
+#ifdef PORT
+    return ((u32)(uintptr_t)g_indyCurrentReadBufferResourceId ^ 0x826475beu) == 0;
+#else
     return ((u32)g_indyCurrentReadBufferResourceId ^ 0x826475be) == 0;
+#endif
 }
 
 /**
@@ -752,9 +783,16 @@ void * crashGetStackEnd(u32 sp, u32 tid)
         return p2;
     }
     
+#ifdef PORT
+    {
+        uintptr_t delta = (uintptr_t)p2 - (uintptr_t)p1;
+        p2 = (void *)(uintptr_t)((sp & 0xF0000000u) | (u32)delta);
+    }
+#else
     p2 = (void*)(
         (sp & 0xF0000000) | ((u32)p2 - (u32)p1)
         );
+#endif
     return p2;
 }
 
@@ -787,7 +825,11 @@ void * crashGetStackStart(u32 sp, u32 tid)
         return p;
     }
 
+#ifdef PORT
+    p = (void *)(uintptr_t)(sp & 0xF0000000u);
+#else
     p = (void*)(sp & 0xF0000000);
+#endif
     return p;
 }
 
