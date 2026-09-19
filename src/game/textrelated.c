@@ -449,6 +449,12 @@ Gfx *textRender(Gfx *gdl, s32 *x, s32 *y, char *text,
     if (text == NULL) {
         return gdl;
     }
+    /* R36S/AArch64: the font owns chars[]; derive the array from the valid
+     * font object instead of trusting the redundant global chars pointer,
+     * which can be clobbered by legacy 32-bit/global-layout writes. */
+    if (font != NULL) {
+        chars = font->chars;
+    }
 #endif
 
     g_JpnTextTlutNeedsLoad = 1;
@@ -718,6 +724,9 @@ Gfx *textRenderOutlined(Gfx *gdl, s32 *x, s32 *y,
     if (text == NULL) { /* D143 - see textRender */
         return gdl;
     }
+    if (font != NULL) {
+        chars = font->chars;
+    }
 #endif
 
     g_JpnTextTlutNeedsLoad = 1;
@@ -796,6 +805,9 @@ void textMeasure(s32 *textheight, s32 *textwidth, char *text, struct fontchar *f
 #ifdef PORT
     if (text == NULL) { /* D143 - see textRender */
         return;
+    }
+    if (font2 != NULL) {
+        font1 = font2->chars;
     }
 #endif
 
@@ -910,6 +922,9 @@ void textWrap(s32 wrapwidth, char *src, char *dst, struct fontchar *chars, struc
             dst[0] = '\0';
         }
         return;
+    }
+    if (font != NULL) {
+        chars = font->chars;
     }
 #endif
 
