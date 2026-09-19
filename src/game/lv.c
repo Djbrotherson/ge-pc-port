@@ -509,10 +509,21 @@ void lvlStageLoad(s32 stage)
         init_watch_at_start_of_stage();
         R36S_LV_BREADCRUMB("lv:post-init_watch");
 
+#ifdef PORT
+        osSyncPrintf("R36S LV CALL sub_GAME_7F0C11FC stage=%d currentStage=%d\n",
+                     (int)stage, (int)g_CurrentStageToLoad);
+#endif
+        R36S_LV_BREADCRUMB("lv:sub_GAME_7F0C11FC");
         sub_GAME_7F0C11FC(stage);
+        R36S_LV_BREADCRUMB("lv:post-sub_GAME_7F0C11FC");
 
+        R36S_LV_BREADCRUMB("lv:playerdata-init");
         for (i=0; i<4; i++)
         {
+#ifdef PORT
+            osSyncPrintf("R36S LV playerdata init i=%d ptr=%p\n",
+                         i, (void *)&g_playerPlayerData[i]);
+#endif
             s32 s3;
             player_data = (struct player_data *)&g_playerPlayerData[i];
 
@@ -568,9 +579,12 @@ void lvlStageLoad(s32 stage)
                 player_data->kill_counts[s3] = 0;
             }
         }
+        R36S_LV_BREADCRUMB("lv:post-playerdata-init");
     }
 
+    R36S_LV_BREADCRUMB("lv:something_with_stage_objectives");
     something_with_stage_objectives();
+    R36S_LV_BREADCRUMB("lv:post-something_with_stage_objectives");
     mpwatchUnpauseGame();
     sub_GAME_7F09B820();
     initModelHitEntryFreeList();
