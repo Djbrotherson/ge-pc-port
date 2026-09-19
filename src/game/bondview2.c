@@ -357,6 +357,12 @@ void solo_char_load(void)
     s32                         head;
     struct ItemModelFileRecord *unusedpitem;
     Model                      *model;
+#ifdef PORT
+    /* Host pointer for the generated held-item record.  helddst itself is an
+     * ordinary integer earlier in this function (Bond folder id / buffer offset)
+     * and must not be reused as pointer storage on LP64. */
+    WeaponObjRecord            *helddstptr;
+#endif
 
     yaw = bondviewGetPlayerYawRadians();
     if (g_CurrentPlayer->prop->chr == NULL)
@@ -580,8 +586,12 @@ void solo_char_load(void)
         {
             if (getPlayerCount() == 1)
             {
+#ifdef PORT
+                helddstptr   = (WeaponObjRecord *)(weaponbuf0 + cursor);
+#else
                 helddst      = cursor;
                 helddst      = ((s32)weaponbuf0) + helddst;
+#endif
                 cursor       = ALIGN64_V3(cursor + 0xc7);
                 pitemheader  = get_ptr_itemheader_in_hand(GUNLEFT);
                 *pitemheader = *PitemZ_entries[prop].header;
@@ -591,11 +601,19 @@ void solo_char_load(void)
             }
             else
             {
+#ifdef PORT
+                helddstptr  = NULL;
+#else
                 helddst     = 0;
+#endif
                 pitemheader = NULL;
             }
 
+#ifdef PORT
+            something_with_generating_object(self, prop, item, 0, helddstptr, (ItemModelFileRecord *)pitemheader);
+#else
             something_with_generating_object(self, prop, item, 0, (WeaponObjRecord *)helddst, (ItemModelFileRecord *)pitemheader);
+#endif
         }
 
         chrlvMergeKneelToStand(self, 0.0f);
@@ -10037,7 +10055,14 @@ Gfx* hudmsgBottomRender(Gfx* arg0)
             }
 
             view_vert = view_top - view_top_offset;
+#ifdef PORT
+            /* Native stack pointers: never route these through a 32-bit N64
+             * integer.  On AArch64 that sign-extended the low word and crashed
+             * in draw_blackbox_to_screen on the first HUD message. */
+            arg0 = draw_blackbox_to_screen(arg0, &view_left, &view_vert, &view_horiz, &view_top);
+#else
             arg0 = draw_blackbox_to_screen(arg0, (s32) &view_left, (s32) &view_vert, (s32) &view_horiz, (s32) &view_top);
+#endif
             arg0 = combiner_bayer_lod_perspective(textRenderOutlined(arg0, &view_left, &view_vert, stringbuffer_lowerleft[status_bar_text_buffer_index], BONDVIEW_2ND_FONTTABLE(status_bar_text_buffer_index), BONDVIEW_1ST_FONTTABLE(status_bar_text_buffer_index), -1, 0x646464FFU, (s16) (s32) viGetX(), (s16) viGetY(), 0, 0));
         }
     }
