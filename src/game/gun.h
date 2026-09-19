@@ -320,7 +320,11 @@ u8 *get_ptr_second_title_line_item(ITEM_IDS item);
 
 s32 bondwalkItemHasAmmo(ITEM_IDS item);
 
+#ifdef PORT
+void gunDrawSight(Gfx **gdl);
+#else
 void gunDrawSight(s32 *gdl);
+#endif
 
 WeaponStats *get_ptr_item_statistics(ITEM_IDS item);
 

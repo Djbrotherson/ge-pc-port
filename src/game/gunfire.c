@@ -309,11 +309,11 @@ void gunFireTankShell(s32 handnum)
 
             if (obj->projectile->sounds[0] == NULL)
             {
-                sndPlaySfx(g_musicSfxBufferPtr, 1, &obj->projectile->sounds[0]);
+                sndPlaySfx((struct ALBankAlt_s *)g_musicSfxBufferPtr, 1, (ALSoundState *)&obj->projectile->sounds[0]);
             } 
             else if (obj->projectile->sounds[1] == NULL)
             {
-                sndPlaySfx(g_musicSfxBufferPtr, 1, &obj->projectile->sounds[1]);
+                sndPlaySfx((struct ALBankAlt_s *)g_musicSfxBufferPtr, 1, (ALSoundState *)&obj->projectile->sounds[1]);
             }
         }
     }
@@ -1778,7 +1778,7 @@ Gfx *set_enviro_fog_for_items_in_solo_watch_menu(Gfx *gdl, ITEM_IDS itemid, Mtxf
     }
 
     i = 0;
-    ((Model *) &model)->render_pos = matrices;
+    ((Model *) &model)->render_pos = (RenderPosView *)matrices;
     modelCalculateRwDataLen(bodymodel);
     modelInit((Model *) &model, bodymodel, spb8);
     sub_GAME_7F05E978((Model *) &model, 0);
@@ -1935,7 +1935,7 @@ Gfx *set_enviro_fog_for_items_in_solo_watch_menu(Gfx *gdl, ITEM_IDS itemid, Mtxf
         do
         {
             matrix_4x4_copy((Mtxf *) (((u8 *) ((Model *) &model)->render_pos) + j), &sp74);
-            matrix_4x4_f32_to_s32(&sp74, (Mtxf *) ((i << 6) + (u8 *) ((Model *) &model)->render_pos));
+            matrix_4x4_f32_to_s32(sp74.m, ((RenderPosView *)((Model *)&model)->render_pos)[i].view);
             i++;
             j += 0x40;
         }
@@ -2050,7 +2050,7 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
     
     for (i = 1; i < 13; i++)
     {
-        position = objheader->Switches[i]->Data;
+        position = (struct coord3d *)objheader->Switches[i]->Data;
 
         // Update joy stick position and rotation.
         if (i == 2)
@@ -2092,7 +2092,7 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
     for (i = 0; i < objheader->numMatrices; i++)
     {
         matrix_4x4_copy((Mtxf *)((u8 *)modelstack.render_pos + i * sizeof(Mtxf)), &sp41c);
-        matrix_4x4_f32_to_s32(&sp41c, &modelstack.render_pos[i]);
+        matrix_4x4_f32_to_s32(sp41c.m, modelstack.render_pos[i].view);
     }
 
     matrix_4x4_7F058C88();
@@ -2327,7 +2327,7 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
         for (i = 0; i < objheader->numMatrices; i++)
         {
             matrix_4x4_copy((Mtxf *)((u8 *)modelstack.render_pos + i * sizeof(Mtxf)), &sp41c);
-            matrix_4x4_f32_to_s32(&sp41c, &modelstack.render_pos[i]);
+            matrix_4x4_f32_to_s32(sp41c.m, modelstack.render_pos[i].view);
         }
 
         matrix_4x4_7F058C88();
@@ -2357,7 +2357,7 @@ ALSoundState* gunGetFreeSfxState(void)
     {
         if (g_ImpactSfxStates[i] == NULL) 
         {
-            return &g_ImpactSfxStates[i];
+            return (ALSoundState *)&g_ImpactSfxStates[i];
         }
     }
     
@@ -5755,7 +5755,7 @@ void sub_GAME_7F068EC4(CasingRecord *casing, Gfx **gdl)
 #endif
 
     model_scale_or_min_translation = g_CasingModelScale;
-    matrix_scalar_multiply(model_scale_or_min_translation, &casing_model_mtx);
+    matrix_scalar_multiply(model_scale_or_min_translation, casing_model_mtx.m[0]);
 
     matrix_4x4_set_position(&casing->pos, &casing_model_mtx);
 
@@ -6382,7 +6382,11 @@ void gunSetSightVisible(s32 reason, bool visible)
 }
 
 
+#ifdef PORT
+void gunDrawSight(Gfx **gdl) {
+#else
 void gunDrawSight(s32 *gdl) {
+#endif
 
 #ifdef PORT
     /* D137: sp54 holds a Gfx* the whole time (`sp54 = *gdl`, then passed as
@@ -6417,7 +6421,7 @@ void gunDrawSight(s32 *gdl) {
 #ifdef VERSION_EU
         halfedxy[1] = halfedxy[1] * g_GunSightAspectRatio;
 #endif
-        display_image_at_position(&sp54, &xypos, &halfedxy, 0x20, 0x20, 0, 0, 1, 0xFF, 0xFF, 0xFF, 0x6E, (crosshairimage->level > 0), 0);
+        display_image_at_position(&sp54, xypos, halfedxy, 0x20, 0x20, 0, 0, 1, 0xFF, 0xFF, 0xFF, 0x6E, (crosshairimage->level > 0), 0);
 #ifdef PORT
         *(Gfx **)gdl = sp54;
 #else
@@ -6467,12 +6471,12 @@ void increment_num_kills_display_text_in_MP(void)
     if (getPlayerCount() < 2) { return; }
 
     mission_time = getMissiontimer();
-    sprintf(&buffer, aSD, langGet(getStringID(LGUN, GUN_STR_DA_KILLCOUNT)), g_playerPerm->kill_count); // "kill count"
+    sprintf((char *)buffer, aSD, langGet(getStringID(LGUN, GUN_STR_DA_KILLCOUNT)), g_playerPerm->kill_count); // "kill count"
 
 #if defined(VERSION_US)
-    hudmsgBottomShow(&buffer);
+    hudmsgBottomShow((char *)buffer);
 #elif defined(VERSION_JP) || defined(VERSION_EU)
-    jp_hudmsgBottomShow(&buffer);
+    jp_hudmsgBottomShow((char *)buffer);
 #endif
 
     if (g_playerPerm->kill_count >= 2)
@@ -6571,9 +6575,9 @@ void increment_num_suicides_display_MP(void) {
         sprintf(&buffer, &aSD_0, langGet(getStringID(LGUN, GUN_STR_DE_SUICIDECOUNT)), g_CurrentPlayer->num_suicides); // "suicide count"
 
 #if defined(VERSION_JP) || defined(VERSION_EU)
-		jp_hudmsgBottomShow(&buffer);
+		jp_hudmsgBottomShow((char *)buffer);
 #else
-		hudmsgBottomShow(&buffer);
+		hudmsgBottomShow((char *)buffer);
 #endif
 
         if (g_playerPerm->kill_count >= 2) {
