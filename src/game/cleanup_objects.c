@@ -23,7 +23,11 @@
 
 void cleanupObjects(s32 stage)
 {
+#ifdef PORT
+    u32 *obj = (u32 *)g_CurrentSetup.propDefs;
+#else
     u32 *obj = (u32)g_CurrentSetup.propDefs;
+#endif
 
     if (obj)
     {
