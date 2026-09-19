@@ -18,25 +18,71 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libsdl2-2.0-0 \
-            libgles2 \
-            libegl1 \
-            libgl1-mesa-dri \
-            libglx-mesa0 \
-            libstdc++6 \
-            libgcc-s1 \
-            zlib1g \
+            libsdl2-2.0-0 libgles2 libegl1 libgl1-mesa-dri \
+            libstdc++6 libgcc-s1 zlib1g \
             libx11-6 libxext6 libxrandr2 libxcursor1 libxi6 libxfixes3 libxrender1 \
             libwayland-client0 libwayland-egl1
 
-      - name: Stage ARM64 sysroot
+      - name: Stage minimal ARM64 sysroot
+        shell: bash
         run: |
-          set -eux
-          mkdir -p kit/sysroot/lib kit/sysroot/usr/lib
-          cp -a /lib/aarch64-linux-gnu kit/sysroot/lib/
-          cp -a /usr/lib/aarch64-linux-gnu kit/sysroot/usr/lib/
-          cp -a /lib/ld-linux-aarch64.so.1 kit/sysroot/lib/ || true
-          find kit/sysroot -type l -o -type f | wc -l
+          set -euxo pipefail
+          mkdir -p kit/sysroot
+
+          copy_one() {
+            local p="$1"
+            [ -e "$p" ] || return 0
+            mkdir -p "kit/sysroot$(dirname "$p")"
+            cp -aL "$p" "kit/sysroot$p"
+          }
+
+          # Loader plus roots needed by ge007 and its graphics/runtime stack.
+          copy_one /lib/ld-linux-aarch64.so.1
+          roots=(
+            /lib/aarch64-linux-gnu/libc.so.6
+            /lib/aarch64-linux-gnu/libm.so.6
+            /lib/aarch64-linux-gnu/libgcc_s.so.1
+            /usr/lib/aarch64-linux-gnu/libstdc++.so.6
+            /lib/aarch64-linux-gnu/libz.so.1
+            /usr/lib/aarch64-linux-gnu/libSDL2-2.0.so.0
+            /usr/lib/aarch64-linux-gnu/libGLESv2.so.2
+            /usr/lib/aarch64-linux-gnu/libEGL.so.1
+          )
+
+          : > /tmp/libs.todo
+          printf '%s\n' "${roots[@]}" >> /tmp/libs.todo
+
+          # Pull the dependency closure using native ARM64 ldd.
+          while read -r lib; do
+            [ -e "$lib" ] || continue
+            grep -Fxq "$lib" /tmp/libs.done 2>/dev/null && continue
+            echo "$lib" >> /tmp/libs.done
+            copy_one "$lib"
+            ldd "$lib" 2>/dev/null | awk '/=> \/|^\// {for(i=1;i<=NF;i++) if($i ~ /^\//) print $i}' >> /tmp/libs.todo || true
+          done < <(while read -r x; do echo "$x"; done < /tmp/libs.todo)
+
+          # Repeat until no unseen dependencies remain.
+          for pass in 1 2 3 4 5; do
+            cp /tmp/libs.todo /tmp/pass
+            while read -r lib; do
+              [ -e "$lib" ] || continue
+              grep -Fxq "$lib" /tmp/libs.done 2>/dev/null && continue
+              echo "$lib" >> /tmp/libs.done
+              copy_one "$lib"
+              ldd "$lib" 2>/dev/null | awk '/=> \/|^\// {for(i=1;i<=NF;i++) if($i ~ /^\//) print $i}' >> /tmp/libs.todo || true
+            done < /tmp/pass
+          done
+
+          # Mesa software rendering: include DRI modules and their dependency closure.
+          for dri in /usr/lib/aarch64-linux-gnu/dri/swrast_dri.so /usr/lib/aarch64-linux-gnu/dri/llvmpipe_dri.so; do
+            [ -e "$dri" ] || continue
+            copy_one "$dri"
+            ldd "$dri" | awk '/=> \/|^\// {for(i=1;i<=NF;i++) if($i ~ /^\//) print $i}' > /tmp/dri.deps
+            while read -r lib; do copy_one "$lib"; done < /tmp/dri.deps
+          done
+
+          du -sh kit/sysroot
+          find kit/sysroot -type f | wc -l
 
       - name: Download static x86_64 QEMU AArch64 user emulator
         run: |
@@ -49,7 +95,7 @@ jobs:
       - name: Upload emulation kit
         uses: actions/upload-artifact@v4
         with:
-          name: r36s-local-emulation-kit
+          name: r36s-local-emulation-kit-slim
           path: kit/
           compression-level: 6
           if-no-files-found: error
