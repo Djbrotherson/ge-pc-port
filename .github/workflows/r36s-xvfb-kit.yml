@@ -1,0 +1,65 @@
+name: Build Local Xvfb Kit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - r36s-first-frame-noaudio
+    paths:
+      - '.github/workflows/r36s-xvfb-kit.yml'
+
+jobs:
+  xvfb:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb xauth
+
+      - name: Stage portable Xvfb closure
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p kit/root
+
+          copy_one() {
+            local p="$1"
+            [ -e "$p" ] || return 0
+            mkdir -p "kit/root$(dirname "$p")"
+            cp -aL "$p" "kit/root$p"
+          }
+
+          copy_one /usr/bin/Xvfb
+          copy_one /usr/bin/xauth
+
+          : > /tmp/todo
+          printf '%s\n' /usr/bin/Xvfb /usr/bin/xauth > /tmp/todo
+          for pass in 1 2 3 4 5; do
+            cp /tmp/todo /tmp/pass
+            while read -r bin; do
+              [ -e "$bin" ] || continue
+              grep -Fxq "$bin" /tmp/done 2>/dev/null && continue
+              echo "$bin" >> /tmp/done
+              copy_one "$bin"
+              ldd "$bin" 2>/dev/null | awk '/=> \/|^\// {for(i=1;i<=NF;i++) if($i ~ /^\//) print $i}' >> /tmp/todo || true
+            done < /tmp/pass
+          done
+
+          # Xvfb usually runs without fonts, but keep the basic misc font tree if present.
+          if [ -d /usr/share/fonts/X11 ]; then
+            mkdir -p kit/root/usr/share/fonts
+            cp -a /usr/share/fonts/X11 kit/root/usr/share/fonts/
+          fi
+
+          du -sh kit/root
+
+      - name: Upload Xvfb kit
+        uses: actions/upload-artifact@v4
+        with:
+          name: local-xvfb-kit
+          path: kit/
+          compression-level: 6
+          if-no-files-found: error
