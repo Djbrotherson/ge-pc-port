@@ -238,7 +238,7 @@ Gfx *sub_GAME_7F007F30(Gfx *gdl, s32 count, Mtxf *matrix)
             if (gunbarrelTimer == BOND_EYE_ANIM_START)
             {
                 #ifdef PORT
-                modelSetAnimation(chrModelInstance, (struct ModelAnimation *)((uintptr_t)&ANIM_DATA_bond_eye_fire + (uintptr_t)&ptr_animation_table->data), 0, 2.0f, 0.910000026f, 16.0f);
+                modelSetAnimation(chrModelInstance, (struct ModelAnimation *)((u8 *)&ptr_animation_table->data + PTR_ANIM_bond_eye_fire), 0, 2.0f, 0.910000026f, 16.0f);
 #else
                 modelSetAnimation(chrModelInstance, (struct ModelAnimation *) ((s32) &ANIM_DATA_bond_eye_fire + (s32) &ptr_animation_table->data), 0, 2.0f, 0.910000026f, 16.0f);
 #endif
@@ -594,7 +594,7 @@ void initializeGunBarrelIntro(u8 *gfxBuffer, s32 bufferSize)
 #undef S_7F008E80_ANIM_SPEED
     
 #ifdef PORT
-    animation = (struct ModelAnimation *)((uintptr_t)ptr_animation_table + (uintptr_t)&ANIM_DATA_bond_eye_walk);
+    animation = (struct ModelAnimation *)((u8 *)ptr_animation_table + PTR_ANIM_bond_eye_walk);
 #else
     animation = (struct ModelAnimation*)((s32)ptr_animation_table + (s32)&ANIM_DATA_bond_eye_walk);
 #endif
