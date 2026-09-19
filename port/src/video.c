@@ -29,7 +29,7 @@
 #include "video.h"
 #include "input.h"
 #include "optionsoverlay.h"
-#include "crash.h"
+#include "../include/crash.h"
 
 #if defined(__aarch64__)
 #include <GLES2/gl2.h>
