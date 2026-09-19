@@ -29,6 +29,11 @@
 #include "video.h"
 #include "input.h"
 #include "optionsoverlay.h"
+#include "crash.h"
+
+#if defined(__aarch64__)
+#include <GLES2/gl2.h>
+#endif
 
 #include "../fast3d/gfx_api.h"
 #include "../fast3d/gfx_sdl.h"
@@ -499,18 +504,181 @@ void videoStartFrame(void)
  * "Not Responding" and ESC/close never arrive. fast3d's own handle_events
  * (which runs during rendering) remains as a backstop.
  */
+
+#if defined(__aarch64__)
+static int crashScreenActive = 0;
+
+static const unsigned char *crashGlyph(char c)
+{
+    /* 5x7 uppercase font; each row uses bits 4..0. Only characters used by
+     * the crash overlay are included. */
+    static const unsigned char blank[7] = {0,0,0,0,0,0,0};
+    static const unsigned char g0[7] = {14,17,19,21,25,17,14};
+    static const unsigned char g1[7] = {4,12,4,4,4,4,14};
+    static const unsigned char g2[7] = {14,17,1,2,4,8,31};
+    static const unsigned char g3[7] = {30,1,1,14,1,1,30};
+    static const unsigned char g4[7] = {2,6,10,18,31,2,2};
+    static const unsigned char g5[7] = {31,16,16,30,1,1,30};
+    static const unsigned char g6[7] = {14,16,16,30,17,17,14};
+    static const unsigned char g7[7] = {31,1,2,4,8,8,8};
+    static const unsigned char g8[7] = {14,17,17,14,17,17,14};
+    static const unsigned char g9[7] = {14,17,17,15,1,1,14};
+    static const unsigned char A[7] = {14,17,17,31,17,17,17};
+    static const unsigned char B[7] = {30,17,17,30,17,17,30};
+    static const unsigned char C[7] = {15,16,16,16,16,16,15};
+    static const unsigned char E[7] = {31,16,16,30,16,16,31};
+    static const unsigned char F[7] = {31,16,16,30,16,16,16};
+    static const unsigned char G[7] = {15,16,16,23,17,17,15};
+    static const unsigned char H[7] = {17,17,17,31,17,17,17};
+    static const unsigned char I[7] = {14,4,4,4,4,4,14};
+    static const unsigned char L[7] = {16,16,16,16,16,16,31};
+    static const unsigned char N[7] = {17,25,21,19,17,17,17};
+    static const unsigned char O[7] = {14,17,17,17,17,17,14};
+    static const unsigned char P[7] = {30,17,17,30,16,16,16};
+    static const unsigned char R[7] = {30,17,17,30,20,18,17};
+    static const unsigned char S[7] = {15,16,16,14,1,1,30};
+    static const unsigned char T[7] = {31,4,4,4,4,4,4};
+    static const unsigned char U[7] = {17,17,17,17,17,17,14};
+    static const unsigned char X[7] = {17,17,10,4,10,17,17};
+    static const unsigned char dash[7] = {0,0,0,31,0,0,0};
+    static const unsigned char colon[7] = {0,4,4,0,4,4,0};
+
+    switch (c) {
+    case '0': return g0; case '1': return g1; case '2': return g2;
+    case '3': return g3; case '4': return g4; case '5': return g5;
+    case '6': return g6; case '7': return g7; case '8': return g8;
+    case '9': return g9; case 'A': return A; case 'B': return B;
+    case 'C': return C; case 'E': return E; case 'F': return F;
+    case 'G': return G; case 'H': return H; case 'I': return I;
+    case 'L': return L; case 'N': return N; case 'O': return O;
+    case 'P': return P; case 'R': return R; case 'S': return S;
+    case 'T': return T; case 'U': return U; case 'X': return X;
+    case '-': return dash; case ':': return colon;
+    default: return blank;
+    }
+}
+
+static void crashDrawRect(int x, int y, int w, int h, int screenH)
+{
+    glScissor(x, screenH - y - h, w, h);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+static void crashDrawText(int x, int y, int scale, int screenH, const char *text)
+{
+    int cx = x;
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    for (; *text; ++text) {
+        if (*text == '\n') {
+            y += 9 * scale;
+            cx = x;
+            continue;
+        }
+        const unsigned char *rows = crashGlyph(*text);
+        for (int ry = 0; ry < 7; ++ry) {
+            for (int rx = 0; rx < 5; ++rx) {
+                if (rows[ry] & (1u << (4 - rx))) {
+                    crashDrawRect(cx + rx * scale, y + ry * scale,
+                                  scale, scale, screenH);
+                }
+            }
+        }
+        cx += 6 * scale;
+    }
+}
+
+static void crashHex(char *dst, uintptr_t v)
+{
+    static const char hex[] = "0123456789ABCDEF";
+    int n = (int)(sizeof(uintptr_t) * 2);
+    dst[0] = '0'; dst[1] = 'X';
+    for (int i = 0; i < n; ++i) {
+        dst[2 + i] = hex[(v >> ((n - 1 - i) * 4)) & 0xF];
+    }
+    dst[2 + n] = 0;
+}
+
+static void videoDrawCrashScreen(const CrashScreenInfo *ci)
+{
+    int w = 640, h = 480;
+    SDL_Window *window = wmAPI && wmAPI->get_window_handle
+                       ? (SDL_Window *)wmAPI->get_window_handle() : NULL;
+    if (window) {
+        SDL_GL_GetDrawableSize(window, &w, &h);
+        if (w <= 0) w = 640;
+        if (h <= 0) h = 480;
+    }
+
+    gfx_sdl_make_context_current();
+    glViewport(0, 0, w, h);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    glEnable(GL_SCISSOR_TEST);
+
+    glScissor(0, 0, w, h);
+    glClearColor(0.22f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    char pc[2 + sizeof(uintptr_t) * 2 + 1];
+    char lr[2 + sizeof(uintptr_t) * 2 + 1];
+    char sp[2 + sizeof(uintptr_t) * 2 + 1];
+    char fault[2 + sizeof(uintptr_t) * 2 + 1];
+    char sig[4] = {'0','0',0,0};
+    crashHex(pc, ci->pc);
+    crashHex(lr, ci->lr);
+    crashHex(sp, ci->sp);
+    crashHex(fault, ci->fault);
+    sig[0] = (char)('0' + ((ci->signal / 10) % 10));
+    sig[1] = (char)('0' + (ci->signal % 10));
+
+    const int scale = (w >= 600 && h >= 400) ? 3 : 2;
+    int y = 24;
+    crashDrawText(24, y, scale, h, "GE007 CRASH"); y += 12 * scale;
+    crashDrawText(24, y, scale, h, "SIGNAL "); crashDrawText(24 + 7*6*scale, y, scale, h, sig); y += 10 * scale;
+    crashDrawText(24, y, scale, h, "PC "); crashDrawText(24 + 3*6*scale, y, scale, h, pc); y += 10 * scale;
+    crashDrawText(24, y, scale, h, "LR "); crashDrawText(24 + 3*6*scale, y, scale, h, lr); y += 10 * scale;
+    crashDrawText(24, y, scale, h, "SP "); crashDrawText(24 + 3*6*scale, y, scale, h, sp); y += 10 * scale;
+    crashDrawText(24, y, scale, h, "FAULT "); crashDrawText(24 + 6*6*scale, y, scale, h, fault); y += 14 * scale;
+    crashDrawText(24, y, scale, h, "PRESS BUTTON TO EXIT");
+
+    glDisable(GL_SCISSOR_TEST);
+    if (wmAPI && wmAPI->swap_buffers_begin) wmAPI->swap_buffers_begin();
+    if (wmAPI && wmAPI->swap_buffers_end) wmAPI->swap_buffers_end();
+    crashScreenActive = 1;
+    crashScreenShown();
+}
+#endif
+
 void videoPumpEvents(void)
 {
     if (!initDone) {
         return;
     }
 
+#if defined(__aarch64__)
+    const CrashScreenInfo *ci = crashGetScreenInfo();
+    if (ci && ci->pending && !crashScreenActive) {
+        videoDrawCrashScreen(ci);
+    }
+#endif
+
     /* Apply any window/fullscreen change the F10 overlay posted from the
      * scheduler thread (must run here, on the window's creating thread). */
-    videoDrainWindowRequests();
+    if (!crashScreenActive) {
+        videoDrainWindowRequests();
+    }
 
     SDL_Event ev;
     while (SDL_PollEvent(&ev)) {
+#if defined(__aarch64__)
+        if (crashScreenActive) {
+            if (ev.type == SDL_QUIT || ev.type == SDL_KEYDOWN ||
+                ev.type == SDL_CONTROLLERBUTTONDOWN || ev.type == SDL_JOYBUTTONDOWN) {
+                crashScreenDismiss();
+            }
+            continue;
+        }
+#endif
         switch (ev.type) {
         case SDL_QUIT:
             sysLogPrintf(LOG_INFO, "video: quit requested");
