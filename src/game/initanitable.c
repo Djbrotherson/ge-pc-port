@@ -247,9 +247,38 @@ struct anim_entry
 
 void expand_ani_table_entries(s32** arg0)
 {
-    /* D33: iterate as s32 * (4 bytes/iter). As s32 ** the loop advanced 8
-     * bytes/iter on x86-64, rebasing only even-indexed entries. Identical
-     * semantics to the N64 original, where both types were 4 bytes wide. */
+    /* D33: iterate as 4-byte entries. As s32 ** the loop advanced 8
+     * bytes/iter on x86-64, rebasing only even-indexed entries. */
+#ifdef PORT
+    /*
+     * The expanded table and ModelAnimation's embedded pointer-like fields
+     * intentionally remain 32-bit N64-layout address tokens. They may have
+     * bit 31 set on a valid PC mapping, so never sign-extend them while
+     * dereferencing on LP64 hosts.
+     */
+    u32 *var_v0 = (u32 *)arg0;
+    const u32 animbase = (u32)(uintptr_t)&ptr_animation_table->data;
+    const u32 entriesbase = (u32)(uintptr_t)&_animation_entriesSegmentRomStart;
+
+    while (*var_v0 != 0) {
+        if (*var_v0 != 1) {
+            struct anim_entry *entry;
+
+            *var_v0 += animbase;
+            entry = (struct anim_entry *)(uintptr_t)*var_v0;
+            entry->unk08 = (s32)((u32)entry->unk08 + animbase);
+            entry->unk10 = (s32)((u32)entry->unk10 + animbase);
+        }
+        var_v0++;
+    }
+
+    for (var_v0 = (u32 *)arg0; *var_v0 != 0; var_v0++) {
+        if (*var_v0 != 1) {
+            struct anim_entry *entry = (struct anim_entry *)(uintptr_t)*var_v0;
+            entry->unk00 = (s32)((u32)entry->unk00 + entriesbase);
+        }
+    }
+#else
     s32 *var_v0;
 
     var_v0 = (s32 *)arg0;
@@ -267,6 +296,7 @@ void expand_ani_table_entries(s32** arg0)
             *(s32 *)*var_v0 += (s32)&_animation_entriesSegmentRomStart;
         }
     }
+#endif
 }
 
 void alloc_load_expand_ani_table(void)
