@@ -211,7 +211,7 @@ Acmd *alAdpcmPull(void *filter, s16 *outp, s32 outCount, s32 sampleOffset, Acmd 
             reported++;
             geTracePrintf("audiotrace.log", "[PASTEND] filter=%p sample=%d totalSamples=%d memin=0x%08x base=0x%08x len=%d overFlow=%d nOver=%d\n",
                     (void *)f, (int)f->sample, (int)totalSamples, (unsigned)f->memin,
-                    (unsigned)(s32)f->table->base, (int)f->table->len,
+                    (unsigned)(u32)(uintptr_t)f->table->base, (int)f->table->len,
                     (int)overFlow, (int)nOver);
         }
     }
@@ -464,7 +464,7 @@ alLoadParam(void *filter, s32 paramID, void *param)
 	    /* Get loop info according to table type. */
 	    if (a->table)
 	    {
-		a->memin  = (s32) a->table->base;
+		a->memin  = (s32)(u32)(uintptr_t)a->table->base;
 		if (a->table->type == AL_ADPCM_WAVE)
 		{
 		    if (a->table->waveInfo.adpcmWave.loop)

@@ -1025,7 +1025,7 @@ u16 modelAnimReadRootMotionValue(ModelAnimation *anim, s32 fieldIndex, s32 extra
     u8 bitsThisRead;
 
     result = 0;
-    desc = (ModelAnimBitField *)anim->bitDescriptors + fieldIndex; // D32: u32 -> ptr
+    desc = (ModelAnimBitField *)(uintptr_t)(u32)anim->bitDescriptors + fieldIndex; // serialized u32 address token
     bitsRemaining = desc->bitCount;
 
     if (bitsRemaining > 0)
@@ -1033,7 +1033,7 @@ u16 modelAnimReadRootMotionValue(ModelAnimation *anim, s32 fieldIndex, s32 extra
         totalBitOffset = extraBitOffset + desc->bitOffset;
         byteIndex = totalBitOffset >> 3;
         totalBitOffset &= 7;
-        byteptr = (u8 *)anim->bitStream + byteIndex; // D32: u32 -> ptr
+        byteptr = (u8 *)(uintptr_t)(u32)anim->bitStream + byteIndex; // serialized u32 address token
         bitsThisRead = 8 - totalBitOffset;
 
         if (bitsRemaining >= bitsThisRead)
@@ -1492,7 +1492,9 @@ void sub_GAME_7F06DB5C(ModelRenderData *arg0, Model *arg1, ModelNode *arg2, quat
     sp4C = spA0->MatrixID2;
     new_var = &sp1C;
     sp48 = arg1->render_pos;
+#ifndef PORT
     sp1C = (s32)arg2->Parent;
+#endif
 
 #ifdef PORT
     /* D101: this function stashes `arg2->Parent` (a ModelNode*) and
@@ -5404,7 +5406,7 @@ void subdraw(ModelRenderData *mrData, Model *mdl)
     }
     else
     {
-        osSyncPrintf("subdraw: object not initialised! (0x%X)\n", (u32)mdl->obj);
+        osSyncPrintf("subdraw: object not initialised! (0x%X)\n", (u32)(uintptr_t)mdl->obj);
         return_null();
     }
     #endif

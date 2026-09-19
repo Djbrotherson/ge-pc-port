@@ -291,7 +291,11 @@ void darken_vertex_in_room(Vtx * vertex, s32 room_index)
 #ifdef PORT
     vtx_index = (s32)(((uintptr_t)vertex - (uintptr_t)g_BgRoomInfo[room_index].vertices) >> 4);
 #else
+#ifdef PORT
+    vtx_index = (u32)(((uintptr_t)vertex - (uintptr_t)g_BgRoomInfo[room_index].vertices) >> 4);
+#else
     vtx_index = ((u32)vertex - (u32)g_BgRoomInfo[room_index].vertices) >> 4;
+#endif
 #endif
 
     darkened_light_table[cur_entry_darkened_light_table].room_index = (u16) room_index;

@@ -801,7 +801,7 @@ static void portPostVIEvent(void)
             sysLogPrintf(r != 0 ? LOG_ERROR : LOG_NOTE,
                          "D51 vi post #%llu mq=%p msg=%d valid=%d/%d ret=%d",
                          (unsigned long long)g_viPostCount, (void *)g_viRetraceMQ,
-                         (int)g_viRetraceMsg, g_viRetraceMQ->validCount,
+                         (int)(intptr_t)g_viRetraceMsg, g_viRetraceMQ->validCount,
                          g_viRetraceMQ->msgCount, r);
         }
     }
