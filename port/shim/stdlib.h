@@ -27,5 +27,9 @@
  * a few port TUs' own local decls — not repeated here to avoid conflicts.) */
 extern char *getenv();
 extern void *realloc();
+extern int atoi(const char *);
+extern double atof(const char *);
+extern int atexit(void (*)(void));
+extern long labs(long);
 #endif
 #endif
