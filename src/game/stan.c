@@ -160,14 +160,22 @@ s32 stanIsSpecialBit1Set(StandTile *arg0, struct StandTileLocusCallbackRecord* a
 // standTileLocusCallback_B_t typedef (f32 f32 f32), so this definition must
 // match it or outFlags lands in the wrong register (stale %r9 -> SEGV on the
 // FORCECROUCH/LADDER store).
+#ifdef PORT
+s32 stanCheckLinkedSpecialTile(StandTile *tile, s32 pointIdx, f32 arg2, f32 arg3, f32 arg4, struct StandTileLocusCallbackRecord *outRecord);
+#else
 s32 stanCheckLinkedSpecialTile(StandTile *tile, s32 pointIdx, f32 arg2, f32 arg3, f32 arg4, s32 *outFlags);
+#endif
 s32 sub_GAME_7F0B21B0(StandTile **tileStack, f32 target_x, f32 target_z, f32 radius, s32 *rooms, s32 *count_rtn, s32 bufMax);
 f32 getShortest2dDispToInfTripleEdge(StandTile *tile, s32 start3index, f32 p_x, f32 p_z);
 StanCollisionResult sub_GAME_7F0B1DDC(struct StandTile**, f32, f32, f32, standTileLocusCallback_A_t, standTileLocusCallback_B_t, standTileLocusCallback_C_t, struct StandTileLocusCallbackRecord*);
 s32 stanLocusAddTileRoomIfNew(StandTile *tile, struct StandTileLocusCallbackRecord *rec);
 s32 stanGetLocusField0(struct StandTileLocusCallbackRecord *arg0);
 s32 stanGetLocusCount(struct StandTileLocusCallbackRecord *arg0);
+#ifdef PORT
+bool stanLocusEdgeIsAboveY(StandTile *tile, s32 edgeIndex, f32 edgeDist, f32 distToPointA, f32 distToPointB, struct StandTileLocusCallbackRecord *record);
+#else
 bool stanLocusEdgeIsAboveY(StandTile *tile, s32 edgeIndex, f32 edgeDist, f32 distToPointA, f32 distToPointB, f32 *yThreshold);
+#endif
 
 // end forward declarations
 
@@ -258,7 +266,7 @@ u32 stanRemovedAnimationRoutine(s32 arg0)
 
 void stanInit(void) 
 {
-    debTryAdd(&stan_c_debug_notice_list_entry, &aStan_c_debug); //"stan_c_debug");
+    debTryAdd(&stan_c_debug_notice_list_entry, aStan_c_debug); //"stan_c_debug");
 }
 
 
@@ -282,9 +290,9 @@ void stanBuildRoomData(void)
     /* PORT: ptr_firstroom is a StandTile base; this routine overlays the first
      * 8 bytes with StandTilePoint fields to match the packed tile name. */
 #ifdef PORT
-    tile = (StandTilePoint *)stan_prefix->ptr_firstroom;
+    tile = (StandTile *)stan_prefix->ptr_firstroom;
 #else
-    tile = stan_prefix->ptr_firstroom;
+    tile = (StandTilePoint *)stan_prefix->ptr_firstroom;
 #endif
 
 #if defined(PORT)
@@ -2434,29 +2442,20 @@ s32 stanIsSpecialBit1Set(StandTile *arg0, struct StandTileLocusCallbackRecord *a
 /**
  * Address: 7F0B2274
  */
+#ifdef PORT
+s32 stanCheckLinkedSpecialTile(StandTile *tile, s32 pointIdx, f32 arg2, f32 arg3, f32 arg4, struct StandTileLocusCallbackRecord *outRecord) // D253
+#else
 s32 stanCheckLinkedSpecialTile(StandTile *tile, s32 pointIdx, f32 arg2, f32 arg3, f32 arg4, s32 *outFlags) // D253
+#endif
 {
     u16 link;
     StandTile *target;
     s32 mid;
 
 #ifdef PORT
-    /* D177 (pointer-width ABI, same class as D79/D90): `outFlags` is really
-     * the caller's `struct StandTileLocusCallbackRecord` (sub_GAME_7F0B1DDC
-     * passes `record` straight through as this callback's last argument).
-     * That struct's first member is `s32 *rooms` -- 4 bytes on N64, 8 on PC
-     * -- so the decomp's raw `s32` indexing only matches the N64 layout:
-     * `outFlags[0]` == `rooms` and `outFlags[1]` == `count` there, but on
-     * x86-64 `outFlags[1]` lands in the UPPER HALF of the `rooms` pointer and
-     * `count` (now at +8) is never written. `count` is exactly what
-     * `stanGetLocusCount()` returns and what MoveBond tests before running
-     * the ladder-collision path -- so the ladder branch fired but the player
-     * code never saw it, and Bond could never climb. Writing through the
-     * named fields reproduces the N64 semantics at either pointer width.
-     * (FORCECROUCH still worked by luck: on little-endian the low half of
-     * `rooms` is at offset 0 and `stanGetLocusField0` truncates it back.) */
-    struct StandTileLocusCallbackRecord *outRecord =
-        (struct StandTileLocusCallbackRecord *)outFlags;
+    /* D177 (pointer-width ABI, same class as D79/D90): on PORT the callback
+     * signature names the real record type directly. The N64 build preserves
+     * the original raw s32 overlay below. */
 #endif
 
     link = tile->points[pointIdx].link;
@@ -2683,16 +2682,24 @@ void stanGetMoveBondCollisionTiles(StandTile **tile1, StandTile **tile2, coord3d
  * 
  * For a given edge, return true if the edge is vertically above yThreshold.
  */
+#ifdef PORT
+bool stanLocusEdgeIsAboveY(StandTile *tile, s32 edgeIndex, f32 edgeDist, f32 distToPointA, f32 distToPointB, struct StandTileLocusCallbackRecord *record)
+#else
 bool stanLocusEdgeIsAboveY(StandTile *tile, s32 edgeIndex, f32 edgeDist, f32 distToPointA, f32 distToPointB, f32 *yThreshold)
+#endif
 {
     s32 nextIndex;
     s32 pointCount;
     f32 *threshold;
     s32 pointCountReload;
 
+#ifdef PORT
+    threshold = (f32 *)record;
+#else
     threshold = yThreshold;
+#endif
 
-    if (*yThreshold < (f32)tile->points[edgeIndex].y)
+    if (*threshold < (f32)tile->points[edgeIndex].y)
     {
         /**  
          * The duplicated point count calculation is required for matching.
@@ -3249,7 +3256,9 @@ StandTile RemovedDebugFunctionOrXBLAUnique_7F0B2EFC()
 
 
 void sub_GAME_7F0B2F00(StandTilePoint** arg0) {
-    *arg0 = stanMatchTileName(*arg0);
+    /* Before fixup this field carries a pointer to the packed tile-name string;
+     * after fixup it is overwritten with the resolved tile pointer. */
+    *arg0 = stanMatchTileName((char *)*arg0);
 }
 
 
