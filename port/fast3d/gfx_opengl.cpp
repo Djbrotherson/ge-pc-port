@@ -821,7 +821,9 @@ static void gfx_opengl_set_depth_mode(bool depth_test, bool depth_update, bool d
 }
 
 static void gfx_opengl_set_depth_range(float znear, float zfar) {
-    if (glDepthRangef) {
+    if (gl_es) {
+        glDepthRangef(znear, zfar);
+    } else if (glDepthRangef) {
         glDepthRangef(znear, zfar);
     } else {
         glDepthRange(znear, zfar);
