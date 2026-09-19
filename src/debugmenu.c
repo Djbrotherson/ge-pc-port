@@ -356,7 +356,11 @@ Gfx *debmenuDraw(Gfx *gdl)
 
 	// Make sure there'll be a least 256 GBI commands free (2KB)
 	available = dynGetFreeGfx(gdl) - 256 * sizeof(Gfx);
+	#ifdef PORT
+	needed = (s32)((uintptr_t)gdl2 - (uintptr_t)gdl);
+#else
 	needed = (u32)gdl2 - (u32)gdl;
+#endif
 
 	if (needed <= 0) { // shouldn't be possible
 		return gdl;
