@@ -87,8 +87,16 @@ def scan_file(path:Path):
         elif s.startswith("#ifndef USE_GLES") or re.match(r"#\s*if\s+!\s*defined\s*\(\s*USE_GLES\s*\)", s):
             pp.append(("USE_GLES",False))
         elif s.startswith("#if") and "__x86_64__" in s and "__aarch64__" not in s:
-            add("P0","x86-only-64bit-guard",path,i,raw,
-                "64-bit host fix is enabled on x86_64 but not AArch64.")
+            # Architecture dispatch is not a missing AArch64 LP64 fix:
+            # platform.h intentionally distinguishes x86-64 from ARM, and
+            # x86/i386 branches select x86-only intrinsics such as _mm_pause.
+            arch_dispatch = (
+                path.as_posix() == "port/include/platform.h"
+                or "__i386__" in s or "_M_IX86" in s
+            )
+            if not arch_dispatch:
+                add("P0","x86-only-64bit-guard",path,i,raw,
+                    "64-bit host fix is enabled on x86_64 but not AArch64.")
             pp.append(("OTHER",None))
         elif s.startswith("#if"):
             pp.append(("OTHER",None))
