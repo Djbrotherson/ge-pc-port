@@ -306,7 +306,11 @@ void alloc_load_expand_ani_table(void)
     osCreateMesgQueue(&animMsgQ, animMesg, 8);
     initAnimationsBuffer(&D_80029D60, &animMsgQ, &dword_CODE_bss_80069458);
     
+#ifdef PORT
+    animsDataSegmentSize = (s32)((u8 *)&_animation_dataSegmentEnd - (u8 *)&_animation_dataSegmentStart);
+#else
     animsDataSegmentSize = (s32)&_animation_dataSegmentEnd - (s32)&_animation_dataSegmentStart;
+#endif
     
     ptr_animation_table = mempAllocBytesInBank(animsDataSegmentSize, MEMPOOL_PERMANENT);
 
