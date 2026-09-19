@@ -253,7 +253,11 @@ void __scMain(void *arg)
     {        
         osRecvMesg(&sc->interruptQ, &msg, OS_MESG_BLOCK);
 
+#ifdef PORT
+        switch ((s32)(intptr_t)msg)
+#else
         switch ((s32)msg)
+#endif
         {
             case VIDEO_MSG:
                 __scHandleRetrace(sc);
@@ -303,7 +307,11 @@ void __scMain(void *arg)
         do
         {
             osRecvMesg(&sc->interruptQ, &msg, OS_MESG_BLOCK);
+#ifdef PORT
+        } while((s32)(intptr_t)msg != VIDEO_MSG);
+#else
         } while((s32)msg != VIDEO_MSG);
+#endif
 
         joyPoll();
     }
