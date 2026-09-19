@@ -108,7 +108,14 @@ s32 initResolveAnimGroupTable(struct weapon_firing_animation_table *animconfig)
 
         do
         {
+#ifdef PORT
+            /* Animation table entries are 32-bit offsets, but the table base is
+             * a native host pointer. Never add them in s32: on AArch64 that
+             * truncates the base and sign-extends the result back to 64-bit. */
+            config->anim.anim = (struct ModelAnimation *)((u8 *)ptr_animation_table + (u32)animoffset);
+#else
             config->anim.anim = (struct ModelAnimation *)(((0, animoffset)) + ((s32)ptr_animation_table));
+#endif
             endframe = floorFloatToInt(config->unk04);
             angle16 = sub_GAME_7F0001F0(config->anim.anim, 0, endframe) & 0xffff;
             duration = config->unk04;
@@ -181,12 +188,22 @@ s32 initResolveAnimTable(struct StruckAnim *entries)
     {
         do
         {
+#ifdef PORT
+            /* Static StruckAnim tables encode the animation as a 32-bit
+             * ptr_animation_table-relative offset in the pointer field. */
+            address = (s32)(u32)(uintptr_t)(*entry).struck_anim;
+#else
             address = (*entry).struck_anim;
+#endif
             entries = ptr_animation_table_addr;
             count++;
             entry++;
             ptr_animation_table_addr = (struct StruckAnim *)(&ptr_animation_table);
+#ifdef PORT
+            entry[-1].struck_anim = (ModelAnimation *)((u8 *)ptr_animation_table + (u32)address);
+#else
             entry[-1].struck_anim = (ModelAnimation *)((*((s32 *)entries)) + (0, address));
+#endif
         }
         while (entry->struck_anim != 0);
     }
