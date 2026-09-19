@@ -1895,11 +1895,11 @@ Gfx *draw_abort_cancel_confirm(Gfx *gdl)
     s32 sp64;
     s32 sp60;
 
-    s32 pFontFile;
-    s32 pFontChars;
-    s32 sp54;
-    s32 sp50;
-    s32 sp4C;
+    struct font *pFontFile;
+    struct fontchar *pFontChars;
+    u8 *sp54;
+    u8 *sp50;
+    u8 *sp4C;
 
     pFontFile = ptrFontBankGothic;
     pFontChars = ptrFontBankGothicChars;
