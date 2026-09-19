@@ -1,0 +1,49 @@
+name: R36S Semantic Host-Port Gate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - r36s-first-frame-noaudio
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'port/**'
+      - 'tools/r36s_semantic_audit.py'
+      - '.github/workflows/r36s-semantic-gate.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'port/**'
+      - 'tools/r36s_semantic_audit.py'
+      - '.github/workflows/r36s-semantic-gate.yml'
+
+jobs:
+  semantic-gate:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run semantic host-port gate
+        run: |
+          set -o pipefail
+          python3 tools/r36s_semantic_audit.py | tee semantic-audit.log
+
+      - name: Publish report
+        if: always()
+        run: |
+          test -f semantic-audit-out/semantic-report.md && cat semantic-audit-out/semantic-report.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload semantic audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r36s-semantic-host-port-audit
+          path: |
+            semantic-audit-out/semantic-report.md
+            semantic-audit-out/semantic-findings.tsv
+            semantic-audit.log
+          if-no-files-found: warn
