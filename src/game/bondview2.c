@@ -6838,7 +6838,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
             tank_move_offset.f[2] = g_TankModelPositionOffset.f[2] - tank_move_offset.f[2];
 
             matrix_4x4_set_rotation_around_y(M_TAU_F - g_TankOrientationAngle, &sp2B4);
-            matrix_scalar_multiply(temp_tank->model->scale, &sp2B4);
+            matrix_scalar_multiply(temp_tank->model->scale, sp2B4.m[0]);
             mtx4RotateVecInPlace(&sp2B4, &tank_move_offset);
             bondviewCalcUpdatePlayerCollision(&tank_move_offset, 1);
         }
@@ -6952,9 +6952,9 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
         {
             if (g_PlayerTankProp != NULL)
             {
-                tank_obj = g_PlayerTankProp->obj;
+                tank_obj = (struct TankRecord *)g_PlayerTankProp->obj;
                 matrix_4x4_set_rotation_around_y(M_TAU_F - g_TankOrientationAngle, &sp268);
-                matrix_scalar_multiply(tank_obj->model->scale, &sp268);
+                matrix_scalar_multiply(tank_obj->model->scale, sp268.m[0]);
 
                 sp25C.f[0] = g_TankModelPositionOffset.f[0];
                 sp25C.f[1] = g_TankModelPositionOffset.f[1];
