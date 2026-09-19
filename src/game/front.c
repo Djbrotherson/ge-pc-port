@@ -1231,7 +1231,7 @@ Gfx *frontDrawCursor(Gfx *DL)
 {
     f32 xypos[2];
     f32 halfedxy[2];
-    sImageTableEntry *image;
+    sImageTableEntry *image = crosshairimage;
     s32 unused;
     s32 option;
 
@@ -1254,7 +1254,7 @@ Gfx *frontDrawCursor(Gfx *DL)
     halfedxy[0] = image->width * 0.5f;
     halfedxy[1] = image->height * 0.5f;
 
-    display_image_at_position(&DL, &xypos, &halfedxy, image->width, image->height, 0, 0, 1, 255, 255, 255, 220, (image->level > 0), 0);
+    display_image_at_position(&DL, xypos, halfedxy, image->width, image->height, 0, 0, 1, 255, 255, 255, 220, (image->level > 0), 0);
 
     return DL;
 }
@@ -1575,8 +1575,8 @@ Gfx *constructor_menu00_legalscreen(Gfx *DL)
     
     for (i = 0; i < logoinst->obj->numMatrices; i++)
     {
-        matrix_4x4_copy((Mtxf *)&((s8 *)logoinst->render_pos)[i * 0x40], &tmpmtx);
-        matrix_4x4_f32_to_s32(&tmpmtx, &((Mtxf *) logoinst->render_pos)[i]);
+        matrix_4x4_copy(&logoinst->render_pos[i].pos, &tmpmtx);
+        matrix_4x4_f32_to_s32(tmpmtx.m, logoinst->render_pos[i].view);
     }
     
     DL = microcode_constructor(DL);
@@ -1767,7 +1767,7 @@ Gfx *constructor_menu01_nintendo(Gfx *DL)
         Mtxf tmpMtx;
 
         matrix_4x4_set_rotation_around_y(ninLogoRotRate, &tmpMtx);
-        matrix_scalar_multiply_3(ninLogoScale, (f32*)&tmpMtx);
+        matrix_scalar_multiply_3(ninLogoScale, tmpMtx.m[0]);
 
 #if defined(VERSION_EU)
         ninLogoScale *= 1.09647190571f;
@@ -1808,8 +1808,8 @@ Gfx *constructor_menu01_nintendo(Gfx *DL)
         s32 padding2;
 
         // hack: source address steps by sizeof(Mtxf), but can't get that to match
-        matrix_4x4_copy(&((s8*)logoinst->render_pos)[i*0x40], &tmpMtxf);
-        matrix_4x4_f32_to_s32(&tmpMtxf, &((Mtxf*)logoinst->render_pos)[i]);
+        matrix_4x4_copy(&logoinst->render_pos[i].pos, &tmpMtxf);
+        matrix_4x4_f32_to_s32(tmpMtxf.m, logoinst->render_pos[i].view);
 
         if(i);
     }
@@ -2052,8 +2052,8 @@ Gfx *constructor_menu04_goldeneyelogo(Gfx *DL)
         s32 padding2;
 
         // hack: source address steps by sizeof(Mtxf), but can't get that to match
-        matrix_4x4_copy(&((s8*)logoinst->render_pos)[i*0x40], &tempMtxf);
-        matrix_4x4_f32_to_s32(&tempMtxf, &((Mtxf*)logoinst->render_pos)[i]);
+        matrix_4x4_copy(&logoinst->render_pos[i].pos, &tempMtxf);
+        matrix_4x4_f32_to_s32(tempMtxf.m, logoinst->render_pos[i].view);
 
         if(i);
     }
@@ -2606,8 +2606,8 @@ Gfx *constructor_menu05_fileselect(Gfx *DL)
 
         for (i=0; i < walletinst[j]->obj->numMatrices; i++)
         {
-            matrix_4x4_copy((Mtxf*)&((s8*)walletinst[j]->render_pos)[i * sizeof(Mtxf)], &mtx);
-            matrix_4x4_f32_to_s32(&mtx, &((Mtxf*)walletinst[j]->render_pos)[i]);
+            matrix_4x4_copy(&walletinst[j]->render_pos[i].pos, &mtx);
+            matrix_4x4_f32_to_s32(mtx.m, walletinst[j]->render_pos[i].view);
 
         }
     }
@@ -2978,8 +2978,8 @@ Gfx *frontSetupMenuBackground(Gfx *DL)
     for (i=0; i<walletinst[0]->obj->numMatrices; i++)
     {
         // hack: source address steps by sizeof(Mtxf), but can't get that to match
-        matrix_4x4_copy(&((s8*)walletinst[0]->render_pos)[i*0x40], &sp48);
-        matrix_4x4_f32_to_s32(&sp48, &((Mtxf*)walletinst[0]->render_pos)[i]);
+        matrix_4x4_copy(&walletinst[0]->render_pos[i].pos, &sp48);
+        matrix_4x4_f32_to_s32(sp48.m, walletinst[0]->render_pos[i].view);
     }
 
 
@@ -3673,7 +3673,7 @@ Gfx *constructor_menu08_difficulty(Gfx *DL)
 #endif
 
     DL = microcode_constructor(DL);
-    DL = print_current_solo_briefing_stage_name(DL, &stagename_struct);
+    DL = print_current_solo_briefing_stage_name(DL, (char *)stagename_struct.data);
 
     //  "DIFFICULTY:\n"
     text_sp3180 = langGet(getStringID(LTITLE, TITLE_STR_35_DIFFICULTY));
@@ -3720,8 +3720,8 @@ Gfx *constructor_menu08_difficulty(Gfx *DL)
             }
             else
             {
-                sprintf(&stagename_struct, "%d.\n", i + 1);
-                text_sp160 = &stagename_struct;
+                sprintf((char *)stagename_struct.data, "%d.\n", i + 1);
+                text_sp160 = stagename_struct.data;
             }
 
             textMeasure(&sp98, &sp9C, text_sp160, ptrFontZurichBoldChars, ptrFontZurichBold, 0);
@@ -3771,7 +3771,7 @@ Gfx *constructor_menu08_difficulty(Gfx *DL)
             halfedxy[1] = image->height * 0.5f;
 
             texSelect(&DL, image, 4, 0, 0);
-            display_image_at_position(&DL, &xypos, &halfedxy, image->width, image->height, 0, 0, 1, 0xB4, 0, 0, 0xFF, image->level > 0, 0);
+            display_image_at_position(&DL, xypos, halfedxy, image->width, image->height, 0, 0, 1, 0xB4, 0, 0, 0xFF, image->level > 0, 0);
         }
     }
 
@@ -6848,7 +6848,7 @@ const struct MatchHack_front_rodata_3000 asc_D_80050C54 = { "\n" };
 
 Gfx *constructor_menu0A_briefing(Gfx *DL)
 {
-    u8 *spC0C;
+    u8 *spC0C = (u8 *)"";
     s32 spC08;
     s32 spC04;
     struct MatchHack_front_rodata_3000 sp4C;
@@ -8302,7 +8302,7 @@ Gfx *constructor_menu18_displaycast(Gfx *DL)
     cast_rootpos_smoothed.y += cast_rootvel_smoothed.y * g_GlobalTimerDelta;
     cast_rootpos_smoothed.z += cast_rootvel_smoothed.z * g_GlobalTimerDelta;
  
-    mtx4TransformVecInPlace(cast_model->render_pos, &vec);
+    mtx4TransformVecInPlace(&cast_model->render_pos[0].pos, &vec);
  
     vec.f[0] -= cast_rootpos_smoothed.x;
     vec.f[1] -= cast_rootpos_smoothed.y;
@@ -8382,17 +8382,17 @@ Gfx *constructor_menu18_displaycast(Gfx *DL)
  
     for (i = 0; i < cast_model->obj->numMatrices; i++)
     {
-        matrix_4x4_copy(&((s8 *)cast_model->render_pos)[i * sizeof(Mtxf)], &mtx2);
-        matrix_4x4_f32_to_s32(&mtx2, &((Mtxf *)cast_model->render_pos)[i]);
+        matrix_4x4_copy(&cast_model->render_pos[i].pos, &mtx2);
+        matrix_4x4_f32_to_s32(mtx2.m, cast_model->render_pos[i].view);
     }
  
     if (cast_model_weapon != NULL)
     {
         for (i = 0; i < cast_model_weapon->obj->numMatrices; i++)
         {
-            matrix_4x4_copy(&((s8 *)cast_model_weapon->render_pos)[i * sizeof(Mtxf)], &mtx2);
+            matrix_4x4_copy(&cast_model_weapon->render_pos[i].pos, &mtx2);
  
-            matrix_4x4_f32_to_s32(&mtx2, &((Mtxf *)cast_model_weapon->render_pos)[i]);
+            matrix_4x4_f32_to_s32(mtx2.m, cast_model_weapon->render_pos[i].view);
         }
     }
  
