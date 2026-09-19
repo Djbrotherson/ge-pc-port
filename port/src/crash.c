@@ -19,7 +19,7 @@
 #include <PR/ultratypes.h>
 #include "system.h"
 #include "platform.h"
-#include "crash.h"
+#include "../include/crash.h"
 
 #if defined(__aarch64__)
 /* The scheduler/render thread owns the SDL GL context during gameplay.
