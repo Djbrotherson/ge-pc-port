@@ -1,0 +1,70 @@
+name: R36S Level Loading Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - r36s-first-frame-noaudio
+    paths:
+      - 'src/**'
+      - 'port/**'
+      - 'tools/r36s_level_load_audit.py'
+      - '.github/workflows/r36s-level-load-audit.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'port/**'
+      - 'tools/r36s_level_load_audit.py'
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Checkout exact revision
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            libsdl2-dev \
+            libgles2-mesa-dev \
+            libegl1-mesa-dev \
+            zlib1g-dev
+
+      - name: Configure R36S GLES build
+        run: |
+          cmake -S . -B build-audit \
+            -DROMID=ntsc-final \
+            -DGL_LIBRARY=GLESv2 \
+            -DCMAKE_C_FLAGS="-DUSE_GLES=1 -Wall -Wextra -Wpointer-to-int-cast -Wint-to-pointer-cast -Wconversion" \
+            -DCMAKE_CXX_FLAGS="-DUSE_GLES=1 -Wall -Wextra"
+
+      - name: Build and capture warnings
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake --build build-audit -j"$(nproc)" 2>&1 | tee r36s-level-load-build.log
+
+      - name: Generate level-loading frontier report
+        if: always()
+        run: |
+          python3 tools/r36s_level_load_audit.py \
+            --repo . \
+            --warnings r36s-level-load-build.log \
+            --outdir audit-out
+          cat audit-out/r36s-level-load-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload level-loading audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r36s-level-load-audit
+          path: |
+            audit-out/r36s-level-load-report.md
+            audit-out/r36s-level-load-findings.tsv
+            r36s-level-load-build.log
+          if-no-files-found: warn
