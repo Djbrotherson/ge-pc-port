@@ -129,7 +129,12 @@ s32 alResampleParam(void *filter, s32 paramID, void *param)
             break;
             
         case (AL_FILTER_SET_PITCH):
+#ifdef PORT
+            /* param carries the 32-bit IEEE-754 payload through the libaudio void* ABI. */
+            data.i = (s32)(uintptr_t)param;
+#else
             data.i = (s32) param;
+#endif
             r->ratio = data.f;
             break;
             
