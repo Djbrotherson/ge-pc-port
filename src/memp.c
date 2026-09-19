@@ -37,7 +37,7 @@ void mempInit(void)
 
 const char *tokenFind(s32 arg0, const char *arg1);
 long int strtol(const char *str, char **endptr, int base);
-void mempCheckMemflagTokens(s32 poolAreaStart, s32 poolAreaSize)
+void mempCheckMemflagTokens(uintptr_t poolAreaStart, s32 poolAreaSize)
 {
     s_mempMVALS poolSizes;
 
@@ -89,9 +89,9 @@ void mempSetBankStarts(s32 poolSizes[MEMPOOL_COUNT+1])
 {
     s32 i;
     s32 bankstarts[MEMPOOL_COUNT] = {0};
-    s32 mempLen;
+    ptrdiff_t mempLen;
     s32 mempRequested;
-    s32 mempStart;
+    uintptr_t mempStart;
 
     //set MF, ML, ME first
     i = 0;
