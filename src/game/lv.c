@@ -69,7 +69,10 @@ extern s32 gptr_stan;
 #include "chr.h"
 #ifdef PORT
 extern volatile const char *g_R36SMainBreadcrumb;
-#define R36S_LV_BREADCRUMB(x) do { g_R36SMainBreadcrumb = (x); } while (0)
+#define R36S_LV_BREADCRUMB(x) do { \
+    g_R36SMainBreadcrumb = (x); \
+    osSyncPrintf("R36S LV PHASE: %s\\n", (x)); \
+} while (0)
 #else
 #define R36S_LV_BREADCRUMB(x) do { } while (0)
 #endif
