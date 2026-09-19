@@ -10,19 +10,27 @@ from pathlib import Path
 
 SOURCE_GLOBS = ("src/game/*.c", "src/*.c", "port/src/*.c")
 ROOTS = (
+    "lvlStageLoad",
+    "proplvreset2",
     "load_bg_file",
     "bgRoomCalcBB",
     "bgOrderPortal",
-    "sub_GAME_7F0B95D8",
-    "sub_GAME_7F0B37EC",
 )
-CURRENT_FRONTIER = "sub_GAME_7F0B95D8"
+CURRENT_FRONTIER = "proplvreset2"
 DEVICE_CONFIRMED = {
     "stanDetermineEOF",
     "stanLoadFile",
     "bgRoomCalcBB",
     "sub_GAME_7F0B993C",
     "bgOrderPortal",
+    "sub_GAME_7F09B820",
+    "initModelHitEntryFreeList",
+    "modelmgrResetSlotCounts",
+    "init_load_objpos_table",
+    "reinit_between_menus",
+    "init_sound_effects_registers",
+    "init_guards",
+    "bodiesReset",
 }
 
 FUNC_RE = re.compile(
