@@ -103,19 +103,21 @@ void init(void)
     u8 *datazipram;
     s32 inflate_code_size;
     u32 decompress_result;
+#ifndef PORT
     s32 *dest;
     s32 *src;
+#endif
     u32 copylen;
     s32 *stack_pointer;
     u8 *dataziprom;
 
-    csegmentSegmentVaddrStart = get_csegmentSegmentStart();
-    cdataSegmentRomStart = get_cdataSegmentRomStart();
-    cdataSegmentRomSize = (u8 *) get_cdataSegmentRomEnd() - cdataSegmentRomStart;
-    inflateSegmentRomStart = get_inflateSegmentRomStart();
-    inflateromSize = (u8 *) get_inflateSegmentRomEnd() - inflateSegmentRomStart;
+    csegmentSegmentVaddrStart = (u8 *)(uintptr_t)get_csegmentSegmentStart();
+    cdataSegmentRomStart = (u8 *)(uintptr_t)get_cdataSegmentRomStart();
+    cdataSegmentRomSize = (u32)((u8 *)(uintptr_t)get_cdataSegmentRomEnd() - cdataSegmentRomStart);
+    inflateSegmentRomStart = (u8 *)(uintptr_t)get_inflateSegmentRomStart();
+    inflateromSize = (u32)((u8 *)(uintptr_t)get_inflateSegmentRomEnd() - inflateSegmentRomStart);
     copylen = cdataSegmentRomSize + inflateromSize;
-    datazipram = (u8 *) (RZIPLOADADDR - cdataSegmentRomSize);
+    datazipram = (u8 *)(uintptr_t)(RZIPLOADADDR - cdataSegmentRomSize);
     dataziprom = csegmentSegmentVaddrStart;
 
     for (j = copylen - 1; j >= 0; j--)
@@ -123,7 +125,7 @@ void init(void)
         datazipram[j] = dataziprom[j];
     }
 
-    decompress_result = jump_decompressfile(datazipram, csegmentSegmentVaddrStart, RZIPBUFADDR);
+    decompress_result = jump_decompressfile((uintptr_t)datazipram, (uintptr_t)csegmentSegmentVaddrStart, (uintptr_t)RZIPBUFADDR);
     if (decompress_result);
 
 #ifdef PORT
@@ -133,7 +135,12 @@ void init(void)
 #endif
     if (inflate_code_size > MAXCODESIZE)
     {
+#ifdef PORT
+        osPiRawStartDma(OS_READ, (u32)(uintptr_t)&_alt_startSegmentRomStart,
+                        &_alt_startSegmentStart, inflate_code_size - MAXCODESIZE);
+#else
         osPiRawStartDma(OS_READ, &_alt_startSegmentRomStart, &_alt_startSegmentStart, inflate_code_size - MAXCODESIZE);
+#endif
         while ((osPiGetStatus() & PI_STATUS_DMA_BUSY))
         {
         }
@@ -144,13 +151,15 @@ void init(void)
     // This sets up TLB CONTEXT to allow the TLB miss handler to work
     initTLBPrepareContext();
 
-    // Copy the TLB miss handler to proper place
-    src = &resolve_TLBaddress_for_InvalidHit;
-    dest = (s32 *) K0BASE;
-    while (dest < (s32 *) XUT_VEC)
+    // Copy the TLB miss handler to proper place (N64 only).
+#ifndef PORT
+    src = (s32 *)(uintptr_t)&resolve_TLBaddress_for_InvalidHit;
+    dest = (s32 *)K0BASE;
+    while (dest < (s32 *)XUT_VEC)
     {
         *dest++ = *src++;
     }
+#endif
 
     // Refresh Cache
     osWritebackDCacheAll();
