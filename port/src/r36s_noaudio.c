@@ -27,7 +27,7 @@ static s16 s_r36sNaturalVolume[SFX_SLOT_COUNT];
 static s16 s_r36sScaledVolume[SFX_SLOT_COUNT];
 
 __attribute__((constructor))
-static void r36sFirstFrameDisableAudio(void)
+static void r36sFirstFrameEnableAudio(void)
 {
     for (int i = 0; i < SFX_SLOT_COUNT; ++i) {
         s_r36sNaturalVolume[i] = (s16)0x7fff;
@@ -36,10 +36,10 @@ static void r36sFirstFrameDisableAudio(void)
 
     g_sndSfxSlotNaturalVolume = s_r36sNaturalVolume;
     g_sndSfxSlotVolume = s_r36sScaledVolume;
-    g_sndBootswitchSound = 1;
+    g_sndBootswitchSound = 0;
 
     sysLogPrintf(LOG_NOTE,
-                 "R36S first-frame diagnostic: game audio disabled; "
+                 "R36S audio diagnostic: game audio enabled; "
                  "SFX volume slots seeded");
 }
 #endif
