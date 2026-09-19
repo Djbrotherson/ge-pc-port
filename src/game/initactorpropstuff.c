@@ -184,14 +184,18 @@ s32 initResolveAnimTable(struct StruckAnim *entries)
 
     if (1);
 
+#ifdef PORT
+    if (entry->struck_anim_offset != 0)
+#else
     if (entry->struck_anim != 0)
+#endif
     {
         do
         {
 #ifdef PORT
-            /* Static StruckAnim tables encode the animation as a 32-bit
-             * ptr_animation_table-relative offset in the pointer field. */
-            address = (s32)(u32)(uintptr_t)(*entry).struck_anim;
+            /* Static StruckAnim tables encode a 32-bit animation-table offset
+             * in the union slot; resolve it once to the native pointer alias. */
+            address = (s32)entry->struck_anim_offset;
 #else
             address = (*entry).struck_anim;
 #endif
@@ -205,7 +209,11 @@ s32 initResolveAnimTable(struct StruckAnim *entries)
             entry[-1].struck_anim = (ModelAnimation *)((*((s32 *)entries)) + (0, address));
 #endif
         }
+#ifdef PORT
+        while (entry->struck_anim_offset != 0);
+#else
         while (entry->struck_anim != 0);
+#endif
     }
 
     return count;

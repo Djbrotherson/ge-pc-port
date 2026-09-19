@@ -6163,7 +6163,11 @@ void modelPromoteNodeOffsetsToPointers(ModelNode *node, u32 vma, uintptr_t filer
             case MODELNODE_OPCODE_OP11:
                 {
                     ModelRoData_Op11Record* rodata = &node->Data->Op11;
+#ifdef PORT
+                    PROMOTE32(rodata->unk0c[15]);
+#else
                     PROMOTE(rodata->unk0c[15]);
+#endif
                     rodata->BaseAddr = (void *)fileramaddr;
                     break;
                 }

@@ -30,7 +30,20 @@ struct ChrHitReaction
 // Animations for when characters are wounded or killed.
 struct StruckAnim
 {
+#ifdef PORT
+    /*
+     * Static hit/death tables store PTR_ANIM_* as 32-bit offsets until
+     * initResolveAnimTable() resolves them. Keep the offset and native pointer
+     * as aliases in the same 8-byte LP64 slot; offset first makes positional
+     * static initializers type-correct without changing sizeof(StruckAnim).
+     */
+    union {
+        u32 struck_anim_offset;
+        ModelAnimation *struck_anim;
+    };
+#else
     ModelAnimation *struck_anim;
+#endif
     s32 flip; // Mirror flag selecting left/right variant
     f32 endframe;
     f32 speed;
