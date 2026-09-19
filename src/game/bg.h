@@ -206,7 +206,11 @@ typedef struct bg_queued_portal_entry {
 } bg_queued_portal_entry;
 
 extern bg_portal_data_entry *g_BgPortals;
+#ifdef PORT
+extern PortalCache table_for_portals[PORTMAX];
+#else
 extern struct unk_portalstruct table_for_portals[PORTMAX];
+#endif
 extern s32 g_MaxNumRooms;
 extern f32 room_data_float2;
 

@@ -68,7 +68,11 @@ enum GlobalVisOpcode {
     VISOP_ENDIF = 0x5c
 };
 
+#ifdef PORT
+extern PortalCache table_for_portals[PORTMAX];
+#else
 extern struct unk_portalstruct table_for_portals[PORTMAX];
+#endif
 #ifdef PORT
 extern uintptr_t ptr_bgdata_offsets;
 #else
@@ -296,7 +300,7 @@ Gfx *bgRenderRoomSecondary(Gfx *gdl, s32 room_index);
 
 Gfx *bgScissorCurrentPlayerView(Gfx *arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-bool bgIsRoomOnScreen(s32 roomID, struct rectbbox *screenbox);
+bool bgIsRoomOnScreen(s32 roomID, bbox2d *screenbox);
 s32 sub_GAME_7F0B39BC(s32 curroom, s32 unk1, bbox2d *screensize, s32 next);
 void bgUpdateCurrentPlayerScreenMinMax(void);
 void *sub_GAME_7F0B8A24(s32 *pc);
@@ -1611,7 +1615,7 @@ void sub_GAME_7F0B5168(void)
 
     for (i = 0; i < PORTMAX; i++) 
     {
-        table_for_portals[i].unk0 = -1;
+        table_for_portals[i].count = -1;
     }
 }
 
@@ -1645,7 +1649,7 @@ s32 bgRectIsInside(struct bbox2d *arg0, struct bbox2d *arg1)
 /**
  * Address: 7F0B5208
  */
-bool bgIsRoomOnScreen(s32 roomID, struct rectbbox *screenbox)
+bool bgIsRoomOnScreen(s32 roomID, bbox2d *screenbox)
 {
     s32 i;
     coord3d projected;
@@ -1693,19 +1697,19 @@ bool bgIsRoomOnScreen(s32 roomID, struct rectbbox *screenbox)
                 count_z++;
             }
 
-            if (screenbox->left <= projected.x) {
+            if (screenbox->min.x <= projected.x) {
                 count_left++;
             }
 
-            if (projected.x <= screenbox->right) {
+            if (projected.x <= screenbox->max.x) {
                 count_right++;
             }
 
-            if (screenbox->up <= projected.y) {
+            if (screenbox->min.y <= projected.y) {
                 count_top++;
             }
 
-            if (projected.y <= screenbox->down) {
+            if (projected.y <= screenbox->max.y) {
                 count_bottom++;
             }
 
@@ -1715,15 +1719,15 @@ bool bgIsRoomOnScreen(s32 roomID, struct rectbbox *screenbox)
                 count_z++;
             }
 
-            if (projected.x <= screenbox->left) {
+            if (projected.x <= screenbox->min.x) {
                 count_left++;
-            } else if (screenbox->right <= projected.x) {
+            } else if (screenbox->max.x <= projected.x) {
                 count_right++;
             }
 
-            if (projected.y <= screenbox->up) {
+            if (projected.y <= screenbox->min.y) {
                 count_top++;
-            } else if (screenbox->down <= projected.y) {
+            } else if (screenbox->max.y <= projected.y) {
                 count_bottom++;
             }
         }
@@ -2435,8 +2439,8 @@ Gfx DL_LUT_FIXFOGALPHA3[] = {
 
 //D:80044D88
 Gfx *ptrDynamic_CC_RM_LUT[] = {
-    &DL_LUT_UNKNOWN, &DL_LUT_PRIMARY_ADDFOG, &DL_LUT_BILLBOARD, &DL_LUT_WATER, &DL_LUT_CLOUD,
-    &DL_LUT_SECONDARY_ADDFOG, &DL_LUT_PRIMARY, &DL_LUT_SECONDARY, &DL_LUT_WALLETBOND, &DL_LUT_FIXFOGALPHA3
+    DL_LUT_UNKNOWN, DL_LUT_PRIMARY_ADDFOG, DL_LUT_BILLBOARD, DL_LUT_WATER, DL_LUT_CLOUD,
+    DL_LUT_SECONDARY_ADDFOG, DL_LUT_PRIMARY, DL_LUT_SECONDARY, DL_LUT_WALLETBOND, DL_LUT_FIXFOGALPHA3
 };
 
 
@@ -2508,8 +2512,19 @@ void roomsHandleStateDebugging(void)
 
 u32 bgDecompress(u8* source, u8 *target)
 {
-    u8 buffer[0x2100];
+#ifdef PORT
+    /*
+     * N64 reserved 0x2100 bytes for 1056 eight-byte huft entries. On LP64
+     * struct huft grows to 16 bytes because v.t is a native pointer. Keep
+     * the entry capacity, not the N64 byte count. Static storage also avoids
+     * doubling the level-loader stack requirement.
+     */
+    static struct huft buffer[0x2100 / 8];
     return decompressdata(source, target, buffer);
+#else
+    u8 buffer[0x2100];
+    return decompressdata(source, target, (struct huft *)buffer);
+#endif
 }
 
 
@@ -3295,7 +3310,11 @@ void bgBuildRoomVtxBounds(s32 roomID)
 
             numvertices = ((gdl[cmdindex].dma.par >> 4) & 0xf) + 1;
 
+#ifdef PORT
+            vtx = (Vtx *)((u8 *)vertices + SEGMENT_OFFSET(gdl[cmdindex].dma.addr));
+#else
             vtx = (Vtx *)(SEGMENT_OFFSET(gdl[cmdindex].dma.addr) + (u32)vertices);
+#endif
 
 #if defined(PORT)
             /* TEMP D69 safety net: the room primary/secondary DL binaries
@@ -4420,7 +4439,7 @@ void sub_GAME_7F0B7F84(s32 roomnum, s32 portalnum /*canonically p*/, s32 depth, 
  
             otherroom = (g_BgPortals[portalnum].connectedRoom1 ^ g_BgPortals[portalnum].connectedRoom2) ^ roomnum;
  
-            if (!bgIsRoomOnScreen(otherroom, (struct rectbbox *) &screenbox))
+            if (!bgIsRoomOnScreen(otherroom, &screenbox))
             {
                 return;
             }
@@ -4471,7 +4490,7 @@ void sub_GAME_7F0B7F84(s32 roomnum, s32 portalnum /*canonically p*/, s32 depth, 
         {
             if ((otherroom == g_BgPortals[i].connectedRoom1) || (otherroom == g_BgPortals[i].connectedRoom2))
             {
-                bgQueuePortalTraversal(otherroom, i, depth + 1, &screenbox);
+                bgQueuePortalTraversal(otherroom, i, depth + 1, screenbox.f[0]);
             }
         }
     }
@@ -4574,7 +4593,7 @@ s32 sub_GAME_7F0B7F84(s32 value, s32 roomnum, s32 portalnum /*canonically p*/, s
  
             otherroom = (g_BgPortals[portalnum].connectedRoom1 ^ g_BgPortals[portalnum].connectedRoom2) ^ roomnum;
  
-            if (!bgIsRoomOnScreen(otherroom, (struct rectbbox *) &screenbox))
+            if (!bgIsRoomOnScreen(otherroom, &screenbox))
             {
                 return value;
             }
@@ -4625,7 +4644,7 @@ s32 sub_GAME_7F0B7F84(s32 value, s32 roomnum, s32 portalnum /*canonically p*/, s
         {
             if ((otherroom == g_BgPortals[i].connectedRoom1) || (otherroom == g_BgPortals[i].connectedRoom2))
             {
-                bgQueuePortalTraversal(value, otherroom, i, depth + 1, &screenbox);
+                bgQueuePortalTraversal(value, otherroom, i, depth + 1, screenbox.f[0]);
             }
         }
     }
@@ -4839,7 +4858,7 @@ GlobalVisCommand *parse_global_vis_command_list(GlobalVisCommand *cmd, s32 execu
             case VISOP_ADD_VISIBLE_ROOM:
                 if (execute && !current_visibility)
                 {
-                    if (bgIsRoomOnScreen(cmd[1].arg, (struct rectbbox *)&dword_CODE_bss_80081600.unk0))
+                    if (bgIsRoomOnScreen(cmd[1].arg, &dword_CODE_bss_80081600.unk0))
                     {
                         sub_GAME_7F0B39BC(cmd[1].arg, 0, &dword_CODE_bss_80081600.unk0, 0);
 
@@ -4973,7 +4992,11 @@ GlobalVisCommand *parse_global_vis_command_list(GlobalVisCommand *cmd, s32 execu
 }
 
 #ifndef VERSION_EU
+#ifdef PORT
+PortalCache table_for_portals[PORTMAX];
+#else
 struct unk_portalstruct table_for_portals[PORTMAX];
+#endif
 #endif
 
 #define RS_STOP 0
