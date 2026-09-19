@@ -866,7 +866,8 @@ void load_bg_file(LEVEL_INDEX levelid)
     if (((levelid && header_data) && levelentry_index));
 
     ptr_bgdata_room_fileposition_list =
-        (bg_room_data *)BG_SEG_TO_PTR(header_data, header_data[1]);
+        (bg_room_data *)((u8 *)header_data +
+            (u32)((u32)header_data[1] + 0xF1000000u));
  
     size = (((((u32) ptr_bgdata_room_fileposition_list[1].pPointTableBin) & 0x00ffffff) - 1) | 0xf) + 1;
  
