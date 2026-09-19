@@ -60,7 +60,11 @@ s32 indycmdSendCommand(u8 *buffer, u32 size)
     pbuffer = sp40; // var_a3
 
     // if argument isn't 8 byte aligned
+#ifdef PORT
+    if ((uintptr_t)buffer & 7)
+#else
     if ((s32)(buffer) & 7)
+#endif
     {
         if (size > 0x500)
         {
@@ -68,7 +72,11 @@ s32 indycmdSendCommand(u8 *buffer, u32 size)
         }
 
         // if local buffer isn't 8 byte aligned
+#ifdef PORT
+        if ((uintptr_t)pbuffer & 7)
+#else
         if ((s32)(pbuffer) & 7)
+#endif
         {
             address += 4; // var_v1 = var_a3;
             pbuffer += 4; // var_a3 = &sp44;
@@ -584,7 +592,11 @@ s32 indycmdRecieveCommand(u8 *buffer, u32 size)
     pbuffer = sp40; // var_a3
 
     // if argument isn't 8 byte aligned
+#ifdef PORT
+    if ((uintptr_t)buffer & 7)
+#else
     if ((s32)(buffer) & 7)
+#endif
     {
         if (size > 0x400)
         {
@@ -592,7 +604,11 @@ s32 indycmdRecieveCommand(u8 *buffer, u32 size)
         }
 
         // if local buffer isn't 8 byte aligned
+#ifdef PORT
+        if ((uintptr_t)pbuffer & 7)
+#else
         if ((s32)(pbuffer) & 7)
+#endif
         {
             pbuffer += 4; // var_a3 = &sp44;
             address += 4; // var_v1 = var_a3;
