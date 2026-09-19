@@ -1371,9 +1371,9 @@ Gfx *sub_GAME_7F061E18(Gfx *gdl, BeamRecord *flash, s32 arg2)
         mtx = dynAllocateMatrix();
 
         matrix_4x4_set_identity_and_position(&pos, &mtxf);
-        matrix_scalar_multiply(0.1f, (f32 *)&mtxf);
+        matrix_scalar_multiply(0.1f, mtxf.m[0]);
         matrix_4x4_multiply_homogeneous_in_place(worldtoscreen, &mtxf);
-        matrix_4x4_f32_to_s32(&mtxf, (Mtxf *)mtx);
+        matrix_4x4_f32_to_s32(mtxf.m, mtx->m);
 
         vtx[0] = templatevtx;
         vtx[1] = templatevtx;
@@ -2044,7 +2044,7 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
 
     if (objheader);
 
-    modelInit(&modelstack, objheader, rwdata);
+    modelInit(&modelstack, objheader, (union ModelRwData *)rwdata);
     modelstack.render_pos = (RenderPosView*) matrices;
     matrix_4x4_copy(basemtx, &matrices[0]);
     
@@ -4973,12 +4973,12 @@ void sub_GAME_7F0680D4(coord3d * coord)
     g_CurrentPlayer->field_1010.x = coord->x;
     g_CurrentPlayer->field_1010.y = coord->y;
     g_CurrentPlayer->field_1010.z = coord->z;
-    matrix_4x4_set_rotation_around_xyz(coord->f, &g_CurrentPlayer->field_101C);
+    matrix_4x4_set_rotation_around_xyz(coord, &g_CurrentPlayer->field_101C);
 
     tmp.x = g_CurrentPlayer->field_101C.m[2][0] * 1000.0f;
     tmp.y = g_CurrentPlayer->field_101C.m[2][1] * 1000.0f;
     tmp.z = g_CurrentPlayer->field_101C.m[2][2] * 1000.0f;
-    transform3Dto2DCoords(&tmp, (coord3d* ) &g_CurrentPlayer->crosshair_angle);
+    transform3Dto2DCoords(&tmp, &g_CurrentPlayer->crosshair_angle);
 
     g_CurrentPlayer->field_FFC.x = g_CurrentPlayer->crosshair_angle.x;
     g_CurrentPlayer->field_FFC.y = g_CurrentPlayer->crosshair_angle.y;
