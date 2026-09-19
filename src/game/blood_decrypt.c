@@ -167,11 +167,20 @@ void sub_GAME_7F01D02C(u8 *arg0, s32 arg1, u8 *arg2)
 void bloodImgTranspose(u8 *src, s32 srcwidth, s32 srcheight, u8 *dst)
 {
     s32 pixelcount;
+#ifdef PORT
+    u8 *rowend;
+    u8 *var_t2;
+#else
     u32 rowend;
     u32 var_t2;
+#endif
     u8 *var_t0;
     u8 *var_v1;
+#ifdef PORT
+    u8 *t1;
+#else
     u32 t1;
+#endif
 
     pixelcount = srcwidth * srcheight;
     var_v1 = src;
@@ -189,11 +198,19 @@ void bloodImgTranspose(u8 *src, s32 srcwidth, s32 srcheight, u8 *dst)
             var_t2 += 1;
             var_t0 += srcheight;
             
+#ifdef PORT
+        } while (var_v1 < rowend);
+#else
         } while ((u32) var_v1 < rowend);
+#endif
 
         var_t0 = (var_t0 - (pixelcount)) + 1;
         
+#ifdef PORT
+    } while (var_v1 < t1);
+#else
     } while ((u32) var_v1 < (u32) t1);
+#endif
 }
 
 
