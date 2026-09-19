@@ -172,7 +172,7 @@ void bossInitMainthreadData(void)
     OSMesg bossmsg;
     OSTimer bosstimer;
     OSMesgQueue bossmq;
-    u32 start;
+    uintptr_t start;
     u32 unused;
     s32 i;
 
@@ -271,7 +271,8 @@ void bossInitMainthreadData(void)
     }
 
     start = (PHYS_TO_K0(osVirtualToPhysical(&_bssSegmentEnd)));
-    mempCheckMemflagTokens(start, ((u32)tlbmanageGetTlbAllocatedBlock() - (u32)start));
+    mempCheckMemflagTokens(start,
+        (s32)((uintptr_t)tlbmanageGetTlbAllocatedBlock() - start));
     mempResetBank(MEMPOOL_PERMANENT);
     langInit();
     lvInit();
