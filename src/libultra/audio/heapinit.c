@@ -23,7 +23,11 @@
 
 void alHeapInit(ALHeap *hp, u8 *base, s32 len)
 {
+#ifdef PORT
+    s32 extraAlign = (AL_CACHE_ALIGN + 1) - ((s32)((uintptr_t)base & AL_CACHE_ALIGN));
+#else
     s32 extraAlign = (AL_CACHE_ALIGN+1) - ((s32) base & AL_CACHE_ALIGN);
+#endif
     
     if (extraAlign != AL_CACHE_ALIGN+1)
         hp->base = base + extraAlign;
