@@ -67,6 +67,12 @@ extern s32 gptr_stan;
 #include "unk_092E50.h"
 #include "frametiming.h"
 #include "chr.h"
+#ifdef PORT
+extern volatile const char *g_R36SMainBreadcrumb;
+#define R36S_LV_BREADCRUMB(x) do { g_R36SMainBreadcrumb = (x); } while (0)
+#else
+#define R36S_LV_BREADCRUMB(x) do { } while (0)
+#endif
 
 // bss
 //CODE.bss:8008C260
@@ -364,20 +370,40 @@ void lvlStageLoad(s32 stage)
     g_StageTimeSec = 0.0f;
     g_MpSoundStateRelated = 0;
 
+    R36S_LV_BREADCRUMB("lv:sndSetScalerApplyVolumeAllSfxSlot");
     sndSetScalerApplyVolumeAllSfxSlot(1.0f);
+    R36S_LV_BREADCRUMB("lv:post-sfx-volume");
+    R36S_LV_BREADCRUMB("lv:musicTrack1ApplySeqpVol");
     musicTrack1ApplySeqpVol(VOLUME_MAX);
+    R36S_LV_BREADCRUMB("lv:post-musicTrack1");
+    R36S_LV_BREADCRUMB("lv:musicTrack2ApplySeqpVol");
     musicTrack2ApplySeqpVol(VOLUME_MAX);
+    R36S_LV_BREADCRUMB("lv:post-musicTrack2");
+    R36S_LV_BREADCRUMB("lv:musicTrack3ApplySeqpVol");
     musicTrack3ApplySeqpVol(VOLUME_MAX);
+    R36S_LV_BREADCRUMB("lv:post-musicTrack3");
+    R36S_LV_BREADCRUMB("lv:sub_GAME_7F0C1364");
     sub_GAME_7F0C1364();
+    R36S_LV_BREADCRUMB("lv:post-sub_GAME_7F0C1364");
+    R36S_LV_BREADCRUMB("lv:modelmgrSetLevelResetting");
     modelmgrSetLevelResetting(TRUE);
+    R36S_LV_BREADCRUMB("lv:post-modelmgrSetLevelResetting");
+    R36S_LV_BREADCRUMB("lv:set_mt_tex_alloc");
     set_mt_tex_alloc();
+    R36S_LV_BREADCRUMB("lv:post-set_mt_tex_alloc");
 #ifdef VERSION_EU
     bullet_moving_sparks_reset();
 #else
+    R36S_LV_BREADCRUMB("lv:bullet_sparks_reset_all");
     bullet_sparks_reset_all();
+    R36S_LV_BREADCRUMB("lv:post-bullet_sparks_reset_all");
 #endif
+    R36S_LV_BREADCRUMB("lv:texReset");
     texReset();
+    R36S_LV_BREADCRUMB("lv:post-texReset");
+    R36S_LV_BREADCRUMB("lv:load_font_tables");
     load_font_tables();
+    R36S_LV_BREADCRUMB("lv:post-load_font_tables");
 
     /* If title screen, initialize screen and folder setup.
     * Otherwise:
@@ -456,7 +482,9 @@ void lvlStageLoad(s32 stage)
             }
         }
 
+        R36S_LV_BREADCRUMB("lv:load_bg_file");
         load_bg_file(g_CurrentStageToLoad);
+        R36S_LV_BREADCRUMB("lv:post-load_bg_file");
 #ifdef PORT
         {
             int loaded = 0;
@@ -468,11 +496,15 @@ void lvlStageLoad(s32 stage)
                 (void *)(uintptr_t)ptr_bg_data, (void *)(uintptr_t)gptr_stan);
         }
 #endif
+        R36S_LV_BREADCRUMB("lv:skySetStageNum");
         skySetStageNum(g_CurrentStageToLoad);
+        R36S_LV_BREADCRUMB("lv:post-skySetStageNum");
 
         // HACK: This method call is wrong. The function takes one argument, but the asm calls it without
         // any arguments here.
+        R36S_LV_BREADCRUMB("lv:init_watch_at_start_of_stage");
         init_watch_at_start_of_stage();
+        R36S_LV_BREADCRUMB("lv:post-init_watch");
 
         sub_GAME_7F0C11FC(stage);
 
