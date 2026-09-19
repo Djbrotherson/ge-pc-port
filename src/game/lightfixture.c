@@ -182,12 +182,19 @@ Vtx *lightFindVertexBaseForTri(Gfx *gfx, s32 room_index)
         gfx--; 
     }
 
-    ret = gfx->dma.addr;
+    ret = (Vtx *)(uintptr_t)gfx->dma.addr;
 
+#ifdef PORT
+    if (((uintptr_t)ret & 0xFF000000u) == 0x0E000000u)
+    {
+        ret = (Vtx *)((uintptr_t)g_BgRoomInfo[room_index].vertices + ((uintptr_t)ret & 0x00FFFFFFu));
+    }
+#else
     if (((s32) ret & 0xFF000000) == 0x0E000000) 
     {
         ret = (s32)g_BgRoomInfo[room_index].vertices + ((s32) ret & 0xFFFFFF);
     }
+#endif
 
     return ret;
 }
@@ -281,7 +288,15 @@ void darken_vertex_in_room(Vtx * vertex, s32 room_index)
     if (darkened_light_table_contains_vertex(vertex, room_index) != 0) { return; }
 
     // weird memory stuff going on here
+#ifdef PORT
+    vtx_index = (s32)(((uintptr_t)vertex - (uintptr_t)g_BgRoomInfo[room_index].vertices) >> 4);
+#else
+#ifdef PORT
+    vtx_index = (u32)(((uintptr_t)vertex - (uintptr_t)g_BgRoomInfo[room_index].vertices) >> 4);
+#else
     vtx_index = ((u32)vertex - (u32)g_BgRoomInfo[room_index].vertices) >> 4;
+#endif
+#endif
 
     darkened_light_table[cur_entry_darkened_light_table].room_index = (u16) room_index;
     darkened_light_table[cur_entry_darkened_light_table].vtx_index = vtx_index;
