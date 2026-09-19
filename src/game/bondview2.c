@@ -8265,12 +8265,12 @@ void bondviewUpdateCameraMatrices(coord3d* cam_pos, coord3d* cam_look_dir, coord
         clpos.x, clpos.y, clpos.z,
         cam_up->x, cam_up->y, cam_up->z);
 
-    matrix_4x4_set_lookat((Mtxf*) g_CurrentPlayer->field_64,
+    matrix_4x4_set_lookat((Mtxf *)g_CurrentPlayer->field_64,
         cam_pos->x, cam_pos->y, cam_pos->z,
         cam_look_dir->x, cam_look_dir->y, cam_look_dir->z,
         cam_up->x, cam_up->y, cam_up->z);
 
-    matrix_4x4_set_basis_and_position((Mtxf*) g_CurrentPlayer->field_68,
+    matrix_4x4_set_basis_and_position((Mtxf *)g_CurrentPlayer->field_68,
         cam_pos->x, cam_pos->y, cam_pos->z,
         cam_look_dir->x, cam_look_dir->y, cam_look_dir->z,
         cam_up->x, cam_up->y, cam_up->z);
@@ -8305,13 +8305,13 @@ void bondviewUpdateCameraMatrices(coord3d* cam_pos, coord3d* cam_look_dir, coord
     scale = bgGetLevelVisibilityScale();
 
     matrix_scalar_multiply(scale, spC4.m[0]);
-    guMtxF2L((f32 (*)[4]) &spC4, (Mtx* ) g_CurrentPlayer->field_5C);
-    sub_GAME_7F059334((s32* ) g_CurrentPlayer->field_5C, (s32* ) g_CurrentPlayer->field_60);
+    guMtxF2L((f32 (*)[4]) &spC4, g_CurrentPlayer->field_5C);
+    sub_GAME_7F059334((s32 *)g_CurrentPlayer->field_5C, (s32 *)g_CurrentPlayer->field_60);
 
-    currentPlayerSetMatrix10C8((Mtx* ) g_CurrentPlayer->field_5C);
-    currentPlayerSetMatrix10C4((Mtx* ) g_CurrentPlayer->field_60);
-    currentPlayerSetMatrix10CC((Mtxf* ) g_CurrentPlayer->field_64);
-    currentPlayerSetViewToWorldMtxf((Mtxf* ) g_CurrentPlayer->field_68);
+    currentPlayerSetMatrix10C8(g_CurrentPlayer->field_5C);
+    currentPlayerSetMatrix10C4(g_CurrentPlayer->field_60);
+    currentPlayerSetMatrix10CC((Mtxf *)g_CurrentPlayer->field_64);
+    currentPlayerSetViewToWorldMtxf((Mtxf *)g_CurrentPlayer->field_68);
 
 #ifdef PORT
     sub_GAME_7F078464(lookat);

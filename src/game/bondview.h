@@ -370,10 +370,10 @@ struct player
    * Offset 0x005c.
    */
 #ifdef PORT
-  uintptr_t field_5C;
-  uintptr_t field_60;
-  uintptr_t field_64;
-  uintptr_t field_68;
+  Mtx *field_5C;
+  Mtx *field_60;
+  Mtx *field_64;
+  Mtx *field_68;
 #else
   s32 field_5C;
   /* 0x0060 */ s32 field_60;
