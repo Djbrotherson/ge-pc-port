@@ -31,7 +31,13 @@ void romCreateMesgQueue(void)
 void doRomCopy(void *target, void *source, u32 size)
 {
     osInvalDCache(target, size);
+#ifdef PORT
+    /* PI device addresses are 32-bit cart tokens; the RAM destination is native-width. */
+    osPiStartDma(&memoryMesgMB, OS_MESG_PRI_NORMAL, OS_READ,
+                 (u32)(uintptr_t)source, target, size, &memoryMesgQueue);
+#else
     osPiStartDma(&memoryMesgMB, OS_MESG_PRI_NORMAL, OS_READ, source, target, size, &memoryMesgQueue);
+#endif
 }
 
 /**
@@ -107,7 +113,13 @@ s32 romCopyAligned(void *target, void *source, s32 length)
 void doRomWrite(void *source, void *target, u32 size)
 {
     osWritebackDCache(source, size);
+#ifdef PORT
+    /* PI device addresses remain 32-bit cart tokens on the host port. */
+    osPiStartDma(&memoryMesgMB, OS_MESG_PRI_NORMAL, OS_WRITE,
+                 (u32)(uintptr_t)target, source, size, &memoryMesgQueue);
+#else
     osPiStartDma(&memoryMesgMB, OS_MESG_PRI_NORMAL, OS_WRITE, target, source, size, &memoryMesgQueue);
+#endif
 }
 
 /**
