@@ -8,6 +8,9 @@
 #endif
 #include "macro.h"
 #include "ob.h"
+#ifdef PORT
+#include "system.h"
+#endif
 #include <deb.h>
 #include <memp.h>
 #include <assets/obseg/obseg.h>
