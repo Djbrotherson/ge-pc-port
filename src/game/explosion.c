@@ -1723,7 +1723,11 @@ Gfx *explosionRenderFlyingParticles(Gfx *gdl)
     for (i = 0; i < max_particles; i++)
     {
         // HACK: regalloc has instructions backwards.
+#ifdef PORT
+        particles = (struct FlyingParticles *)g_FlyingParticlesBuffer + i;
+#else
         particles = (struct FlyingParticles *)(u32)g_FlyingParticlesBuffer + i;
+#endif
 
         if (particles->unk00 > 0)
         {
