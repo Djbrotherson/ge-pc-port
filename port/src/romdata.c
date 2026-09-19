@@ -265,18 +265,18 @@ static int romdataFinishCartMap(const char *tok, u8 *img,
          * by that (the real segment is smaller, but base/len are validated
          * against this anyway). */
         romdataRaw16Walk((const u8 *)&_sfxctlSegmentRomStart,
-                         (u32)&_sfxtblSegmentRomStart -
-                             (u32)&_sfxctlSegmentRomStart,
+                         (u32)((uintptr_t)&_sfxtblSegmentRomStart -
+                             (uintptr_t)&_sfxctlSegmentRomStart),
                          (u8 *)&_sfxtblSegmentRomStart,
                          CART_BASE + romSize -
-                             (u32)&_sfxtblSegmentRomStart,
+                             (u32)(uintptr_t)&_sfxtblSegmentRomStart,
                          done, &ndone);
         romdataRaw16Walk((const u8 *)&_instrumentsctlSegmentRomStart,
-                         (u32)&_instrumentstblSegmentRomStart -
-                             (u32)&_instrumentsctlSegmentRomStart,
+                         (u32)((uintptr_t)&_instrumentstblSegmentRomStart -
+                             (uintptr_t)&_instrumentsctlSegmentRomStart),
                          (u8 *)&_instrumentstblSegmentRomStart,
                          CART_BASE + romSize -
-                             (u32)&_instrumentstblSegmentRomStart,
+                             (u32)(uintptr_t)&_instrumentstblSegmentRomStart,
                          done, &ndone);
         if (ndone)
             sysLogPrintf(LOG_INFO, "romdataInit: D230 byte-swapped %d RAW16 "
@@ -488,7 +488,7 @@ static u32 romdataBswap32(u32 v)
 
 /* The port/shim <stddef.h> is the N64 stub for C TUs (no offsetof); this is
  * the equivalent null-cast idiom. */
-#define ROMDATA_OFFSEXP(T, M) ((u32)&(((T *)0)->M))
+#define ROMDATA_OFFSEXP(T, M) ((u32)(uintptr_t)&(((T *)0)->M))
 
 static u16 romdataBswap16(u16 v)
 {

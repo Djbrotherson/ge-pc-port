@@ -626,7 +626,7 @@ extern u32 _musicsampletblSegmentRomStart;
  */
 void musicSeqFileNew(RareALSeqBankFile *file, u8 *base)
 {
-    s32 offset = (s32) base;
+    u32 offset = (u32)(uintptr_t)base;
     s32 i;
     
     /*
@@ -654,7 +654,7 @@ void musicSeqPlayerInit(void)
     ALBankFile *instrumentBank; // sp 204
 
     // This type/cast is not correct, but this is how it matches.
-    s32 tblSegmentRomStartAddress = (s32)&_musicsampletblSegmentRomStart; // ??
+    uintptr_t tblSegmentRomStartAddress = (uintptr_t)&_musicsampletblSegmentRomStart; // ROM address token
 
     ALSynConfig synconfig; // sp 164-192
     ALSeqpConfig track1SeqpConfig; // sp 136-160
@@ -683,7 +683,7 @@ void musicSeqPlayerInit(void)
 
     if (MUSIC_CONFIG_USE_SFX_BANK)
     {
-        size = (u32)&_sfxtblSegmentRomStart - (u32)&_sfxctlSegmentRomStart;
+        size = (u32)((uintptr_t)&_sfxtblSegmentRomStart - (uintptr_t)&_sfxctlSegmentRomStart);
 
 #if defined(__x86_64__) || defined(__aarch64__)
         // D37: the PC-native bank image is larger than the ROM segment
@@ -706,7 +706,7 @@ void musicSeqPlayerInit(void)
 
     if (MUSIC_CONFIG_USE_INSTRUMENT_BANK)
     {
-        size = (u32)&_instrumentstblSegmentRomStart - (u32)&_instrumentsctlSegmentRomStart;
+        size = (u32)((uintptr_t)&_instrumentstblSegmentRomStart - (uintptr_t)&_instrumentsctlSegmentRomStart);
 
 #if defined(__x86_64__) || defined(__aarch64__)
         // D37: as above.
@@ -863,7 +863,7 @@ void musicTrack1Play(s32 track)
     while (alCSPGetState(g_musicXTrack1SeqPlayer))
         ;
 
-    romAddress = (void *)g_musicDataTable->seqArray[g_musicXTrack1CurrentTrackNum].address;
+    romAddress = (void *)(uintptr_t)g_musicDataTable->seqArray[g_musicXTrack1CurrentTrackNum].address;
 
     if (romAddress < (void*)ROM_MUSIC_START_OFFSET)
     {
@@ -876,7 +876,7 @@ void musicTrack1Play(s32 track)
     t3 = ALIGN16_a(g_musicTrackLength[g_musicXTrack1CurrentTrackNum]) + ALIGN16_a(NUM_MUSIC_TRACKS);
     trackSizeBytes = ALIGN16_a(g_musicTrackCompressedLength[g_musicXTrack1CurrentTrackNum]);
     thing.seqData = g_musicXTrack1SeqData;
-    temp_a0 = (u8*)((t3 + (s32)thing.seqData) - trackSizeBytes);
+    temp_a0 = thing.seqData + t3 - trackSizeBytes;
 
     romCopy(temp_a0, romAddress, trackSizeBytes);
     decompressdata(temp_a0, thing.seqData, &hlist);
@@ -1057,7 +1057,7 @@ void musicTrack2Play(s32 track)
     while (alCSPGetState(g_musicXTrack2SeqPlayer))
         ;
 
-    romAddress = (void *)g_musicDataTable->seqArray[g_musicXTrack2CurrentTrackNum].address;
+    romAddress = (void *)(uintptr_t)g_musicDataTable->seqArray[g_musicXTrack2CurrentTrackNum].address;
 
     if (romAddress < (void*)ROM_MUSIC_START_OFFSET)
     {
@@ -1070,7 +1070,7 @@ void musicTrack2Play(s32 track)
     t3 = ALIGN16_a(g_musicTrackLength[g_musicXTrack2CurrentTrackNum]) + ALIGN16_a(NUM_MUSIC_TRACKS);
     trackSizeBytes = ALIGN16_a(g_musicTrackCompressedLength[g_musicXTrack2CurrentTrackNum]);
     thing.seqData = g_musicXTrack2SeqData;
-    temp_a0 = (u8*)((t3 + (s32)thing.seqData) - trackSizeBytes);
+    temp_a0 = thing.seqData + t3 - trackSizeBytes;
 
     romCopy(temp_a0, romAddress, trackSizeBytes);
     decompressdata(temp_a0, thing.seqData, &hlist);
@@ -1250,7 +1250,7 @@ void musicTrack3Play(s32 track)
     while (alCSPGetState(g_musicXTrack3SeqPlayer))
         ;
 
-    romAddress = (void *)g_musicDataTable->seqArray[g_musicXTrack3CurrentTrackNum].address;
+    romAddress = (void *)(uintptr_t)g_musicDataTable->seqArray[g_musicXTrack3CurrentTrackNum].address;
 
     if (romAddress < (void*)ROM_MUSIC_START_OFFSET)
     {
@@ -1263,7 +1263,7 @@ void musicTrack3Play(s32 track)
     t3 = ALIGN16_a(g_musicTrackLength[g_musicXTrack3CurrentTrackNum]) + ALIGN16_a(NUM_MUSIC_TRACKS);
     trackSizeBytes = ALIGN16_a(g_musicTrackCompressedLength[g_musicXTrack3CurrentTrackNum]);
     thing.seqData = g_musicXTrack3SeqData;
-    temp_a0 = (u8*)((t3 + (s32)thing.seqData) - trackSizeBytes);
+    temp_a0 = thing.seqData + t3 - trackSizeBytes;
 
     romCopy(temp_a0, romAddress, trackSizeBytes);
     decompressdata(temp_a0, thing.seqData, &hlist);

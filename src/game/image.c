@@ -2579,7 +2579,7 @@ void texLoad(s32 *updateword, struct texpool *pool)
 #endif
             // Copy the compressed texture to RAM
             romCopy(alignedcompbuffer,
-                    (u32) &_imagesSegmentRomStart + (thisoffset & 0xfffffff8),
+                    (void *)((uintptr_t)&_imagesSegmentRomStart + (uintptr_t)(thisoffset & 0xfffffff8)),
                     ((u32) (nextoffset - thisoffset) + 0x1f) >> 4 << 4);
 
             compptr = (u8 *) alignedcompbuffer + (thisoffset & 7);

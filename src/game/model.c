@@ -5900,12 +5900,21 @@ u32 *sub_GAME_7F07549C(void *arg0, f32 *arg1, f32 *arg2, ModelNode **nodeptr)
  * Address 7F0754BC.
  * Copy animation from ROM to RAM
 */
+#ifdef PORT
+uintptr_t loadAnimationFrame(ModelAnimation* anim, s32 frame, ModelSkeleton* unused)
+#else
 s32 loadAnimationFrame(ModelAnimation* anim, s32 frame, ModelSkeleton* unused)
+#endif
 {
+#ifdef PORT
+    uintptr_t ret;
+    uintptr_t dest;
+#else
     s32 ret;
+    u32 dest;
+#endif
     s32 source;
     s32 frameSize;
-    u32 dest;
     u32 size;
 
     ret = 0;
@@ -5919,7 +5928,11 @@ s32 loadAnimationFrame(ModelAnimation* anim, s32 frame, ModelSkeleton* unused)
     else if (D_80036414 != NULL) // should never be NULL after initAnimationsBuffer is called
     {
         // Get dest from this D_80036414 which points to an array. Align to 16 bytes.
+#ifdef PORT
+        dest = ((uintptr_t)D_80036414->animBufferPtr2 + 15u) & ~(uintptr_t)15u;
+#else
         dest = ((u32) (D_80036414->animBufferPtr2 + 15) >> 4) * 16;
+#endif
         ret = dest;
 
         // Get source of this animation in ROM with the offset of the frame we'll load
@@ -5935,14 +5948,14 @@ s32 loadAnimationFrame(ModelAnimation* anim, s32 frame, ModelSkeleton* unused)
         size = ((u32) (frameSize + 15) >> 4) * 16;
 
         // This copies one animation frame from ROM to the destination in RAM
-        romCopy((void* ) dest, (void* ) source, size);
+        romCopy((void *)dest, (void *)(uintptr_t)(u32)source, size);
 
         // Increment this which serves nothing
         D_80036414->uselessPointer += 1;
 
         // Set this to point to the end of the copied frame
         // This allows to copy another frame after this one
-        D_80036414->animBufferPtr2 = dest + size;
+        D_80036414->animBufferPtr2 = (char *)(dest + size);
     }
     return ret;
 }

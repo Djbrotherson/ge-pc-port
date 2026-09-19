@@ -1589,8 +1589,13 @@ typedef union
              * Offset 0x32.
             */
             s16               frameb;
+#ifdef PORT
+            uintptr_t         unk34;
+            uintptr_t         unk38;
+#else
             s32               unk34;
             s32               unk38;
+#endif
             f32               endframe;
 
             f32               speed; /*0x40*/
@@ -1616,8 +1621,13 @@ typedef union
             */
             s16               frame2b;
 
+#ifdef PORT
+            uintptr_t         unk64;
+            uintptr_t         unk68;
+#else
             s32               unk64;
             s32               unk68;
+#endif
             f32               unk6c;
             // 0x70
             f32               speed2;
