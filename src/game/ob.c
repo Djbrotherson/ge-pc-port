@@ -46,7 +46,14 @@ s32 file_entry_max = OBJ_INDEX_END;
 void load_resource(u8 *ptrdata, s32 bytes,  fileentry *srcfile,  resource_lookup_data_entry *lookupdata)
 {
     u8 *source;
-    u8  buffer[0x2100];
+#ifdef PORT
+    /* N64 reserved 0x2100 bytes for 1056 eight-byte huft entries. On LP64
+     * struct huft grows because its table link is a native pointer, so retain
+     * the entry count rather than the N64 byte count. */
+    static struct huft buffer[0x2100 / 8];
+#else
+    u8 buffer[0x2100];
+#endif
     s32 unused;
 
 
@@ -68,7 +75,11 @@ void load_resource(u8 *ptrdata, s32 bytes,  fileentry *srcfile,  resource_lookup
 #endif
 
         romCopy(source, srcfile->hw_address, lookupdata->rom_size);
-        lookupdata->poolRemaining = decompressdata(source, ptrdata, buffer);;
+#ifdef PORT
+        lookupdata->poolRemaining = decompressdata(source, ptrdata, buffer);
+#else
+        lookupdata->poolRemaining = decompressdata(source, ptrdata, (struct huft *)buffer);
+#endif
 #if DEBUG
         if (result == 0)
         {
@@ -84,7 +95,11 @@ void load_resource(u8 *ptrdata, s32 bytes,  fileentry *srcfile,  resource_lookup
 void resource_load_from_indy(u8 *ptrdata, s32 bytes,  fileentry *srcfile,  resource_lookup_data_entry *lookupdata)
 {
     u8 *pPayload;
-    u8 buffer[8448];
+#ifdef PORT
+    static struct huft buffer[0x2100 / 8];
+#else
+    u8 buffer[0x2100];
+#endif
     s32 size;
     static const u8 rz_header_1[] = {0x11, 0x72, 0x00, 0x00};
     static const u8 rz_header_2[] = {0x11, 0x72, 0x00, 0x00};
@@ -105,7 +120,11 @@ void resource_load_from_indy(u8 *ptrdata, s32 bytes,  fileentry *srcfile,  resou
         indycommHostLoadFile(srcfile->filename, pPayload);
         if ((pPayload[0] == rz_header_1[0]) && (pPayload[1] == rz_header_2[1]))
         {
-            size = decompressdata(pPayload, ptrdata, &buffer);
+#ifdef PORT
+            size = decompressdata(pPayload, ptrdata, buffer);
+#else
+            size = decompressdata(pPayload, ptrdata, (struct huft *)buffer);
+#endif
         }
         else
         {

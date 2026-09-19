@@ -217,7 +217,13 @@ s32 texInflateZlib(u8 *src, u8 *dst, s32 arg2, s32 forcenumimages, struct texpoo
     s32 j;
     s32 unused;
     u8 scratch2[0x800];
-    u8 scratch[0x2100];
+#ifdef PORT
+    /* Same RareZip table capacity as the N64 0x2100-byte huft scratch:
+     * 1056 entries. huft contains a native pointer and doubles on LP64. */
+    static struct huft huffScratch[0x2100 / 8];
+#else
+    u8 huffScratch[0x2100];
+#endif
     u16 palette[0x100];
 
     totalbytesout = 0;
@@ -298,7 +304,11 @@ s32 texInflateZlib(u8 *src, u8 *dst, s32 arg2, s32 forcenumimages, struct texpoo
             return j * 0;
         }
 
-        decompressdata(img_curpos, &scratch2, (struct huft *)&scratch);
+#ifdef PORT
+        decompressdata(img_curpos, scratch2, huffScratch);
+#else
+        decompressdata(img_curpos, scratch2, (struct huft *)huffScratch);
+#endif
         imagebytesout = texAlignIndices(scratch2, width, height, format, &dst[totalbytesout]);
         texSetBitstring(rzipGetSomething());
 
