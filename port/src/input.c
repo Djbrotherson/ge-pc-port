@@ -578,6 +578,16 @@ int inputInit(void)
 
     inputRebuildBinds();   /* D214: parse [Bind] now that configLoad() has run */
 
+#if defined(__aarch64__)
+    /* R36S/ARM handheld layout: keep GoldenEye's primary analog control on
+     * the physical LEFT stick. NaturalPitch/SOLITARE swaps the N64 analog
+     * role onto the right stick, which is wrong for this controller layout.
+     * Force HONEY/default semantics after configLoad so an older ge007.ini
+     * cannot silently restore the swapped-stick mode. */
+    naturalPitchMode = 0;
+    sysLogPrintf(LOG_INFO, "input: AArch64 handheld layout: left stick primary analog");
+#endif
+
     /* Relative mouse mode for mouse-look. Click-to-lock: we start released
      * and wait for a click in the window (video.c -> inputNotifyClick). */
     mouseGrabbed = 0;
