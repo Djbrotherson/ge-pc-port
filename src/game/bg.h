@@ -20,7 +20,11 @@ struct levelentry
 // cannonical name
 #define PORTMAX 200
 
+#ifdef PORT
+#define BG_SEG_TO_PTR(base, off) ((void *)((uintptr_t)(base) + (uintptr_t)(((u32)(off)) + 0xF1000000u)))
+#else
 #define BG_SEG_TO_PTR(base, off) ((void *) (((u32) (base)) + (((u32) (off)) + 0xF1000000)))
+#endif
 
 typedef struct RoomVtxBatchBounds {
     s16 gdlindex;    // 0x00
