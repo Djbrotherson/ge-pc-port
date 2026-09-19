@@ -1,0 +1,60 @@
+name: R36S Whole Codebase LP64 Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - r36s-first-frame-noaudio
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'port/**'
+      - 'assets/**/*.h'
+      - 'tools/r36s_lp64_audit.py'
+      - '.github/workflows/r36s-lp64-audit.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'port/**'
+      - 'assets/**/*.h'
+      - 'tools/r36s_lp64_audit.py'
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libsdl2-dev libgles2-mesa-dev libegl1-mesa-dev zlib1g-dev
+
+      - name: Configure full-warning AArch64 build
+        run: |
+          cmake -S . -B build-lp64             -DROMID=ntsc-final             -DGL_LIBRARY=GLESv2             -DCMAKE_C_FLAGS="-DUSE_GLES=1 -Wall -Wextra -Wpointer-to-int-cast -Wint-to-pointer-cast -Wconversion -Wsign-conversion -Warray-bounds"             -DCMAKE_CXX_FLAGS="-DUSE_GLES=1 -Wall -Wextra"
+
+      - name: Build and capture all warnings
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake --build build-lp64 -j"$(nproc)" 2>&1 | tee r36s-lp64-build.log
+
+      - name: Generate whole-codebase LP64 report
+        if: always()
+        run: |
+          python3 tools/r36s_lp64_audit.py             --repo .             --warnings r36s-lp64-build.log             --outdir lp64-audit-out
+          cat lp64-audit-out/r36s-lp64-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload LP64 audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r36s-lp64-audit
+          path: |
+            lp64-audit-out/r36s-lp64-report.md
+            lp64-audit-out/r36s-lp64-findings.tsv
+            r36s-lp64-build.log
