@@ -21,7 +21,7 @@ static void langFixupLoadedBank(char *name, void *p)
 // bss
 //CODE.bss:8008C640
 #ifdef PORT
-uintptr_t g_LangBanks[45];
+void *g_LangBanks[45];
 #else
 s32 g_LangBanks[45];
 #endif
@@ -418,7 +418,7 @@ u8 * langGet(s32 slotID)
         return NULL;
     }
 #endif
-    u32 * textbank_ptr = g_LangBanks[slotID >> 10]; /* get the text file bank ID index the text ptr table */
+    u32 *textbank_ptr = (u32 *)g_LangBanks[slotID >> 10]; /* get the text file bank ID index the text ptr table */
 #ifdef PORT
     /* D129 cont.: g_LangBanks[] is s32 and only populated for banks the
      * current flow has loaded.  A bare `-level_XX` boot that reaches the
@@ -446,8 +446,12 @@ u8 * langGet(s32 slotID)
 #endif
     u32 textslot_offset = textbank_ptr[slotID & 0x03FF]; /* load the textbank ptr table then get the slot's offset */
 
+#ifdef PORT
+    uintptr_t output_slot = (uintptr_t)textbank_ptr + (uintptr_t)textslot_offset;
+#else
     u32 output_slot = textslot_offset; /* add the text slot offset to the base ptr to get the ptr to text file's slot */
     output_slot += (u32)textbank_ptr;
+#endif
     #ifdef DEBUG
     return (textslot_offset != 0) ? (u8 *)output_slot : "Sorry, string not loaded.";
     #endif
