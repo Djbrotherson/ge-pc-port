@@ -61,6 +61,24 @@ def scan_file(path:Path):
             add("P0","animation-token-as-host-pointer",path,i,line,
                 "ANIM_DATA_* is a synthetic N64 offset token on 64-bit hosts; use PTR_ANIM_* / low-32 offset semantics.")
 
+        # Global LP64 trap: taking the address of a native object and forcing it through
+        # a 32-bit integer destroys host-pointer identity on AArch64.  This must be
+        # reviewed even outside #ifdef PORT because much of the decomp is shared source.
+        if not s.startswith(("//", "/*", "*")) and re.search(
+                r"\((?:s32|u32|int|unsigned\s+int)\)\s*&\s*[A-Za-z_]", line):
+            if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE)", line):
+                add("P0","host-address-narrowing",path,i,line,
+                    "Native address is explicitly narrowed to 32 bits; classify as host pointer vs N64 token/offset before preserving.")
+
+        # Same class when a pointer-looking variable is cast through a 32-bit integer.
+        # False positives are preferable to silently missing another R36S sign-extension
+        # crash; intentional N64 tokens should be converted through an explicit helper.
+        if not s.startswith(("//", "/*", "*")) and re.search(
+                r"\((?:s32|u32|int|unsigned\s+int)\)\s*\(?\s*[A-Za-z_]\w*(?:ptr|pointer|addr|address|buf|buffer)\w*\s*\)?", line, re.I):
+            if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE)", line):
+                add("P0","host-pointer-variable-narrowing",path,i,line,
+                    "Pointer-looking value is explicitly narrowed to 32 bits; classify before preserving legacy N64 arithmetic.")
+
         # Host pointer plus linker/ROM token is suspicious unless explicitly narrowed/tokenized.
         if re.search(r"\b(?:ptr|pointer|base|buf|buffer|data|addr|address)\w*\s*\+\s*\(uintptr_t\)\s*&\w*(?:SegmentRom|SegmentStart|SegmentEnd)", line, re.I):
             add("P0","linker-token-host-add",path,i,line,
