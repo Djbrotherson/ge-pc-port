@@ -7458,7 +7458,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
         if (stanGetLocusCount(&curLocus))
         {
             use_stanHeight = 1;
-            stanGetMoveBondCollisionTiles(&sp174, &sp170, &bondCollision);
+            stanGetMoveBondCollisionTiles(&sp174, &sp170, &bondCollision.bondCollision);
 
             if (g_CurrentPlayer->stanHeight <= bondCollision.sp19C.f[1])
             {
@@ -7614,7 +7614,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
         struct TankRecord *sp140_tank_as_TankRecord;
         struct ObjectRecord *sp138_tank_as_ObjectRecord;
         f32 ftemp_12;
-        struct ModelNode_BoundingBoxRecord *sp130;
+        ModelRoData_BoundingBoxRecord *sp130;
         Mtxf spF0;
         struct coord3d spE4;
         s32 stack_padding_13;
@@ -7629,7 +7629,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
 
         sp140_tank_as_TankRecord = ((struct TankRecord *)g_PlayerTankProp->obj);
         sp138_tank_as_ObjectRecord = (struct  ObjectRecord*)g_PlayerTankProp->obj;
-        sp130 = (struct ModelNode_BoundingBoxRecord *)((struct ModelNode *)sp138_tank_as_ObjectRecord->model->obj->Switches)->Child->Data;
+        sp130 = (ModelRoData_BoundingBoxRecord *)((struct ModelNode *)sp138_tank_as_ObjectRecord->model->obj->Switches)->Child->Data;
 
         sp140_tank_as_TankRecord->is_firing_tank = (getCurrentPlayerWeaponId(GUNRIGHT) == ITEM_TANKSHELLS)
             && get_hands_firing_status(GUNRIGHT);
@@ -7639,7 +7639,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
         sp140_tank_as_TankRecord->tank_orientation_angle = g_TankOrientationAngle;
 
         matrix_4x4_set_rotation_around_y(M_TAU_F - g_TankOrientationAngle, &spF0);
-        matrix_scalar_multiply(sp138_tank_as_ObjectRecord->model->scale, &spF0);
+        matrix_scalar_multiply(sp138_tank_as_ObjectRecord->model->scale, spF0.m[0]);
 
         spE4.f[0] = -g_TankModelPositionOffset.f[0];
         spE4.f[1] = -g_TankModelPositionOffset.f[1];
@@ -7683,10 +7683,10 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
         setupUpdateObjectRoomPosition(sp138_tank_as_ObjectRecord);
         chrobjCollisionRelated(sp138_tank_as_ObjectRecord);
         bondviewGetTankCollisionBounds(&spB4_tank_collision_bounds, &g_CurrentPlayer->field_488.collision_position, g_TankOrientationAngle);
-        chraiGetPropRoomIds(sp138_tank_as_ObjectRecord->prop, &sp94);
+        chraiGetPropRoomIds(sp138_tank_as_ObjectRecord->prop, sp94);
 
         // update num_obj_position_data_entries
-        roomGetProps(&sp94);
+        roomGetProps(sp94);
 
         for (lookup_index=ptr_list_object_lookup_indices; *lookup_index>=0; lookup_index++)
         {
@@ -7770,13 +7770,13 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
 
     if (get_debug_man_pos_flag() != 0)
     {
-        f32 sp5C_out_unused;
+        u8 sp5C_out_unused[3];
 
         copy_tile_RGB_as_24bit(
             g_CurrentPlayer->field_488.current_tile_ptr,
             g_CurrentPlayer->field_488.collision_position.f[0],
             g_CurrentPlayer->field_488.collision_position.f[2],
-            &sp5C_out_unused);
+            sp5C_out_unused);
     }
 }
 
@@ -8717,7 +8717,7 @@ Gfx *bondviewRenderWatch(Gfx *gdl)
         matrix_4x4_set_identity_and_position((coord3d *) nodepos2, &handmtx);
         matrix_4x4_multiply_in_place(matrices, &handmtx);
         matrix_4x4_7F058C64();
-        matrix_4x4_f32_to_s32(&handmtx, finalmtx);
+        matrix_4x4_f32_to_s32(handmtx.m, finalmtx->m);
         matrix_4x4_7F058C88();
         gdl = draw_watch_current_page(gdl, finalmtx, (g_CurrentPlayer->watch_animation_state == 5) || (g_CurrentPlayer->watch_animation_state == 12));
         matrix_4x4_7F058C64();
@@ -10896,7 +10896,7 @@ void bondviewTransformPosToViewMatrix(RenderPosView *arg0)
     Mtxf sp18;
 
     matrix_4x4_copy(&arg0->pos, (Mtxf *) &sp18);
-    matrix_4x4_f32_to_s32((Mtxf *) &sp18, &arg0->view);
+    matrix_4x4_f32_to_s32(sp18.m, arg0->view);
 }
 
 
@@ -10921,7 +10921,7 @@ void bondviewTransformManyPosToViewMatrix(RenderPosView * arg0, s32 arg1)
     do
     {
         matrix_4x4_copy(&rpv_entry->pos, &mtx);
-        matrix_4x4_f32_to_s32(&mtx, &arg0[i].pos);
+        matrix_4x4_f32_to_s32(mtx.m, arg0[i].view);
         i++;
         rpv_entry++;
     } while (i != arg1);
@@ -10942,7 +10942,7 @@ void sub_GAME_7F08BDC4(Mtxf *arg0)
     sp20.m[3][0] -= g_CurrentPlayer->previous_model_pos.f[0];
     sp20.m[3][1] -= g_CurrentPlayer->previous_model_pos.f[1];
     sp20.m[3][2] -= g_CurrentPlayer->previous_model_pos.f[2];
-    matrix_4x4_f32_to_s32((Mtxf *) &sp20, arg0);
+    matrix_4x4_f32_to_s32(sp20.m, (s32 (*)[4])arg0);
 }
 
 
@@ -10964,7 +10964,7 @@ void sub_GAME_7F08BE2C(Mtxf *matrices, s32 count)
         copy.m[3][1] -= g_CurrentPlayer->previous_model_pos.y;
         copy.m[3][2] -= g_CurrentPlayer->previous_model_pos.z;
 
-        matrix_4x4_f32_to_s32(&copy, matrices + i);
+        matrix_4x4_f32_to_s32(copy.m, (s32 (*)[4])(matrices + i));
     }
 }
 
@@ -10987,7 +10987,7 @@ void sub_GAME_7F08BEEC(Mtxf *matrices, s32 count)
         sp40.m[3][1] -= g_CurrentPlayer->current_model_pos.f[1];
         sp40.m[3][2] -= g_CurrentPlayer->current_model_pos.f[2];
 
-        matrix_4x4_f32_to_s32(&sp40, matrices + i);
+        matrix_4x4_f32_to_s32(sp40.m, (s32 (*)[4])(matrices + i));
     }
 }
 
