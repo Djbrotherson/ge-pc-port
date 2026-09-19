@@ -69,7 +69,7 @@ static s32 d193aAnimIndex(void *anim) {
     s32 i;
     if (anim == NULL) return -1;
     for (i = 0; animation_table_ptrs1[i] != 0; i++) {
-        if ((void *)(uintptr_t)(u32)animation_table_ptrs1[i] == anim) return i;
+        if (ANIM_TABLE_EXPANDED_PTR(animation_table_ptrs1[i]) == anim) return i;
     }
     return -1;
 }
@@ -2462,11 +2462,14 @@ s32 chrTick(PropRecord *prop)
     {
         if (D_8002C904)
         {
-            if (((ModelAnimation *)animation_table_ptrs1[g_AnimationTablePointerCountRelated]) != ((ModelAnimation *)1))
+            ModelAnimation *forcedanim = (ModelAnimation *)ANIM_TABLE_EXPANDED_PTR(
+                animation_table_ptrs1[g_AnimationTablePointerCountRelated]);
+
+            if (forcedanim != ((ModelAnimation *)1))
             {
-                if (objecthandlerGetModelAnim(model) != ((ModelAnimation *)animation_table_ptrs1[g_AnimationTablePointerCountRelated]))
+                if (objecthandlerGetModelAnim(model) != forcedanim)
                 {
-                    modelSetAnimation(model, (ModelAnimation *)animation_table_ptrs1[g_AnimationTablePointerCountRelated], 0, 0.0f, 0.5f, 0.0f);
+                    modelSetAnimation(model, forcedanim, 0, 0.0f, 0.5f, 0.0f);
                 }
             }
         }
