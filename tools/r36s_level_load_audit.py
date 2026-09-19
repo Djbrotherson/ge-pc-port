@@ -7,15 +7,14 @@ from pathlib import Path
 
 SOURCE_GLOBS = ("src/game/*.c", "src/*.c", "port/src/*.c")
 ROOTS = ("load_bg_file", "bgRoomCalcBB", "bgOrderPortal", "sub_GAME_7F0B95D8", "sub_GAME_7F0B37EC")
-CURRENT_FRONTIER = "bgOrderPortal"
+CURRENT_FRONTIER = "sub_GAME_7F0B95D8"\nDEVICE_CONFIRMED = {"stanDetermineEOF", "stanLoadFile", "bgRoomCalcBB", "sub_GAME_7F0B993C", "bgOrderPortal"}
 FUNC_RE = re.compile(r"(?ms)^\s*(?:[A-Za-z_]\w*[\s\*]+)+(?P<name>[A-Za-z_]\w*)\s*\([^;{}]*\)\s*\{")
 CALL_RE = re.compile(r"\b([A-Za-z_]\w*)\s*\(")
 KEYWORDS = {"if","for","while","switch","return","sizeof","defined","do","else","case","assert"}
 RULES = [
  ("P0","pointer-compare-truncation",re.compile(r"\(\s*(?:s32|u32)\s*\)\s*[^;\n]+(?:<|>|<=|>=)[^;\n]+\(\s*(?:s32|u32)\s*\)"),"Comparison appears to pass addresses through 32-bit integers."),
- ("P0","address-arithmetic-32",re.compile(r"\(\s*(?:s32|u32)\s*\)\s*[A-Za-z_]\w*\s*[+\-]"),"Address-like arithmetic appears to be performed at 32-bit width."),
- ("P0","pointer-truncation",re.compile(r"\(\s*(?:s32|u32|int)\s*\)\s*(?:[A-Za-z_]\w*|\([^\n;]+\))"),"32-bit cast in reachable level-load code; verify this is not a pointer/address."),
- ("P1","integer-to-pointer",re.compile(r"\(\s*(?:u8|s8|u16|s16|u32|s32|Gfx|Vtx|Vertex|void|char)\s*\*\s*\)\s*(?:[A-Za-z_]\w*|0x[0-9A-Fa-f]+)"),"Integer/expression converted to pointer; inspect provenance and width."),
+ ("P0","address-arithmetic-32",re.compile(r"\(\s*(?:s32|u32)\s*\)\s*(?:[A-Za-z_]\w*(?:ptr|Ptr|pointer|Pointer)[A-Za-z0-9_]*|[^;\n]*->(?:ptr|p[A-Z])[A-Za-z0-9_]*)\s*[+\-]"),"Pointer-like address arithmetic appears to be performed at 32-bit width."),
+ ("P1","pointer-cast-review",re.compile(r"\(\s*(?:s32|u32)\s*\)\s*(?:[A-Za-z_]\w*(?:ptr|Ptr|pointer|Pointer)[A-Za-z0-9_]*|[^;\n]*->(?:ptr|p[A-Z])[A-Za-z0-9_]*)"),"Pointer-like expression cast to 32-bit integer; verify mapping assumptions."),
  ("P1","kseg-hardcoded-address",re.compile(r"0x(?:8|A)[0-9A-Fa-f]{7}\b|\|\s*0x80000000"),"N64 KSEG/absolute-address idiom reachable from level loading."),
  ("P1","raw-gfx-layout",re.compile(r"\(\s*(?:u8|u16|u32)\s*\*\s*\)\s*[A-Za-z_]\w*\s*\)\s*\["),"Raw byte/word indexing may assume the original N64 structure layout."),
  ("P2","sentinel-loop",re.compile(r"(?:while|for)\s*\([^\n]*(?:!=\s*NULL|offset_portal|while\s*\(\s*1\s*\))"),"Sentinel/unbounded loop on loader path; verify termination data after fixups."),
@@ -127,12 +126,12 @@ def main():
     with (a.outdir/"r36s-level-load-report.md").open("w") as fp:
         fp.write("# R36S level-loading frontier audit\n\n")
         fp.write(f"Current physical-device frontier: **after \`{CURRENT_FRONTIER}()\`**.\n\n")
-        fp.write("Static candidates reachable from known level-loading roots; a hit is a review target, not proof of failure.\n\n")
+        fp.write("Static candidates reachable from known level-loading roots; a hit is a review target, not proof of failure.\\n\\n")\n        fp.write("Functions already confirmed to return on the physical R36S are listed separately and should be deprioritized unless new evidence regresses them.\\n\\n")
         fp.write("## Summary\n\n")
         fp.write(f"- Reachable functions: **{len(dist)}** / {len(funcs)} parsed\n- P0: **{counts['P0']}**\n- P1: **{counts['P1']}**\n- P2: **{counts['P2']}**\n- Total: **{len(findings)}**\n\n")
         fp.write("## Roots\n\n")
         for r in ROOTS: fp.write(f"- \`{r}()\`: {'found' if r in funcs else 'missing'}\n")
-        fp.write("\n## Current frontier neighborhood\n\n")
+        fp.write("\\n## Device-confirmed phases\\n\\n")\n        for name in sorted(DEVICE_CONFIRMED):\n            fp.write(f"- \\`{name}()\\`: returned successfully on latest physical-device log\\n")\n        fp.write("\\n## Current frontier neighborhood\\n\\n")
         callers=sorted(k for k,v in graph.items() if CURRENT_FRONTIER in v and k in dist)
         callees=sorted(graph.get(CURRENT_FRONTIER,()))
         fp.write(f"- Callers of \`{CURRENT_FRONTIER}()\`: {', '.join(callers) or 'none'}\n")
