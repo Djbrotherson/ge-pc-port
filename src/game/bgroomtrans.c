@@ -217,7 +217,7 @@ s32 setupRoomTransformationMatrix(s32 room)
     roomTransformMatrix.m[3][1] = (ptr_bgdata_room_fileposition_list[room].pos.f[1] * room_data_float2) - g_CurrentPlayer->current_model_pos.f[1];
     roomTransformMatrix.m[3][2] = (ptr_bgdata_room_fileposition_list[room].pos.f[2] * room_data_float2) - g_CurrentPlayer->current_model_pos.f[2];
 
-    matrix_4x4_f32_to_s32(&roomTransformMatrix, &roomMatrices[mtx]);
+    matrix_4x4_f32_to_s32(roomTransformMatrix.m, roomMatrices[mtx].m);
 
     return mtx;
 }

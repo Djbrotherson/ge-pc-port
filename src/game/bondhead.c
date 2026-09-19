@@ -267,12 +267,12 @@ void bheadUpdate(f32 percent_speed, f32 speedsideways)
     g_CurrentPlayer->headbodyoffset.f[1] = g_CurrentPlayer->standbodyoffset.y;
     g_CurrentPlayer->headbodyoffset.f[2] = g_CurrentPlayer->standbodyoffset.z;
 
-    getsuboffset(&g_CurrentPlayer->model, (struct float3 *) &offset);
+    getsuboffset(&g_CurrentPlayer->model, &offset);
 
     offset.f[0] -= g_CurrentPlayer->bondheadmatrices[0].m[3][0];
     offset.f[2] -= g_CurrentPlayer->bondheadmatrices[0].m[3][2];
 
-    setsuboffset(&g_CurrentPlayer->model, (coord3d *) &offset);
+    setsuboffset(&g_CurrentPlayer->model, &offset);
 
     if (abs_anim_speed > 0.0f)
     {
@@ -361,8 +361,8 @@ void bheadUpdate(f32 percent_speed, f32 speedsideways)
         // result = x vector plus ((y - x vector) * scaler)
         // lookvel = ...
         vec3Lerp(
-            &g_CurrentPlayer->standlook[g_CurrentPlayer->standcnt].f[0],
-            &g_CurrentPlayer->standlook[1 - g_CurrentPlayer->standcnt].f[0],
+            &g_CurrentPlayer->standlook[g_CurrentPlayer->standcnt],
+            &g_CurrentPlayer->standlook[1 - g_CurrentPlayer->standcnt],
             g_CurrentPlayer->standfrac,
             &lookvel);
 
@@ -372,8 +372,8 @@ void bheadUpdate(f32 percent_speed, f32 speedsideways)
         // result = x vector plus ((y - x vector) * scaler)
         // upvel = ...
         vec3Lerp(
-            &g_CurrentPlayer->standup[g_CurrentPlayer->standcnt].f[0],
-            &g_CurrentPlayer->standup[1 - g_CurrentPlayer->standcnt].f[0],
+            &g_CurrentPlayer->standup[g_CurrentPlayer->standcnt],
+            &g_CurrentPlayer->standup[1 - g_CurrentPlayer->standcnt],
             g_CurrentPlayer->standfrac,
             &upvel);
 

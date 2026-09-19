@@ -319,7 +319,7 @@ Gfx *sub_GAME_7F007F30(Gfx *gdl, s32 count, Mtxf *matrix)
         Mtxf sp88;
 
         matrix_4x4_copy((Mtxf *) &((s8 *) chrModelInstance->render_pos)[i * sizeof(Mtxf)], &sp88);
-        matrix_4x4_f32_to_s32(&sp88, &((Mtxf *) chrModelInstance->render_pos)[i]);
+        matrix_4x4_f32_to_s32(sp88.m, chrModelInstance->render_pos[i].view);
     }
 
     for (i = 0; i < gunModelInstance->obj->numMatrices; i++)
@@ -327,7 +327,7 @@ Gfx *sub_GAME_7F007F30(Gfx *gdl, s32 count, Mtxf *matrix)
         Mtxf sp48;
 
         matrix_4x4_copy((Mtxf *) &((s8 *) gunModelInstance->render_pos)[i * sizeof(Mtxf)], &sp48);
-        matrix_4x4_f32_to_s32(&sp48, &((Mtxf *) gunModelInstance->render_pos)[i]);
+        matrix_4x4_f32_to_s32(sp48.m, gunModelInstance->render_pos[i].view);
     }
 
     return renderData.gdl;
