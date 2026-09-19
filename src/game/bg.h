@@ -117,7 +117,13 @@ typedef struct s_bound_info
     // could be draw order?
     s32 unk1;
     struct bbox2d bbox;
+#ifdef PORT
+    /* Visibility traversal flags, not an address. The original pointer type
+     * was a 32-bit decomp artefact and becomes a false host pointer on LP64. */
+    s32 next;
+#else
     void* next;
+#endif
     #endif
 
 
