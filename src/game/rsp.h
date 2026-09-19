@@ -14,7 +14,14 @@
  */ 
 struct GfxInfo_s {
     OSScTask task;
+#if defined(PORT)
+    /* Host framebuffer address: this is assigned from VideoSettings::framebuf
+     * and later copied into OSScTask::framebuffer. Keeping it u32 truncates
+     * native AArch64 addresses before the scheduler sees them. */
+    void *cfb;
+#else
     u32 cfb;
+#endif
     u32 unk5C;
 };
 
