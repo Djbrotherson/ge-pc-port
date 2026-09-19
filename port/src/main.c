@@ -17,6 +17,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
+#if defined(__linux__)
+#include <unistd.h>
+#include <time.h>
+#endif
 
 #include <PR/ultratypes.h>
 #include <PR/os.h>
@@ -48,6 +53,137 @@ static const struct { const char *name; const char *num; } kSoloLevels[] = {
     {"Caverns","39"}, {"Cradle","41"}, {"Aztec","28"}, {"Egypt","32"},
     {"Cuba","54"},
 };
+
+
+#if defined(__linux__)
+static unsigned long long telemetryReadSystemJiffies(void)
+{
+    FILE *f = fopen("/proc/stat", "r");
+    unsigned long long u=0,n=0,sy=0,id=0,iw=0,irq=0,si=0,st=0;
+    if (!f) return 0;
+    if (fscanf(f, "cpu %llu %llu %llu %llu %llu %llu %llu %llu",
+               &u,&n,&sy,&id,&iw,&irq,&si,&st) < 4) {
+        fclose(f);
+        return 0;
+    }
+    fclose(f);
+    return u+n+sy+id+iw+irq+si+st;
+}
+
+static unsigned long long telemetryReadProcessJiffies(void)
+{
+    FILE *f = fopen("/proc/self/stat", "r");
+    char buf[4096];
+    char *p;
+    unsigned long long utime=0, stime=0;
+    int field = 3;
+    if (!f) return 0;
+    if (!fgets(buf, sizeof(buf), f)) { fclose(f); return 0; }
+    fclose(f);
+    p = strrchr(buf, ')');
+    if (!p) return 0;
+    p += 2;
+    while (*p && field <= 15) {
+        char *end = p;
+        while (*end && *end != ' ') end++;
+        if (field == 14) utime = strtoull(p, NULL, 10);
+        if (field == 15) stime = strtoull(p, NULL, 10);
+        p = (*end) ? end + 1 : end;
+        field++;
+    }
+    return utime + stime;
+}
+
+static long telemetryReadLongFile(const char *path)
+{
+    FILE *f = fopen(path, "r");
+    long v = -1;
+    if (f) { if (fscanf(f, "%ld", &v) != 1) v = -1; fclose(f); }
+    return v;
+}
+
+static void telemetryReadMemory(long *rssKb, long *vmKb, long *threads,
+                                long *memTotalKb, long *memAvailKb)
+{
+    FILE *f;
+    char key[64];
+    long val;
+    char unit[16];
+    *rssKb = *vmKb = *threads = *memTotalKb = *memAvailKb = -1;
+
+    f = fopen("/proc/self/status", "r");
+    if (f) {
+        while (fscanf(f, "%63s %ld %15s", key, &val, unit) >= 2) {
+            if (!strcmp(key, "VmRSS:")) *rssKb = val;
+            else if (!strcmp(key, "VmSize:")) *vmKb = val;
+            else if (!strcmp(key, "Threads:")) *threads = val;
+            int c; while ((c = fgetc(f)) != '\n' && c != EOF) {}
+        }
+        fclose(f);
+    }
+
+    f = fopen("/proc/meminfo", "r");
+    if (f) {
+        while (fscanf(f, "%63s %ld %15s", key, &val, unit) >= 2) {
+            if (!strcmp(key, "MemTotal:")) *memTotalKb = val;
+            else if (!strcmp(key, "MemAvailable:")) *memAvailKb = val;
+            int c; while ((c = fgetc(f)) != '\n' && c != EOF) {}
+        }
+        fclose(f);
+    }
+}
+
+static void telemetryTick(void)
+{
+    static unsigned long long lastSys = 0, lastProc = 0;
+    static struct timespec lastTs = {0,0};
+    struct timespec now;
+    unsigned long long sys, proc, dSys, dProc;
+    long rssKb, vmKb, threads, memTotalKb, memAvailKb;
+    long tempMilli, freqKhz;
+    double dt, procCpu = 0.0, sysBusy = 0.0;
+
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    if (lastTs.tv_sec || lastTs.tv_nsec) {
+        dt = (double)(now.tv_sec - lastTs.tv_sec) +
+             (double)(now.tv_nsec - lastTs.tv_nsec) / 1000000000.0;
+        if (dt < 2.0) return;
+    }
+
+    sys = telemetryReadSystemJiffies();
+    proc = telemetryReadProcessJiffies();
+    if (lastSys && lastProc && sys > lastSys) {
+        long hz = sysconf(_SC_CLK_TCK);
+        dSys = sys - lastSys;
+        dProc = proc - lastProc;
+        dt = (double)(now.tv_sec - lastTs.tv_sec) +
+             (double)(now.tv_nsec - lastTs.tv_nsec) / 1000000000.0;
+        if (hz > 0 && dt > 0.0)
+            procCpu = 100.0 * ((double)dProc / (double)hz) / dt;
+        sysBusy = 100.0 * (double)dProc / (double)dSys;
+    }
+
+    telemetryReadMemory(&rssKb, &vmKb, &threads, &memTotalKb, &memAvailKb);
+    tempMilli = telemetryReadLongFile("/sys/class/thermal/thermal_zone0/temp");
+    freqKhz = telemetryReadLongFile("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq");
+
+    sysLogPrintf(LOG_NOTE,
+        "R36S HW cpu_proc=%.1f%% cpu_share=%.1f%% rss=%.1fMB vm=%.1fMB "
+        "ram_avail=%.1f/%.1fMB threads=%ld temp=%.1fC cpu0=%.0fMHz",
+        procCpu, sysBusy,
+        rssKb >= 0 ? rssKb / 1024.0 : -1.0,
+        vmKb >= 0 ? vmKb / 1024.0 : -1.0,
+        memAvailKb >= 0 ? memAvailKb / 1024.0 : -1.0,
+        memTotalKb >= 0 ? memTotalKb / 1024.0 : -1.0,
+        threads,
+        tempMilli >= 0 ? tempMilli / 1000.0 : -1.0,
+        freqKhz >= 0 ? freqKhz / 1000.0 : -1.0);
+
+    lastSys = sys;
+    lastProc = proc;
+    lastTs = now;
+}
+#endif
 
 static void portPrintVersion(void)
 {
@@ -213,6 +349,9 @@ int main(int argc, char **argv)
      *    videoPumpEvents() exits the process on quit. */
     for (;;) {
         videoPumpEvents();
+#if defined(__linux__)
+        telemetryTick();
+#endif
         sysSleep(8);
     }
 
