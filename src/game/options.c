@@ -1969,8 +1969,13 @@ Gfx *draw_abort_cancel_confirm(Gfx *gdl)
 
 Gfx *draw_text_mission_status(Gfx *gdl)
 {
+#ifdef PORT
+    u8 *txtptr_1;
+    u8 *txtptr_2;
+#else
     s32 txtptr_1;
     s32 txtptr_2;
+#endif
     s32 sp64;
     s32 sp60;
     s32 sp5C;
@@ -2027,7 +2032,11 @@ Gfx *empty_draw_function(Gfx *gdl) {
 
 Gfx *draw_text_q_watch_v201_beta(Gfx *gdl)
 {
+#ifdef PORT
+    u8 *txtptr;
+#else
     s32 txtptr;
+#endif
     s32 sp50;
     s32 sp4C;
     s32 sp48;
@@ -2093,8 +2102,13 @@ Gfx* draw_current_hand_item_and_ammo(Gfx* gdl) {
     s32 sp88;
     s32 sp84;
     s32 sp80;
+#ifdef PORT
+    struct font *sp7C;
+    struct fontchar *sp78;
+#else
     s32 sp7C;
     s32 sp78;
+#endif
     s32 temp_v0;
     s32 sp70;
     f32 sp6C;
