@@ -244,7 +244,11 @@ void texReset(void)
     u32 size;
     s32 i;
 
+#ifdef PORT
+    size = (u32)((uintptr_t)&_GlobalimagetableSegmentEnd - (uintptr_t)&_GlobalimagetableSegmentStart);
+#else
     size = (u32)&_GlobalimagetableSegmentEnd - (u32)&_GlobalimagetableSegmentStart;
+#endif
     pGlobalimagetable = mempAllocBytesInBank(size + 0x1000, MEMPOOL_STAGE);
 #ifdef PORT
     pGlobalimagetable = (s32 *)(((uintptr_t)pGlobalimagetable + 0xFFFu) & ~(uintptr_t)0xFFFu);
