@@ -370,6 +370,24 @@ static void crashStackTrace(char *msg, int sig, void *pc, ucontext_t *ucontext, 
 }
 
 static sig_atomic_t inCrashHandler = 0;
+static CrashScreenInfo gCrashScreenInfo = {0};
+static volatile sig_atomic_t gCrashScreenShown = 0;
+static volatile sig_atomic_t gCrashScreenDismissed = 0;
+
+const CrashScreenInfo *crashGetScreenInfo(void)
+{
+    return &gCrashScreenInfo;
+}
+
+void crashScreenShown(void)
+{
+    gCrashScreenShown = 1;
+}
+
+void crashScreenDismiss(void)
+{
+    gCrashScreenDismissed = 1;
+}
 
 static void crashHandler(int sig, siginfo_t *siginfo, void *ctx)
 {
@@ -397,6 +415,13 @@ static void crashHandler(int sig, siginfo_t *siginfo, void *ctx)
     }
 
 #if defined(__aarch64__)
+    gCrashScreenInfo.signal = sig;
+    gCrashScreenInfo.pc = (uintptr_t)pc;
+    gCrashScreenInfo.lr = (uintptr_t)lr;
+    gCrashScreenInfo.sp = (uintptr_t)sp;
+    gCrashScreenInfo.fault = (uintptr_t)(siginfo ? siginfo->si_addr : NULL);
+    gCrashScreenInfo.pending = 1;
+
     sysLogPrintf(LOG_ERROR, "FATAL: Crashed: PC=%p LR=%p SP=%p FAULT=%p SIGNAL=%d",
                  pc, lr, sp, siginfo ? (void *)siginfo->si_addr : NULL, sig);
 #else
@@ -416,6 +441,14 @@ static void crashHandler(int sig, siginfo_t *siginfo, void *ctx)
         }
     }
 
+#if defined(__aarch64__)
+    /* The host/main thread owns SDL event pumping.  Leave this crashing game
+     * thread parked long enough for it to take the GL context and present a
+     * persistent diagnostic screen.  The user dismisses that screen with a
+     * key/controller button; only then do we terminate with the usual code. */
+    while (!gCrashScreenShown) { }
+    while (!gCrashScreenDismissed) { }
+#endif
     _exit(128 + sig);
 }
 
