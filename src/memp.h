@@ -46,7 +46,7 @@ typedef enum MEMP_ADD_ENTRY_RESULT
 } MEMP_ADD_ENTRY_RESULT;
 
 void mempInit(void);
-void mempCheckMemflagTokens(int bstart,int bsize);
+void mempCheckMemflagTokens(uintptr_t bstart, int bsize);
 void mempSetBankStarts(s32 banks[8]);
 void *mempAllocBytesInBank(u32 bytes,u8 bank);
 MEMP_ADD_ENTRY_RESULT mempAddEntryOfSizeToBank(void *allocation, s32 newsize, u8 poolnum);
