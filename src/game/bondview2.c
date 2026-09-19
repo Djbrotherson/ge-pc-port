@@ -3179,7 +3179,7 @@ void sub_GAME_7F07E7CC(void) {
 
         animInit(watch, itemheader, g_CurrentPlayer->watchRwPool);
         modelSetScale(watch, c_item_entries[41].scale * 0.10000001f);
-        modelSetAnimation(watch, (ModelAnimation *)&ptr_animation_table->data[(s32)&ANIM_DATA_bond_watch], 0, 0.0f, 0.5f * watch_transition_time, 0.0f);
+        modelSetAnimation(watch, (ModelAnimation *)&ptr_animation_table->data[PTR_ANIM_bond_watch], 0, 0.0f, 0.5f * watch_transition_time, 0.0f);
         g_CurrentPlayer->step_in_view_watch_animation = 0; /* N64: *(s32*)(player+0x220) */
     }
 #else
