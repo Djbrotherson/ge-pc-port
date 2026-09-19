@@ -3259,11 +3259,27 @@ extern "C" void gfx_init(const GfxInitSettings *settings) {
     gfx_wapi = settings->wapi;
     gfx_rapi = settings->rapi;
     gfx_wapi->init(&settings->window_settings);
+
+    /* A requested 0x0 window means "auto-size". The WAPI resolves that to a
+     * real drawable size during init (640x480 on R36S), so never seed fast3d
+     * framebuffers from the original 0x0 request. Query the live drawable
+     * before creating framebuffer 0 and the game FBOs. */
+    uint32_t init_width = settings->window_settings.width;
+    uint32_t init_height = settings->window_settings.height;
+    int32_t init_x = 0, init_y = 0;
+    gfx_wapi->get_dimensions(&init_width, &init_height, &init_x, &init_y);
+    if (init_width == 0) init_width = gfx_current_native_viewport.width ? gfx_current_native_viewport.width : 640;
+    if (init_height == 0) init_height = gfx_current_native_viewport.height ? gfx_current_native_viewport.height : 480;
+
     gfx_rapi->init();
-    gfx_rapi->update_framebuffer_parameters(0, settings->window_settings.width, settings->window_settings.height, 1, false, true, true, true);
+    gfx_rapi->update_framebuffer_parameters(0, init_width, init_height, 1, false, true, true, true);
     gfx_current_dimensions.internal_mul = 1;
-    gfx_current_game_window_viewport.width = gfx_current_dimensions.width = settings->window_settings.width;
-    gfx_current_game_window_viewport.height = gfx_current_dimensions.height = settings->window_settings.height;
+    gfx_current_window_dimensions.width = init_width;
+    gfx_current_window_dimensions.height = init_height;
+    gfx_current_window_dimensions.aspect_ratio = (float)init_width / (float)init_height;
+    gfx_current_game_window_viewport.width = gfx_current_dimensions.width = init_width;
+    gfx_current_game_window_viewport.height = gfx_current_dimensions.height = init_height;
+    gfx_current_dimensions.aspect_ratio = (float)init_width / (float)init_height;
     game_framebuffer = gfx_rapi->create_framebuffer();
     game_framebuffer_msaa_resolved = gfx_rapi->create_framebuffer();
 
