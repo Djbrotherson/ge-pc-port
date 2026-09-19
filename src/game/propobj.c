@@ -7204,8 +7204,7 @@ void sub_GAME_7F04AC20(PropRecord *prop, ModelRenderData *mrData, s32 arg2)
 
         if (destroyed)
         {
-            destroyed = get_BONDdata_field_10E0();
-            destroyed = destroyed != 0;
+            destroyed = get_BONDdata_field_10E0() != NULL;
         }
 
         gdl = mrData->gdl;
@@ -9567,7 +9566,7 @@ dummy_label_995911:
                     }
                 }
 
-                chrpropAddBulletHit(hitinfo, prop, -pos.z, hitpart, node, &hit, mtxindex, (s32) hitnode, model, penetrates, (obj->flags2 & PROPFLAG2_00100000) != FALSE);
+                chrpropAddBulletHit(hitinfo, prop, -pos.z, hitpart, node, &hit, mtxindex, hitnode, model, penetrates, (obj->flags2 & PROPFLAG2_00100000) != FALSE);
             }
         }
     }
@@ -14556,7 +14555,11 @@ void sub_GAME_7F056690(void)
 #else
                     new_var = &s3->datas[s0->RwDataIndex];
 #endif
+#ifdef PORT
+                    if ((void *)s0->Vertices != (void *)*new_var)
+#else
                     if ((s32)s0->Vertices != (s32)*new_var)
+#endif
                     {
                         objFreePermanently(s1, 1);
                         return;
