@@ -117,7 +117,11 @@ void load_font_tables(void)
     text_s = 0;
     text_t = 0;
 
+#ifdef PORT
+    len = (u32)((uintptr_t)&_fontbankgothicSegmentEnd - (uintptr_t)&_fontbankgothicSegmentStart);
+#else
     len = (romptr_t)&_fontbankgothicSegmentEnd - (romptr_t)&_fontbankgothicSegmentStart;
+#endif
 #ifdef PORT
 	{
         u32 n64len = len;
@@ -140,7 +144,11 @@ void load_font_tables(void)
 		ptrFontBankGothicChars[i].pixeldata += (uintptr_t)ptrFontBankGothic;
 	}
 
+#ifdef PORT
+    len = (u32)((uintptr_t)&_fontzurichboldSegmentEnd - (uintptr_t)&_fontzurichboldSegmentStart);
+#else
     len = (romptr_t)&_fontzurichboldSegmentEnd - (romptr_t)&_fontzurichboldSegmentStart;
+#endif
 #ifdef PORT
 	{
         u32 n64len = len;
