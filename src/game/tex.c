@@ -392,13 +392,13 @@ s32 sub_GAME_7F0CCAFC(f32 arg0)
 }
 
 
-s32 sub_GAME_7F0CCB38(s32 *arg0)
+s32 sub_GAME_7F0CCB38(struct tex *arg0)
 {
     s32 temp_t7;
     s32 temp_v0;
 
     temp_v0 = texGetLineSizeInBytes(arg0, 0U);
-    temp_t7 = arg0[2] & 3;
+    temp_t7 = arg0->depth;
     if (temp_t7 == 3)
     {
         return sub_GAME_7F0CCAFC((2.0f / (f32) (temp_v0 * 4)) * 2048.0f);
@@ -621,7 +621,7 @@ Gfx *texWriteLoadToTmemZero(Gfx *gdl, struct tex *tex)
 	s32 len;
 	s32 dxt;
 
-	dxt = sub_GAME_7F0CCB38((s32 *)tex);
+	dxt = sub_GAME_7F0CCB38(tex);
 	texGetDepthAndSize(tex, &depth, &len);
 
 	if (tex->lutmodeindex == 0)
@@ -754,7 +754,7 @@ Gfx * texHandleType0(Gfx *gdl,struct tex *tex,s32 smode,s32 tmode,s32 offset,u32
 }
 
 
-Gfx * texHandleType4(Gfx *DL,u32 *arg1,s32 arg2,s32 arg3,s32 arg4)
+Gfx * texHandleType4(Gfx *DL, struct tex *arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     DL = texWriteLoadToTmemZero(DL,arg1);
     DL = texWriteTile(DL,arg1,arg2,arg3,arg4,0);
@@ -762,7 +762,7 @@ Gfx * texHandleType4(Gfx *DL,u32 *arg1,s32 arg2,s32 arg3,s32 arg4)
 }
 
 
-Gfx * texHandleType3(Gfx *DL,u32 *arg1,s32 arg2,s32 arg3,s32 arg4)
+Gfx * texHandleType3(Gfx *DL, struct tex *arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     DL = texWriteLoadToTmemZero(DL,arg1);
     DL = texWriteTile(DL,arg1,arg2,arg3,arg4,0);
