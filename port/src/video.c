@@ -795,6 +795,35 @@ void videoSubmitCommands(Gfx *cmds)
 static void videoPreSwapCapture(void)
 {
 #if defined(__aarch64__)
+    /* R36S physical-presentation proof. Draw directly into framebuffer 0
+     * immediately before SDL_GL_SwapWindow, using only scissored clears.
+     * This bypasses GoldenEye display lists, shaders, textures and fonts. */
+    {
+        GLint prevFbo = 0;
+        GLint prevVp[4] = {0, 0, 640, 480};
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFbo);
+        glGetIntegerv(GL_VIEWPORT, prevVp);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, (GLsizei)gfx_current_dimensions.width,
+                         (GLsizei)gfx_current_dimensions.height);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+        glEnable(GL_SCISSOR_TEST);
+
+        /* Red title bar + white bitmap text: unmistakable but still leaves
+         * most of the GoldenEye frame visible behind it. */
+        glClearColor(0.70f, 0.0f, 0.0f, 1.0f);
+        crashDrawRect(0, 0, (int)gfx_current_dimensions.width, 42,
+                      (int)gfx_current_dimensions.height);
+        crashDrawText(12, 8, 3, (int)gfx_current_dimensions.height,
+                      "GE007 VIDEO DEBUG");
+
+        glDisable(GL_SCISSOR_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFbo);
+        glViewport(prevVp[0], prevVp[1], prevVp[2], prevVp[3]);
+    }
+
     /* R36S black-screen diagnostic: sample five 32x32 regions of the actual
      * composited back buffer immediately before SDL_GL_SwapWindow. If these
      * contain colour while the LCD stays black, rendering is fine and the
@@ -810,8 +839,13 @@ static void videoPreSwapCapture(void)
         unsigned maxrgb = 0;
         GLint fbo = -1;
         GLint vp[4] = {0, 0, 0, 0};
+        GLint readFmt = 0, readType = 0;
+        GLenum stale = GL_NO_ERROR;
+        while ((stale = glGetError()) != GL_NO_ERROR) { }
         glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbo);
         glGetIntegerv(GL_VIEWPORT, vp);
+        glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &readFmt);
+        glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &readType);
         for (int r = 0; r < 5; ++r) {
             int x = xs[r] < 0 ? 0 : xs[r];
             int y = ys[r] < 0 ? 0 : ys[r];
@@ -828,9 +862,10 @@ static void videoPreSwapCapture(void)
             }
         }
         sysLogPrintf(LOG_NOTE,
-            "R36S preswap frame=%u fbo=%d viewport=%d,%d %dx%d sampled_nonblack=%u/5120 maxrgb=%u glerr=0x%X",
+            "R36S preswap frame=%u fbo=%d viewport=%d,%d %dx%d sampled_nonblack=%u/5120 maxrgb=%u readfmt=0x%X readtype=0x%X glerr=0x%X",
             frames, (int)fbo, vp[0], vp[1], vp[2], vp[3],
-            total_nonblack, maxrgb, (unsigned)glGetError());
+            total_nonblack, maxrgb, (unsigned)readFmt, (unsigned)readType,
+            (unsigned)glGetError());
     }
 #endif
 
