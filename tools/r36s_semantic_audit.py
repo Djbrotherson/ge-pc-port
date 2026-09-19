@@ -61,19 +61,26 @@ def scan_file(path:Path):
             add("P0","animation-token-as-host-pointer",path,i,line,
                 "ANIM_DATA_* is a synthetic N64 offset token on 64-bit hosts; use PTR_ANIM_* / low-32 offset semantics.")
 
-        # Global LP64 trap: taking the address of a native object and forcing it through
-        # a 32-bit integer destroys host-pointer identity on AArch64.  This must be
-        # reviewed even outside #ifdef PORT because much of the decomp is shared source.
-        if not s.startswith(("//", "/*", "*")) and re.search(
+        # Shared source is host-active unless an enclosing PORT conditional proves
+        # this line belongs only to the preserved N64 branch.
+        port_state=next((v for k,v in reversed(pp) if k=="PORT"),None)
+        host_active = port_state is not False
+
+        # ANIM_DATA_* names are intentional 32-bit animation offsets.  Report them
+        # separately so they can be converted mechanically to PTR_ANIM_* constants.
+        if host_active and re.search(r"\((?:s32|u32|int|unsigned\s+int)\)\s*&ANIM_DATA_", line):
+            add("P0","animation-offset-legacy-cast",path,i,line,
+                "ANIM_DATA_* is an N64 animation offset token; use the generated PTR_ANIM_* constant on the host path.")
+
+        # Real host object addresses must never pass through a 32-bit integer.
+        # Skip explicit N64-only branches and the separately classified ANIM_DATA namespace.
+        if host_active and "ANIM_DATA_" not in line and not s.startswith(("//", "/*", "*")) and re.search(
                 r"\((?:s32|u32|int|unsigned\s+int)\)\s*&\s*[A-Za-z_]", line):
             if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE)", line):
                 add("P0","host-address-narrowing",path,i,line,
                     "Native address is explicitly narrowed to 32 bits; classify as host pointer vs N64 token/offset before preserving.")
 
-        # Same class when a pointer-looking variable is cast through a 32-bit integer.
-        # False positives are preferable to silently missing another R36S sign-extension
-        # crash; intentional N64 tokens should be converted through an explicit helper.
-        if not s.startswith(("//", "/*", "*")) and re.search(
+        if host_active and "ANIM_DATA_" not in line and not s.startswith(("//", "/*", "*")) and re.search(
                 r"\((?:s32|u32|int|unsigned\s+int)\)\s*\(?\s*[A-Za-z_]\w*(?:ptr|pointer|addr|address|buf|buffer)\w*\s*\)?", line, re.I):
             if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE)", line):
                 add("P0","host-pointer-variable-narrowing",path,i,line,
