@@ -10420,7 +10420,12 @@ s32 playerTick(PropRecord *prop)
             {
                 cur = ppointers[index]->players_cur_animation;
  
+#ifdef PORT
+                /* players_cur_animation is a 32-bit animation-table token. */
+                if ((u32)cur == (u32)g_bondviewBondDeathAnimations[i])
+#else
                 if (cur == (g_bondviewBondDeathAnimations[i] + ((s32) ptr_animation_table)))
+#endif
                 {
                     found = 1;
                 }
@@ -10433,7 +10438,11 @@ s32 playerTick(PropRecord *prop)
             }
             else
             {
+#ifdef PORT
+                anim = g_bondviewBondDeathAnimations[randomGetNext() % g_bondviewBondDeathAnimationsCount];
+#else
                 anim = g_bondviewBondDeathAnimations[randomGetNext() % g_bondviewBondDeathAnimationsCount] + ((s32) ptr_animation_table);
+#endif
                 angle = 0.5f;
             }
  
@@ -10615,7 +10624,11 @@ lean_return_to_centre:
  
             if (fa->anim != 0)
             {
+#ifdef PORT
+                anim = (s32)fa->anim;
+#else
                 anim = fa->anim + (s32) ptr_animation_table;
+#endif
             }
  
             angle *= fa->x;
@@ -10628,7 +10641,14 @@ lean_return_to_centre:
 join_768:
         if ((firingtable != NULL) && (anim == 0))
         {
+#ifdef PORT
+            /* initResolveAnimGroupTable resolves this union member to a native
+             * pointer. Convert it back to the player's stable 32-bit table
+             * token instead of preserving/truncating the host address. */
+            anim = (s32)(u32)((u8 *)firingtable->anim.anim - (u8 *)ptr_animation_table);
+#else
             anim = *((s32 *) firingtable);
+#endif
         }
  
         if (anim != cur)
@@ -10657,7 +10677,13 @@ join_768:
             if (ppointers[index]->bodyModel->anim2 == NULL)
             {
                 startframe = (0.0f <= frame) ? (frame) : (0.0f);
+#ifdef PORT
+                modelSetAnimation(ppointers[index]->bodyModel,
+                                  (ModelAnimation *)((u8 *)ptr_animation_table + (u32)anim),
+                                  0, startframe, angle, 16.0f);
+#else
                 modelSetAnimation(ppointers[index]->bodyModel, (ModelAnimation *) anim, 0, startframe, angle, 16.0f);
+#endif
                 ppointers[index]->players_cur_animation = anim;
                 ppointers[index]->field_1288 = angle;
  
