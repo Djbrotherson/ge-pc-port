@@ -615,7 +615,12 @@ u32 decompress_entry(void *src, void *dst, struct huft *hlist)
     inbuf = src;
     outbuf = dst;
     huftlist = hlist;
+#ifdef PORT
+    /* inbuf is a native u8 pointer, not an N64 address token. */
+    inbuf += 2;
+#else
     inbuf = (s32) (inbuf + 2);
+#endif
     wp = 0;
     inptr = 0;
     inflate();
