@@ -59,7 +59,7 @@ def scan_file(path:Path):
     direct_ptr_name = re.compile(
         r"\((?:s32|u32|int|unsigned\s+int)\)\s*"
         r"([A-Za-z_]\w*(?:ptr|Ptr|pointer|Pointer|addr|Addr|address|Address))"
-        r"(?!\s*(?:->|\.|\())"
+        r"(?!\s*(?:->|\.|\(|\[))"
     )
     member_ptr_name = re.compile(
         r"\((?:s32|u32|int|unsigned\s+int)\)\s*"
