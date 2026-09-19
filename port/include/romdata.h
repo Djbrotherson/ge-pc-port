@@ -59,7 +59,7 @@ void romdataFixupAnimationData(u8 *blob, u32 blobSize,
  * allows (the header-only 0x10-byte copy decodes the header plus entry 0;
  * the caller re-copies fresh BE bytes before the full-size call).
  */
-void romdataFixupMusicSeqTable(u8 *blob, u32 blobSize);
+void romdataFixupMusicSeqTable(void *blob, u32 blobSize);
 
 /*
  * D54 (docs/internals.md): decode a decompressed compact-sequence file's
@@ -127,7 +127,7 @@ void romdataFixupFont(u8 *blob, u32 n64Size);
  * alBnkfNew().
  */
 u32  romdataAudioBankPcSize(const u8 *src, u32 srcSize);
-void romdataFixupAudioBank(u8 *blob, u32 srcSize, u32 allocSize);
+void romdataFixupAudioBank(void *blob, u32 srcSize, u32 allocSize);
 
 /*
  * Map an N64 virtual address (0xA0000000 RDRAM space) to the corresponding

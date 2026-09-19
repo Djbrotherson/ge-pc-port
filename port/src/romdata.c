@@ -557,8 +557,9 @@ void romdataFixupAnimationData(u8 *blob, u32 blobSize,
  * copy decodes the header plus entry 0, and the caller re-copies fresh BE
  * bytes before the full-size call.
  */
-void romdataFixupMusicSeqTable(u8 *blob, u32 blobSize)
+void romdataFixupMusicSeqTable(void *blobPtr, u32 blobSize)
 {
+    u8 *blob = (u8 *)blobPtr;
     if (blobSize < 4) {
         sysLogPrintf(LOG_ERROR, "romdataFixupMusicSeqTable: blob too small (%u)",
                      blobSize);
@@ -1201,8 +1202,9 @@ u32 romdataAudioBankPcSize(const u8 *src, u32 srcSize)
     return n;
 }
 
-void romdataFixupAudioBank(u8 *blob, u32 srcSize, u32 allocSize)
+void romdataFixupAudioBank(void *blobPtr, u32 srcSize, u32 allocSize)
 {
+    u8 *blob = (u8 *)blobPtr;
     if (!blob || srcSize < 4) {
         sysLogPrintf(LOG_ERROR, "romdataFixupAudioBank: blob too small (%u)",
                      srcSize);

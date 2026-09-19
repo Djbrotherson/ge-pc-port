@@ -760,7 +760,9 @@ s32 sndCountAllocList(s16 *allocListCount, s16 *freeListCount)
     u16 counter2;
     u16 returnCounter;
 
-    ALEventQueue *evtq = (ALEventQueue *)&D_800243E4;
+    /* D_800243E4 is the sound-state list header, not an ALEventQueue.
+     * Count the real event queue embedded in the sound player. */
+    ALEventQueue *evtq = &g_sndPlayerPtr->evtq;
 
     ALLink *freeListNodeForward = evtq->freeList.next;
     ALLink *allocListNodeForward = evtq->allocList.next;
