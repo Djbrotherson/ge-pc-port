@@ -136,7 +136,11 @@ void finalize_ramrom_on_hw(void)
     u8 *p;
     void *a1;
 
+#ifdef PORT
+    p = (u8 *)ALIGN16_a((uintptr_t)buffer);
+#else
     p = ALIGN16_a((s32)buffer);
+#endif
     p[0] = 0;
     p[1] = 0;
 
@@ -148,7 +152,11 @@ void finalize_ramrom_on_hw(void)
 
     ptr_active_demofile = romCopyAligned(ramrom_data_target, a1, 0xf0);
     ptr_active_demofile->totaltime_ms = g_GlobalTimer - g_ClockTimer;
+#ifdef PORT
+    ptr_active_demofile->filesize = (s32)((uintptr_t)address_demo_loaded - (uintptr_t)a1);
+#else
     ptr_active_demofile->filesize = (s32)address_demo_loaded - (s32)a1;
+#endif
     romWrite(ptr_active_demofile, a1, 0xf0);
 }
 

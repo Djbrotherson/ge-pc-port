@@ -486,10 +486,10 @@ s32 isGunBarrelInMode2(void) {
 extern void *unknown2;
 extern void *unknown2_end;
 void sub_GAME_7F008DE4(u8 **addr, s32 *size) {
-    dword_CODE_bss_8006958C = *addr;
+    dword_CODE_bss_8006958C = (uintptr_t)*addr;
     *size -= 0x40400;
     *addr += 0x40400;
-    dword_CODE_bss_80069588 = *addr;
+    dword_CODE_bss_80069588 = (uintptr_t)*addr;
 #ifdef PORT
     romCopy((void *)dword_CODE_bss_80069588, (void *)&unknown2,
             ALIGN64_V2((u32)((uintptr_t)&unknown2_end - (uintptr_t)&unknown2)));
@@ -517,11 +517,15 @@ void initializeGunBarrelIntro(u8 *gfxBuffer, s32 bufferSize)
     titleTransitionX = -100.0f;
     titleTransitionY = 482.0f;
     word_CODE_bss_80069584 = 0x42;
-    barrelDisplayListPtr = gfxBuffer;
+    barrelDisplayListPtr = (uintptr_t)gfxBuffer;
     bufferSize -= 0x200;
     gfxBuffer += 0x200;
     
+#ifdef PORT
+    createGunbarrelRenderHole((u8 *)barrelDisplayListPtr, 0x1E);
+#else
     createGunbarrelRenderHole(barrelDisplayListPtr, 0x1E);
+#endif
     
     gunbarrelgfxListPointer = (Gfx*)gfxBuffer;
 #ifdef PORT

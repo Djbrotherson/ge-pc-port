@@ -28,12 +28,12 @@ s32 g_gfxDebugEntryData = 0;
 /**
  * Address 8004E9E4.
  */
-s32 g_gfxRdpOutputBufferEnd = 0;
+#ifdef PORT\nu8 *g_gfxRdpOutputBufferEnd = NULL;\n#else\ns32 g_gfxRdpOutputBufferEnd = 0;\n#endif
 
 /**
  * Address 8004E9E8.
  */
-s32 g_gfxRdpOutputBufferStart = 0;
+#ifdef PORT\nu8 *g_gfxRdpOutputBufferStart = NULL;\n#else\ns32 g_gfxRdpOutputBufferStart = 0;\n#endif
 
 /**
  * Address 8004E9EC.
@@ -235,7 +235,11 @@ void rspGfxTaskStart(Gfx *firstGdl, Gfx *gdl, s32 arg2, OSMesg rspReplyMsg)
     task->t.ucode_boot = (u64*)rspbootTextStart;
     
     // u64 pointers, cast to x32 to avoid (sra _,_,0x3)
+#ifdef PORT
+    task->t.ucode_boot_size = (s32)((u8 *)rspbootTextEnd - (u8 *)rspbootTextStart);
+#else
     task->t.ucode_boot_size = ((s32)rspbootTextEnd - (s32)rspbootTextStart);
+#endif
 
     if (rspbootTextStart);
     
