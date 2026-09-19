@@ -903,7 +903,11 @@ typedef struct {
     ALEventQueue        evtq;
     ALEvent             nextEvent;
     ALSynth             *drvr;          /* reference to the client driver   */
+#ifdef PORT
+    uintptr_t           target;         /* ALSoundState* in GE's sound-player path */
+#else
     s32                 target;
+#endif
     void                *sndState;
     s32                 maxSounds;
     ALMicroTime         frameTime;
