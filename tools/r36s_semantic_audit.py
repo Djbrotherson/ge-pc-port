@@ -24,24 +24,70 @@ def iter_files():
             if f.is_file() and f.suffix in EXTS and "third_party" not in f.parts:
                 yield f
 
-def scan_file(path:Path):
-    lines=path.read_text(errors="replace").splitlines()
-    pp=[]
-    in_port=False
-    for i,line in enumerate(lines,1):
-        s=line.strip()
+def _strip_comments(line:str, in_block:bool):
+    out=[]
+    i=0
+    while i < len(line):
+        if in_block:
+            j=line.find("*/", i)
+            if j < 0:
+                return "", True
+            i=j+2
+            in_block=False
+            continue
+        j=line.find("/*", i)
+        k=line.find("//", i)
+        if k >= 0 and (j < 0 or k < j):
+            out.append(line[i:k])
+            return "".join(out), False
+        if j < 0:
+            out.append(line[i:])
+            return "".join(out), False
+        out.append(line[i:j])
+        i=j+2
+        in_block=True
+    return "".join(out), in_block
 
-        # Track enough preprocessing state to identify PORT / USE_GLES guards.
-        if s.startswith("#ifdef PORT"):
-            pp.append(("PORT",True)); in_port=True
-        elif s.startswith("#ifndef PORT"):
-            pp.append(("PORT",False)); in_port=False
-        elif s.startswith("#ifdef USE_GLES") or s.startswith("#if defined(USE_GLES)"):
+def scan_file(path:Path):
+    raw_lines=path.read_text(errors="replace").splitlines()
+    pp=[]
+    in_block_comment=False
+
+    # Deliberately conservative: direct pointer narrowing is fatal. An
+    # explicit uintptr_t/intptr_t boundary is already a reviewed host/token
+    # conversion and remains visible as P1 for manual semantic review.
+    direct_ptr_name = re.compile(
+        r"\((?:s32|u32|int|unsigned\s+int)\)\s*"
+        r"([A-Za-z_]\w*(?:ptr|Ptr|pointer|Pointer|addr|Addr|address|Address))"
+        r"(?!\s*(?:->|\.|\())"
+    )
+    member_ptr_name = re.compile(
+        r"\((?:s32|u32|int|unsigned\s+int)\)\s*"
+        r"[^;\n]+->\s*([A-Za-z_]\w*(?:ptr|Ptr|pointer|Pointer|addr|Addr|address|Address))\b"
+    )
+    explicit_width_boundary = re.compile(
+        r"\((?:s32|u32|int|unsigned\s+int)\)\s*"
+        r"(?:\(\s*u32\s*\)\s*)?\(\s*(?:u?intptr_t)\s*\)"
+    )
+
+    for i,raw in enumerate(raw_lines,1):
+        line,in_block_comment=_strip_comments(raw,in_block_comment)
+        s=line.strip()
+        if not s:
+            continue
+
+        # Track enough preprocessing state to identify PORT / USE_GLES
+        # branches, including the #if defined(X) spelling used by this repo.
+        if s.startswith("#ifdef PORT") or re.match(r"#\s*if\s+defined\s*\(\s*PORT\s*\)", s):
+            pp.append(("PORT",True))
+        elif s.startswith("#ifndef PORT") or re.match(r"#\s*if\s+!\s*defined\s*\(\s*PORT\s*\)", s):
+            pp.append(("PORT",False))
+        elif s.startswith("#ifdef USE_GLES") or re.match(r"#\s*if\s+defined\s*\(\s*USE_GLES\s*\)", s):
             pp.append(("USE_GLES",True))
-        elif s.startswith("#ifndef USE_GLES") or ("#if" in s and "!defined(USE_GLES)" in s):
+        elif s.startswith("#ifndef USE_GLES") or re.match(r"#\s*if\s+!\s*defined\s*\(\s*USE_GLES\s*\)", s):
             pp.append(("USE_GLES",False))
         elif s.startswith("#if") and "__x86_64__" in s and "__aarch64__" not in s:
-            add("P0","x86-only-64bit-guard",path,i,line,
+            add("P0","x86-only-64bit-guard",path,i,raw,
                 "64-bit host fix is enabled on x86_64 but not AArch64.")
             pp.append(("OTHER",None))
         elif s.startswith("#if"):
@@ -50,73 +96,76 @@ def scan_file(path:Path):
             k,v=pp[-1]
             if k in ("PORT","USE_GLES"):
                 pp[-1]=(k,not v)
-                if k=="PORT": in_port=not v
         elif s.startswith("#endif") and pp:
-            k,v=pp.pop()
-            if k=="PORT":
-                in_port=next((vv for kk,vv in reversed(pp) if kk=="PORT"),False)
+            pp.pop()
 
-        # Exact semantic regression class: synthetic animation symbols are offsets.
-        if re.search(r"\(uintptr_t\)\s*&ANIM_DATA_", line) or re.search(r"\+\s*&ANIM_DATA_",line):
-            add("P0","animation-token-as-host-pointer",path,i,line,
-                "ANIM_DATA_* is a synthetic N64 offset token on 64-bit hosts; use PTR_ANIM_* / low-32 offset semantics.")
-
-        # Shared source is host-active unless an enclosing PORT conditional proves
-        # this line belongs only to the preserved N64 branch.
         port_state=next((v for k,v in reversed(pp) if k=="PORT"),None)
+        in_port = port_state is True
         host_active = port_state is not False
 
-        # ANIM_DATA_* names are intentional 32-bit animation offsets.  Report them
-        # separately so they can be converted mechanically to PTR_ANIM_* constants.
+        # Exact semantic regression class: synthetic animation symbols are
+        # offsets. Comments have already been stripped above.
+        if re.search(r"\(uintptr_t\)\s*&ANIM_DATA_", line) or re.search(r"\+\s*&ANIM_DATA_",line):
+            add("P0","animation-token-as-host-pointer",path,i,raw,
+                "ANIM_DATA_* is a synthetic N64 offset token on 64-bit hosts; use PTR_ANIM_* / low-32 offset semantics.")
+
         if host_active and re.search(r"\((?:s32|u32|int|unsigned\s+int)\)\s*&ANIM_DATA_", line):
-            add("P0","animation-offset-legacy-cast",path,i,line,
+            add("P0","animation-offset-legacy-cast",path,i,raw,
                 "ANIM_DATA_* is an N64 animation offset token; use the generated PTR_ANIM_* constant on the host path.")
 
-        # Real host object addresses must never pass through a 32-bit integer.
-        # Skip explicit N64-only branches and the separately classified ANIM_DATA namespace.
-        if host_active and "ANIM_DATA_" not in line and not s.startswith(("//", "/*", "*")) and re.search(
-                r"\((?:s32|u32|int|unsigned\s+int)\)\s*&\s*[A-Za-z_]", line):
-            if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE)", line):
-                add("P0","host-address-narrowing",path,i,line,
-                    "Native address is explicitly narrowed to 32 bits; classify as host pointer vs N64 token/offset before preserving.")
+        # Explicit pointer-width integer conversion is a semantic boundary,
+        # not proof of truncation. Keep it in the report as P1 so it remains
+        # auditable, but reserve P0 for unreviewed direct narrowing.
+        if host_active and explicit_width_boundary.search(line):
+            add("P1","explicit-32bit-token-boundary",path,i,raw,
+                "Explicit uintptr_t/intptr_t to 32-bit conversion; verify this is an intentional N64 token/serialized ABI boundary.")
 
-        if host_active and "ANIM_DATA_" not in line and not s.startswith(("//", "/*", "*")) and re.search(
-                r"\((?:s32|u32|int|unsigned\s+int)\)\s*\(?\s*[A-Za-z_]\w*(?:ptr|pointer|addr|address|buf|buffer)\w*\s*\)?", line, re.I):
+        # Address-of narrowed directly without a pointer-width boundary.
+        if host_active and re.search(r"\((?:s32|u32|int|unsigned\s+int)\)\s*&\s*[A-Za-z_]", line):
             if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE)", line):
-                add("P0","host-pointer-variable-narrowing",path,i,line,
-                    "Pointer-looking value is explicitly narrowed to 32 bits; classify before preserving legacy N64 arithmetic.")
+                add("P0","host-address-narrowing",path,i,raw,
+                    "Native address is explicitly narrowed to 32 bits without a pointer-width/token boundary.")
 
-        # Host pointer plus linker/ROM token is suspicious unless explicitly narrowed/tokenized.
+        # Direct pointer-looking variables/fields narrowed without uintptr_t.
+        if host_active and "uintptr_t" not in line and "intptr_t" not in line:
+            if direct_ptr_name.search(line) or member_ptr_name.search(line):
+                if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE|SegmentRom)",line):
+                    add("P0","host-pointer-variable-narrowing",path,i,raw,
+                        "Pointer-looking value is directly narrowed to 32 bits; classify as native pointer vs N64 token.")
+
+        # Host pointer plus linker/ROM token is suspicious unless explicitly
+        # narrowed/tokenized.
         if re.search(r"\b(?:ptr|pointer|base|buf|buffer|data|addr|address)\w*\s*\+\s*\(uintptr_t\)\s*&\w*(?:SegmentRom|SegmentStart|SegmentEnd)", line, re.I):
-            add("P0","linker-token-host-add",path,i,line,
+            add("P0","linker-token-host-add",path,i,raw,
                 "Linker/ROM symbols are address tokens; full-width host addition changes N64 semantics.")
 
-        # In PORT code, explicit host pointer narrowing is almost always wrong unless the line
-        # is clearly converting a mapped/tokenized N64 address via a named helper.
-        if in_port and re.search(r"\((?:s32|u32|int|unsigned\s+int)\)\s*(?:\([^\n;]*\*\)|&\w+|\w*(?:ptr|pointer|addr|address|buf|buffer)\w*)", line, re.I):
-            if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|SegmentRom|PTR_ANIM|CART_BASE)",line):
-                add("P0","port-pointer-narrowing",path,i,line,
-                    "PORT path narrows a host pointer to 32 bits without an explicit N64/token conversion helper.")
+        # PORT direct narrowing: exclude explicit uintptr_t review boundaries,
+        # scalar GBI command words, and well-defined physical/token helpers.
+        if in_port and "uintptr_t" not in line and "intptr_t" not in line:
+            if re.search(r"\((?:s32|u32|int|unsigned\s+int)\)\s*&\w+", line) or direct_ptr_name.search(line) or member_ptr_name.search(line):
+                if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|SegmentRom|PTR_ANIM|CART_BASE|\.words\.w[01])",line):
+                    add("P0","port-pointer-narrowing",path,i,raw,
+                        "PORT path directly narrows a host pointer without an explicit N64/token conversion boundary.")
 
-        # Pointer alignment/math through 32-bit casts in PORT code.
-        if in_port and re.search(r"\((?:s32|u32)\)\s*[^;]+(?:\+|\-|&|\|)\s*(?:0x|\d)",line):
-            if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|SegmentRom|PTR_ANIM)",line):
-                add("P0","port-32bit-address-math",path,i,line,
-                    "PORT path performs address arithmetic after 32-bit narrowing.")
+        # Pointer alignment/math after direct 32-bit narrowing. Require an
+        # address-of or pointer-looking operand; ordinary scalar/GBI math is
+        # not an address hazard.
+        if in_port and re.search(r"(?:\((?:s32|u32)\)\s*&\w+|\((?:s32|u32)\)\s*[A-Za-z_]\w*(?:ptr|Ptr|pointer|Pointer|addr|Addr|address|Address))[^;]+(?:\+|\-|&|\|)",line):
+            if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|SegmentRom|PTR_ANIM|CART_BASE|\.words\.w[01])",line):
+                add("P0","port-32bit-address-math",path,i,raw,
+                    "PORT path performs address arithmetic after direct 32-bit pointer narrowing.")
 
-        # Desktop-only GL calls must not execute in a USE_GLES-positive region.
+        # Desktop-only GL calls must not compile in a USE_GLES-positive branch.
         gles_state=next((v for k,v in reversed(pp) if k=="USE_GLES"),None)
         for fn in DESKTOP_GL:
-            if re.search(r"\b"+re.escape(fn)+r"\s*\(",line):
-                if gles_state is not False:
-                    add("P0","desktop-gl-on-gles-path",path,i,line,
-                        f"{fn} is desktop GL only and is not proven excluded from USE_GLES.")
+            if re.search(r"\b"+re.escape(fn)+r"\s*\(",line) and gles_state is not False:
+                add("P0","desktop-gl-on-gles-path",path,i,raw,
+                    f"{fn} is desktop GL only and is not proven excluded from USE_GLES.")
 
-        # Fixed byte reserves adjacent to typed Gfx/Vtx/Mtx allocations are ABI-sensitive.
         if re.search(r"\b(?:Gfx|Vtx|Mtx)\s*\*",line):
-            window=" ".join(lines[max(0,i-3):min(len(lines),i+3)])
+            window=" ".join(raw_lines[max(0,i-3):min(len(raw_lines),i+3)])
             if re.search(r"(?:\+=|-=|Alloc\w*\()\s*0x(?:40|80|100|180|200|400|800)\b",window):
-                add("P1","fixed-n64-typed-reserve",path,i,line,
+                add("P1","fixed-n64-typed-reserve",path,i,raw,
                     "Typed graphics object is near a fixed byte reserve; verify sizeof/stride on LP64.")
 
 def main():

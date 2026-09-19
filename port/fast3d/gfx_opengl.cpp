@@ -821,6 +821,11 @@ static void gfx_opengl_set_depth_mode(bool depth_test, bool depth_update, bool d
 }
 
 static void gfx_opengl_set_depth_range(float znear, float zfar) {
+#if defined(USE_GLES)
+    /* GLES exposes glDepthRangef; do not leave a desktop-only fallback in
+     * the R36S build even though gl_es is true at runtime. */
+    glDepthRangef(znear, zfar);
+#else
     if (gl_es) {
         glDepthRangef(znear, zfar);
     } else if (glDepthRangef) {
@@ -828,6 +833,7 @@ static void gfx_opengl_set_depth_range(float znear, float zfar) {
     } else {
         glDepthRange(znear, zfar);
     }
+#endif
 }
 
 static void gfx_opengl_set_viewport(int x, int y, int width, int height) {
