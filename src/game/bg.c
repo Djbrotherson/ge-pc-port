@@ -1117,21 +1117,51 @@ void load_bg_file(LEVEL_INDEX levelid)
         sysLogPrintf(LOG_NOTE, "R36S BG PHASE bgOrderPortal done count=%d", i);
 #endif
  
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE room-finalize begin rooms=%d", g_MaxNumRooms);
+#endif
         for (i = 0; i < g_MaxNumRooms; i++)
         {
             sub_GAME_7F0B95D8(i);
+#ifdef PORT
+            if ((i & 31) == 31) sysLogPrintf(LOG_NOTE, "R36S BG room-finalize progress i=%d", i);
+#endif
         }
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE room-finalize done");
+#endif
  
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE portal-flags begin");
+#endif
         for (i = 0; g_BgPortals[i].offset_portal != (NULL); i++)
         {
             g_BgPortals[i].controlbytes1 &= 0xfe;
         }
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE portal-flags done count=%d", i);
+#endif
  
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE sub_GAME_7F0B37EC begin");
+#endif
         sub_GAME_7F0B37EC();
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE sub_GAME_7F0B37EC done");
+#endif
     }
  
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE fog begin");
+#endif
     fogRemoved7F0BAA5C(levelid);
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE fog done");
+#endif
     g_RoomLoadBudget = 200;
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE load_bg_file done");
+#endif
 }
 
 
