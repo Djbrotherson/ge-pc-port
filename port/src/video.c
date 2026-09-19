@@ -794,6 +794,46 @@ void videoSubmitCommands(Gfx *cmds)
  * the swap is undefined on buffer-exchange drivers (Mesa/WSLg) -> black. */
 static void videoPreSwapCapture(void)
 {
+#if defined(__aarch64__)
+    /* R36S black-screen diagnostic: sample five 32x32 regions of the actual
+     * composited back buffer immediately before SDL_GL_SwapWindow. If these
+     * contain colour while the LCD stays black, rendering is fine and the
+     * remaining bug is presentation/scanout. */
+    if (frames < 10 || (frames % 300) == 0) {
+        enum { SW = 32, SH = 32 };
+        unsigned char px[SW * SH * 4];
+        const int w = (int)gfx_current_dimensions.width;
+        const int h = (int)gfx_current_dimensions.height;
+        const int xs[5] = { 0, w - SW, 0, w - SW, (w - SW) / 2 };
+        const int ys[5] = { 0, 0, h - SH, h - SH, (h - SH) / 2 };
+        unsigned total_nonblack = 0;
+        unsigned maxrgb = 0;
+        GLint fbo = -1;
+        GLint vp[4] = {0, 0, 0, 0};
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbo);
+        glGetIntegerv(GL_VIEWPORT, vp);
+        for (int r = 0; r < 5; ++r) {
+            int x = xs[r] < 0 ? 0 : xs[r];
+            int y = ys[r] < 0 ? 0 : ys[r];
+            memset(px, 0, sizeof(px));
+            glReadPixels(x, y, SW, SH, GL_RGBA, GL_UNSIGNED_BYTE, px);
+            for (int i = 0; i < SW * SH; ++i) {
+                unsigned rr = px[i * 4 + 0];
+                unsigned gg = px[i * 4 + 1];
+                unsigned bb = px[i * 4 + 2];
+                unsigned m = rr > gg ? rr : gg;
+                if (bb > m) m = bb;
+                if (m) ++total_nonblack;
+                if (m > maxrgb) maxrgb = m;
+            }
+        }
+        sysLogPrintf(LOG_NOTE,
+            "R36S preswap frame=%u fbo=%d viewport=%d,%d %dx%d sampled_nonblack=%u/5120 maxrgb=%u glerr=0x%X",
+            frames, (int)fbo, vp[0], vp[1], vp[2], vp[3],
+            total_nonblack, maxrgb, (unsigned)glGetError());
+    }
+#endif
+
     /* GE_PCDUMP="first-last" / "first-last:step" -> ./ppm/frame_NNNNNN.ppm.
      * Also honours [Debug] FrameDump in ge007.ini (env var wins). */
     const char *pcdump = configGetFrameDump();
