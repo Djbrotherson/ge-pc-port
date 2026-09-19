@@ -903,10 +903,26 @@ void load_bg_file(LEVEL_INDEX levelid)
     ptr_bg_data = (s32) mempAllocBytesInBank(size, 4);
     obLoadBGFileBytesAtOffset(levelinfotable[levelentry_index].bg_seg_filename, (u8 *) ptr_bg_data, 0, size);
  
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE load-stan begin");
+#endif
     gptr_stan = (s32) _fileNameLoadToBank(levelinfotable[levelentry_index].bg_stan_filename, 2, 0, 4);
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE load-stan done ptr=0x%08X", (unsigned)gptr_stan);
+#endif
  
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE stanDetermineEOF begin");
+#endif
     stanDetermineEOF((struct StanPrefixRecord *) gptr_stan, 0, (u8 *) gptr_stan);
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE stanDetermineEOF done");
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE stanLoadFile begin");
+#endif
     stanLoadFile((struct StanPrefixRecord *) gptr_stan);
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE, "R36S BG PHASE stanLoadFile done");
+#endif
  
     sub_GAME_7F0B4810(levelinfotable[levelentry_index].levelscale);
     setLevelScale(levelinfotable[levelentry_index].levelscale);
@@ -932,11 +948,22 @@ void load_bg_file(LEVEL_INDEX levelid)
         goto dummy_label_543534; dummy_label_543534: ;
  
         g_MaxNumRooms = 0;
-
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE room-table-scan begin ptr=%p", (void *)ptr_bgdata_room_fileposition_list);
+#endif
         for (i = 1; ptr_bgdata_room_fileposition_list[i].pPriMappingBin != NULL; i++) 
         {
-            g_MaxNumRooms++;  
+            g_MaxNumRooms++;
+#ifdef PORT
+            if (i > MAXROOMCOUNT + 8) {
+                sysLogPrintf(LOG_ERROR, "R36S BG room-table scan runaway i=%d", i);
+                break;
+            }
+#endif
         }
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE room-table-scan done rooms=%d", g_MaxNumRooms);
+#endif
  
         g_BgPortals = (bg_portal_data_entry *) BG_SEG_TO_PTR(data, ((s32 *)ptr_bgdata_offsets)[2]);
 
@@ -960,10 +987,22 @@ void load_bg_file(LEVEL_INDEX levelid)
             }
         }
  
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE portal-fixup begin ptr=%p", (void *)g_BgPortals);
+#endif
         for (i = 0; g_BgPortals[i].offset_portal != (NULL); i++)
         {
+#ifdef PORT
+            if (i > 2048) {
+                sysLogPrintf(LOG_ERROR, "R36S BG portal-fixup runaway i=%d", i);
+                break;
+            }
+#endif
             g_BgPortals[i].offset_portal = (bg_portal_entry *) BG_SEG_TO_PTR(ptr_bg_data, g_BgPortals[i].offset_portal);
         }
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE portal-fixup done count=%d", i);
+#endif
  
         if (dword_CODE_bss_8007FF90 != NULL)
         {
@@ -1037,22 +1076,46 @@ void load_bg_file(LEVEL_INDEX levelid)
             g_BgRoomInfo[i].cur_room_totalsize = -1;
         }
  
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE initializeRoomData begin");
+#endif
         initializeRoomData();
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE initializeRoomData done");
+#endif
  
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE bgRoomCalcBB begin rooms=%d", g_MaxNumRooms);
+#endif
         for (i = 1; i < g_MaxNumRooms; i++)
         {
             bgRoomCalcBB(i);
         }
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE bgRoomCalcBB done");
+#endif
  
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE portal-metrics begin");
+#endif
         for (i = 0; g_BgPortals[i].offset_portal != (NULL); i++)
         {
             D_800443C4[i] = sub_GAME_7F0B993C(i);
         }
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE portal-metrics done count=%d", i);
+#endif
  
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE bgOrderPortal begin");
+#endif
         for (i = 0; g_BgPortals[i].offset_portal != (NULL); i++)
         {
             bgOrderPortal(i);
         }
+#ifdef PORT
+        sysLogPrintf(LOG_NOTE, "R36S BG PHASE bgOrderPortal done count=%d", i);
+#endif
  
         for (i = 0; i < g_MaxNumRooms; i++)
         {
