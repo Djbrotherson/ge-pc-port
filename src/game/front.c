@@ -7748,7 +7748,11 @@ Gfx *constructor_menu16_nocontrollers(Gfx *DL)
     s32 x2;
     s32 x;
     s32 y;
+#ifdef PORT
+    u8 *text;
+#else
     s32 text;
+#endif
     s32 conConnected = joyGetConnectedControllers();
     s32 numContCon = 0;
 
