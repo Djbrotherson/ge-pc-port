@@ -399,7 +399,17 @@ int videoInit(void)
     gfx_detail_textures_enabled = false;
 
     /* MSAA: snap the requested sample count down to a supported power of two. */
+#if defined(__aarch64__) && defined(USE_GLES)
+    /* R36S bring-up: render directly to the window framebuffer. This removes
+     * the offscreen-MSAA/resolve path from the first-pixel equation entirely.
+     * Once direct rendering is proven, MSAA can be re-enabled independently. */
+    if (cfgMSAA != 1) {
+        sysLogPrintf(LOG_NOTE, "R36S video diagnostic: forcing MSAA 1 (configured %d)", cfgMSAA);
+    }
+    gfx_msaa_level = 1;
+#else
     gfx_msaa_level = cfgMSAA >= 8 ? 8 : cfgMSAA >= 4 ? 4 : cfgMSAA >= 2 ? 2 : 1;
+#endif
 
     int winW = cfgWinW > 0 ? cfgWinW : 0;   /* 0 -> gfx_sdl2 auto-fits to the desktop */
     int winH = cfgWinH > 0 ? cfgWinH : 0;
