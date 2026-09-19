@@ -342,40 +342,94 @@ void sub_GAME_7F0B37EC(void) {
     u32 masked;
 
     ptr = (u8 *)specialportalarray;
-    end = (u8 *)&g_BgCurrentRoom;
-
-    do {
-        if (levelentry_index == *ptr++) {
-            do {
-                portal = ptr[0];
-                while (ptr[1] >= portal) {
 #ifdef PORT
-                    /* C5 / D128: the raw form hardcodes the N64 8-byte
-                     * bg_portal_data_entry stride + controlbytes1@6; on PC the
-                     * struct is 16B (widened offset_portal ptr) with
-                     * controlbytes1@10, so `[(portal<<3)+6]` scribbled
-                     * PORTALFLAG_SPECIAL into the middle of a portal's
-                     * offset_portal pointer -> garbage 0x0002_0000_xxxx ptr ->
-                     * crash on portal_pts->numPoints (bg.c:5723) whenever a chr
-                     * LOS check walked that portal. Only levels with a
-                     * specialportalarray entry (Control) hit it. */
+    /*
+     * The N64 data layout placed g_BgCurrentRoom immediately after
+     * specialportalarray, so the original code used &g_BgCurrentRoom as an
+     * implicit end pointer. Host compilers are free to insert padding between
+     * unrelated globals; walking to the next symbol therefore consumes padding
+     * as another encoded record and can spin forever looking for 0xff.
+     *
+     * specialportalarray is a real byte array in the PC port, so use its actual
+     * object extent and bound every encoded pair read.
+     */
+    end = specialportalarray + sizeof(specialportalarray);
+#else
+    end = (u8 *)&g_BgCurrentRoom;
+#endif
+
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE,
+                 "R36S BG special-portals begin levelindex=%d bytes=%zu base=%p end=%p",
+                 levelentry_index, sizeof(specialportalarray),
+                 (void *)specialportalarray, (void *)end);
+#endif
+
+    while (ptr < end) {
+        u8 entry_level = *ptr++;
+
+        if (ptr >= end) {
+            break;
+        }
+
+        if (levelentry_index == entry_level) {
+            while (ptr < end && ptr[0] != 0xff) {
+                if (ptr + 1 >= end) {
+#ifdef PORT
+                    sysLogPrintf(LOG_ERROR,
+                                 "R36S BG special-portals truncated pair level=%u offset=%td",
+                                 (unsigned)entry_level,
+                                 ptr - specialportalarray);
+#endif
+                    ptr = end;
+                    break;
+                }
+
+                portal = ptr[0];
+
+                while (portal <= ptr[1]) {
+#ifdef PORT
+                    if (portal >= PORTMAX || g_BgPortals[portal].offset_portal == NULL) {
+                        sysLogPrintf(LOG_ERROR,
+                                     "R36S BG special-portals invalid portal=%u range=%u..%u",
+                                     (unsigned)portal,
+                                     (unsigned)ptr[0],
+                                     (unsigned)ptr[1]);
+                        break;
+                    }
+
                     g_BgPortals[portal].controlbytes1 |= PORTALFLAG_SPECIAL;
 #else
                     ((u8 *)g_BgPortals)[(portal << 3) + 6] |= 2;
 #endif
+                    if (portal == 0xff) {
+                        break;
+                    }
                     portal++;
                 }
 
                 ptr += 2;
-            } while (ptr[0] != 0xff);
+            }
         } else {
-            do {
+            while (ptr < end && ptr[0] != 0xff) {
+                if (ptr + 1 >= end) {
+                    ptr = end;
+                    break;
+                }
                 ptr += 2;
-            } while (ptr[0] != 0xff);
+            }
         }
 
-        ptr++;
-    } while ((uintptr_t)ptr < (uintptr_t)end);
+        if (ptr < end && ptr[0] == 0xff) {
+            ptr++;
+        }
+    }
+
+#ifdef PORT
+    sysLogPrintf(LOG_NOTE,
+                 "R36S BG special-portals done consumed=%td/%zu",
+                 ptr - specialportalarray, sizeof(specialportalarray));
+#endif
 }
 
 
