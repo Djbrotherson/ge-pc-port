@@ -16,7 +16,11 @@ s32 img_bitcount;
 //8008D0AC
 s32 dword_CODE_bss_8008D0AC;
 //8008D0B0;
+#ifdef PORT
+intptr_t globalbank_rdram_offset;
+#else
 s32 globalbank_rdram_offset;
+#endif
 //8008D0B4;
 s32 *pGlobalimagetable;
 //8008D0B8;
@@ -242,7 +246,11 @@ void texReset(void)
 
     size = (u32)&_GlobalimagetableSegmentEnd - (u32)&_GlobalimagetableSegmentStart;
     pGlobalimagetable = mempAllocBytesInBank(size + 0x1000, MEMPOOL_STAGE);
+#ifdef PORT
+    pGlobalimagetable = (s32 *)(((uintptr_t)pGlobalimagetable + 0xFFFu) & ~(uintptr_t)0xFFFu);
+#else
     pGlobalimagetable = ((u32)pGlobalimagetable + 0xFFFU) & 0xFFFFF000;
+#endif
 
     romCopy(pGlobalimagetable, &_GlobalimagetableSegmentRomStart, size);
 
@@ -253,7 +261,11 @@ void texReset(void)
     gimgFixupGlobalimagetable((u8 *)pGlobalimagetable);
 #endif
 
+#ifdef PORT
+    globalbank_rdram_offset = (intptr_t)pGlobalimagetable - (intptr_t)0x02000000u;
+#else
     globalbank_rdram_offset = (u32)pGlobalimagetable + 0xFE000000;
+#endif
     genericimage = (void *) (globalbank_rdram_offset + GIMG_OFF(s_genericimage));
     impactimages = (void *) (globalbank_rdram_offset + GIMG_OFF(s_impactimages));
     explosion_smokeimages = (void *) (globalbank_rdram_offset + GIMG_OFF(s_explosion_smokeimages));
