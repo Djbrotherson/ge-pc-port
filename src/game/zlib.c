@@ -3,6 +3,14 @@
 #include "include/string.h"
 #include "include/bstring.h"
 
+#ifdef PORT
+/* rz_inbuf/rz_outbuf are native host buffers.  Preserve the original 32-bit
+ * address arithmetic on N64, but never truncate their addresses on LP64. */
+#define RZ_ADDR(p) ((uintptr_t)(p))
+#else
+#define RZ_ADDR(p) ((u32)(s32)(p))
+#endif
+
 /* this file comes from gzip (1.2.4, 1993-08-20 release), but 
  * inflate.c placed in public domain by Mark Adler */
 
@@ -309,9 +317,9 @@ s32 zlib_inflate_codes(struct huft *tl, struct huft *td, s32 bl, s32 bd)
 
         if (e == 16)                /* then it's a literal */
         {
-            if ((u32)(s32)&rz_outbuf[w] >= (u32)(s32)&rz_inbuf[rz_inptr])
+            if (RZ_ADDR(&rz_outbuf[w]) >= RZ_ADDR(&rz_inbuf[rz_inptr]))
             {
-                if ((u32)((s32)&rz_outbuf[w] - (s32)&rz_inbuf[rz_inptr]) < WSIZE)
+                if ((RZ_ADDR(&rz_outbuf[w]) - RZ_ADDR(&rz_inbuf[rz_inptr])) < WSIZE)
                 {
                     while(1){}              
                 }
@@ -359,9 +367,9 @@ s32 zlib_inflate_codes(struct huft *tl, struct huft *td, s32 bl, s32 bd)
                 
                 if (w - d >= e)         /* (this test assumes unsigned comparison) */
                 {
-                    if ((u32)(s32)&rz_outbuf[w+e-1] >= (u32)(s32)&rz_inbuf[rz_inptr])
+                    if (RZ_ADDR(&rz_outbuf[w+e-1]) >= RZ_ADDR(&rz_inbuf[rz_inptr]))
                     {
-                        if ((u32)((s32)&rz_outbuf[w+e-1] - (s32)&rz_inbuf[rz_inptr]) < WSIZE)
+                        if ((RZ_ADDR(&rz_outbuf[w+e-1]) - RZ_ADDR(&rz_inbuf[rz_inptr])) < WSIZE)
                         {
                             while(1){}              
                         }
@@ -375,9 +383,9 @@ s32 zlib_inflate_codes(struct huft *tl, struct huft *td, s32 bl, s32 bd)
                 {
                     do
                     {
-                        if ((u32)(s32)&rz_outbuf[w] >= (u32)(s32)&rz_inbuf[rz_inptr])
+                        if (RZ_ADDR(&rz_outbuf[w]) >= RZ_ADDR(&rz_inbuf[rz_inptr]))
                         {
-                            if ((u32)((s32)&rz_outbuf[w] - (s32)&rz_inbuf[rz_inptr]) < WSIZE)
+                            if ((RZ_ADDR(&rz_outbuf[w]) - RZ_ADDR(&rz_inbuf[rz_inptr])) < WSIZE)
                             {
                                 while(1){}              
                             }
@@ -436,9 +444,9 @@ s32 zlib_inflate_stored(void)
     {
 		NEEDBITS(8)
         
-        if ((u32)(s32)&rz_outbuf[w] >= (u32)(s32)&rz_inbuf[rz_inptr])
+        if (RZ_ADDR(&rz_outbuf[w]) >= RZ_ADDR(&rz_inbuf[rz_inptr]))
         {
-            if ((u32)((s32)&rz_outbuf[w] - (s32)&rz_inbuf[rz_inptr]) < WSIZE)
+            if ((RZ_ADDR(&rz_outbuf[w]) - RZ_ADDR(&rz_inbuf[rz_inptr])) < WSIZE)
             {
                 while(1){}              
             }
