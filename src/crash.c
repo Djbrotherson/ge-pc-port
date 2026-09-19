@@ -522,7 +522,13 @@ bool crashIsReturnAddress(u32 *instruction)
 {
     u32 prevop;
 
+#ifdef PORT
+    if ((((uintptr_t)instruction & 3u) == 0) &&
+        ((uintptr_t)instruction >= (uintptr_t)&_codeSegmentStart) &&
+        ((uintptr_t)instruction <= (uintptr_t)&_codeSegmentEnd))
+#else
     if ((((s32) instruction & 3) == 0) && ((u32) instruction >= (u32) &_codeSegmentStart) && ((u32) &_codeSegmentEnd >= (u32) instruction))
+#endif
     {
         prevop = instruction[-2];
         if ((prevop & 0xFC00003C) == 9)
