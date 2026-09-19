@@ -245,13 +245,13 @@ jobs:
           echo "vendored model headers=$MODEL_HEADERS"
           test "$MODEL_HEADERS" -gt 400
 
-          cat > "$PKG/ge007/data/README-LEGAL-ROM.txt" <<'EOF'
-Provide your own US NTSC big-endian GoldenEye 007 ROM here as:
-  ge007.ntsc-final.z64
-Expected SHA-1:
-  abe01e4aeb033b6c0836819f549c791b26cfde83
-The package contains no ROM and no ROM-derived sidecars.
-EOF
+          printf '%s\n' \
+            'Provide your own US NTSC big-endian GoldenEye 007 ROM here as:' \
+            '  ge007.ntsc-final.z64' \
+            'Expected SHA-1:' \
+            '  abe01e4aeb033b6c0836819f549c791b26cfde83' \
+            'The package contains no ROM and no ROM-derived sidecars.' \
+            > "$PKG/ge007/data/README-LEGAL-ROM.txt"
 
           printf 'commit=%s\nbranch=%s\nbuilt_utc=%s\n' \
             "$GITHUB_SHA" "$GITHUB_REF_NAME" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
