@@ -1710,24 +1710,24 @@ void process_02_position(ModelRenderData *arg0, Model *model, ModelNode *node)
 
     rot1 = D_80036094;
     
-    sub_GAME_7F06DEC0(jointnum.v, model->gunhand, skeleton, model->anim, model->unk34, &rot1);
+    sub_GAME_7F06DEC0(jointnum.v, model->gunhand, skeleton, model->anim, (u8 *)model->unk34, &rot1);
 
     if (model->unk2c != 0.0f)
     {
         rot2 = D_800360A0;
-        sub_GAME_7F06DEC0(jointnum.v, model->gunhand, skeleton, model->anim, model->unk38, &rot2);
+        sub_GAME_7F06DEC0(jointnum.v, model->gunhand, skeleton, model->anim, (u8 *)model->unk38, &rot2);
         sub_GAME_7F06D160(&rot1, &rot2, model->unk2c);
     }
 
     if (model->unk84 != 0.0f)
     {
         rot3 = D_800360AC;
-        sub_GAME_7F06DEC0(jointnum.v, model->unk25, skeleton, model->anim2, model->unk64, &rot3);
+        sub_GAME_7F06DEC0(jointnum.v, model->unk25, skeleton, model->anim2, (u8 *)model->unk64, &rot3);
 
         if (model->unk5c != 0.0f)
         {
             rot4 = D_800360B8;
-            sub_GAME_7F06DEC0(jointnum.v, model->unk25, skeleton, model->anim2, model->unk68, &rot4);
+            sub_GAME_7F06DEC0(jointnum.v, model->unk25, skeleton, model->anim2, (u8 *)model->unk68, &rot4);
             sub_GAME_7F06D160(&rot3, &rot4, model->unk5c);
         }
 
@@ -4729,7 +4729,7 @@ void sub_GAME_7F073038(ModelRenderData *renderdata, struct sImageTableEntry *tco
 }
 
 
-void sub_GAME_7F07306C(s32 param_1,struct Model *param_2,struct ModelNode *param_3)
+void sub_GAME_7F07306C(ModelRenderData *param_1,struct Model *param_2,struct ModelNode *param_3)
 {
     return;
 }
@@ -4995,13 +4995,13 @@ void dotube(ModelRenderData* renderdata, Model* model, ModelNode* node)
 }
 
 
-void sub_GAME_7F0737EC(s32 param_1,struct Model *param_2, struct ModelNode *param_3)
+void sub_GAME_7F0737EC(ModelRenderData *param_1,struct Model *param_2, struct ModelNode *param_3)
 {
     return;
 }
 
 
-void sub_GAME_7F0737FC(s32 param_1,struct Model *param_2,struct ModelNode *param_3)
+void sub_GAME_7F0737FC(ModelRenderData *param_1,struct Model *param_2,struct ModelNode *param_3)
 {
     return;
 }
@@ -5313,13 +5313,13 @@ void doshadow(ModelRenderData *renderdata, Model *model, ModelNode *node)
 }
 
 
-void sub_GAME_7F074514(s32 param_1,struct Model *param_2,struct ModelNode *param_3)
+void sub_GAME_7F074514(ModelRenderData *param_1,struct Model *param_2,struct ModelNode *param_3)
 {
     return;
 }
 
 
-void sub_GAME_7F074524(Gfx *param_1,struct Model *param_2, struct ModelNode *param_3)
+void sub_GAME_7F074524(ModelRenderData *param_1,struct Model *param_2, struct ModelNode *param_3)
 {
     return;
 }
@@ -5439,7 +5439,7 @@ void sub_GAME_7F074790(ModelRenderData* arg0, Model* arg1)
 {
     subcalcpos(arg1);
     subcalcmatrices(arg0, arg1);
-    subdraw((s32) arg0, arg1);
+    subdraw(arg0, arg1);
 }
 
 
