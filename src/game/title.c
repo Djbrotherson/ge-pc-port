@@ -36,7 +36,11 @@ extern signed short sins(unsigned short x);
 
 // bss
 //CODE.bss:80069550
+#ifdef PORT
+uintptr_t barrelDisplayListPtr;
+#else
 s32 barrelDisplayListPtr;
+#endif
 //CODE.bss:80069554
 Gfx *gunbarrelgfxListPointer;
 //CODE.bss:80069558
@@ -64,11 +68,23 @@ f32 titleTransitionY;
 //CODE.bss:80069584
 s16 word_CODE_bss_80069584;
 //CODE.bss:80069588
+#ifdef PORT
+uintptr_t dword_CODE_bss_80069588;
+#else
 s32 dword_CODE_bss_80069588;
+#endif
 //CODE.bss:8006958C
+#ifdef PORT
+uintptr_t dword_CODE_bss_8006958C;
+#else
 s32 dword_CODE_bss_8006958C;
+#endif
 //CODE.bss:80069590
+#ifdef PORT
+uintptr_t virtualaddress;
+#else
 s32 virtualaddress;
+#endif
 
 /**
  * Address 80069594
@@ -221,7 +237,11 @@ Gfx *sub_GAME_7F007F30(Gfx *gdl, s32 count, Mtxf *matrix)
 
             if (gunbarrelTimer == BOND_EYE_ANIM_START)
             {
+                #ifdef PORT
+                modelSetAnimation(chrModelInstance, (struct ModelAnimation *)((uintptr_t)&ANIM_DATA_bond_eye_fire + (uintptr_t)&ptr_animation_table->data), 0, 2.0f, 0.910000026f, 16.0f);
+#else
                 modelSetAnimation(chrModelInstance, (struct ModelAnimation *) ((s32) &ANIM_DATA_bond_eye_fire + (s32) &ptr_animation_table->data), 0, 2.0f, 0.910000026f, 16.0f);
+#endif
             }
 
             if (gunbarrelTimer == BOND_EYE_ANIM_SPEEDUP)
@@ -391,13 +411,22 @@ Gfx *load_display_rare_logo(Gfx *gdl, s32 arg1, s32 arg2, s32 arg3, s32 arg4) {
 extern void *_rarewarelogoSegmentRomStart;
 extern void *_rarewarelogoSegmentStart;
 extern void *_rarewarelogoSegmentEnd; 
+#ifdef PORT
+void setupRarewareLogoData(uintptr_t address, s32 size) {
+#else
 void setupRarewareLogoData(s32 address, s32 size) {
+#endif
     gunbarrel_mode = 0;
     g_TitleX = 880.0f;
     D_8002A89C = -40.0f;
     intro_eye_counter = 0;
     virtualaddress = address;
+#ifdef PORT
+    romCopy((void *)virtualaddress, &_rarewarelogoSegmentRomStart,
+            ALIGN64_V2((u32)((uintptr_t)&_rarewarelogoSegmentEnd - (uintptr_t)&_rarewarelogoSegmentStart)));
+#else
     romCopy(virtualaddress, &_rarewarelogoSegmentRomStart, ALIGN64_V2((u32)&_rarewarelogoSegmentEnd - (u32)&_rarewarelogoSegmentStart));
+#endif
 }
 
 
@@ -461,7 +490,12 @@ void sub_GAME_7F008DE4(u8 **addr, s32 *size) {
     *size -= 0x40400;
     *addr += 0x40400;
     dword_CODE_bss_80069588 = *addr;
+#ifdef PORT
+    romCopy((void *)dword_CODE_bss_80069588, (void *)&unknown2,
+            ALIGN64_V2((u32)((uintptr_t)&unknown2_end - (uintptr_t)&unknown2)));
+#else
     romCopy(dword_CODE_bss_80069588, (void *)(s32)&unknown2, ALIGN64_V2(((u32)&unknown2_end - (u32)&unknown2)));
+#endif
     rle_expand_8bit(dword_CODE_bss_80069588, dword_CODE_bss_8006958C);
 }
 
@@ -559,7 +593,11 @@ void initializeGunBarrelIntro(u8 *gfxBuffer, s32 bufferSize)
     modelSetAnimPlaySpeed(chrModelInstance, S_7F008E80_ANIM_SPEED, 0.0f);
 #undef S_7F008E80_ANIM_SPEED
     
+#ifdef PORT
+    animation = (struct ModelAnimation *)((uintptr_t)ptr_animation_table + (uintptr_t)&ANIM_DATA_bond_eye_walk);
+#else
     animation = (struct ModelAnimation*)((s32)ptr_animation_table + (s32)&ANIM_DATA_bond_eye_walk);
+#endif
     startframe = animation->unk04 - 0x44;
     while (startframe < 0)
     {
