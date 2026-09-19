@@ -20,6 +20,10 @@ on:
       - 'assets/**/*.h'
       - 'tools/r36s_lp64_audit.py'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   audit:
     runs-on: ubuntu-24.04-arm

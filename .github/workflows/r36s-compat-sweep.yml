@@ -21,6 +21,10 @@ on:
       - 'tools/r36s_compat_audit.py'
       - 'cmake/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   whole-port-audit:
     name: Whole-port 32/64 compatibility audit

@@ -16,6 +16,10 @@ on:
       - 'port/**'
       - 'tools/r36s_level_load_audit.py'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   audit:
     runs-on: ubuntu-24.04-arm

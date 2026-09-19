@@ -19,6 +19,10 @@ on:
       - 'tools/r36s_semantic_audit.py'
       - '.github/workflows/r36s-semantic-gate.yml'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   semantic-gate:
     runs-on: ubuntu-24.04-arm

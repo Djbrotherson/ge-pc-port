@@ -20,6 +20,10 @@ on:
       - 'tools/arm64_port_audit.py'
       - '.github/workflows/arm64-port-audit.yml'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   audit:
     runs-on: ubuntu-24.04-arm
