@@ -17,6 +17,12 @@
  * Inert in the N64 build (no -DPORT): pure pass-through.
  */
 #if defined(PORT)
+/* pc_protos.h can reach bondtypes before snd.h on host builds.  bondtypes only
+ * stores ALSoundState pointers, so an incomplete forward declaration is
+ * sufficient and avoids an include-order dependency. */
+struct ALSoundState_s;
+typedef struct ALSoundState_s ALSoundState;
+
 #include "game/chrobjdata.h"
 #include "src/bondtypes.h"
 
