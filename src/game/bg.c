@@ -375,7 +375,7 @@ void sub_GAME_7F0B37EC(void) {
         }
 
         ptr++;
-    } while ((u32)ptr < (u32)end);
+    } while ((uintptr_t)ptr < (uintptr_t)end);
 }
 
 
@@ -1010,7 +1010,7 @@ void load_bg_file(LEVEL_INDEX levelid)
             {
                 if (((bg_envdata_entry_local *)dword_CODE_bss_8007FF90)[i].type == ENVIRONMENTDATA_ALT)
                 {
-                    ((bg_envdata_entry_local *)dword_CODE_bss_8007FF90)[i].data = getIndexOfPORTALID((s32) BG_SEG_TO_PTR(ptr_bg_data, ((bg_envdata_entry_local *)dword_CODE_bss_8007FF90)[i].data));
+                    ((bg_envdata_entry_local *)dword_CODE_bss_8007FF90)[i].data = getIndexOfPORTALID((bg_portal_entry *)BG_SEG_TO_PTR(ptr_bg_data, ((bg_envdata_entry_local *)dword_CODE_bss_8007FF90)[i].data));
                 }
             }
         }
@@ -1029,11 +1029,11 @@ void load_bg_file(LEVEL_INDEX levelid)
  
                 if (primaryindex <= secondaryindex)
                 {
-                    g_BgRoomInfo[i].csize_primary_DL_binary = ((s32) ptr_bgdata_room_fileposition_list[primaryindex].pPriMappingBin) - ((s32) ptr_bgdata_room_fileposition_list[i].pPriMappingBin);
+                    g_BgRoomInfo[i].csize_primary_DL_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[primaryindex].pPriMappingBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pPriMappingBin);
                 }
                 else
                 {
-                    g_BgRoomInfo[i].csize_primary_DL_binary = ((s32) ptr_bgdata_room_fileposition_list[secondaryindex].pSecMappingBin) - ((s32) ptr_bgdata_room_fileposition_list[i].pPriMappingBin);
+                    g_BgRoomInfo[i].csize_primary_DL_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[secondaryindex].pSecMappingBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pPriMappingBin);
                 }
             }
             else
@@ -1050,11 +1050,11 @@ void load_bg_file(LEVEL_INDEX levelid)
  
                 if (primaryindex <= secondaryindex)
                 {
-                    g_BgRoomInfo[i].csize_secondary_DL_binary = ((s32) ptr_bgdata_room_fileposition_list[primaryindex].pPriMappingBin) - ((s32) ptr_bgdata_room_fileposition_list[i].pSecMappingBin);
+                    g_BgRoomInfo[i].csize_secondary_DL_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[primaryindex].pPriMappingBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pSecMappingBin);
                 }
                 else
                 {
-                    g_BgRoomInfo[i].csize_secondary_DL_binary = ((s32) ptr_bgdata_room_fileposition_list[secondaryindex].pSecMappingBin) - ((s32) ptr_bgdata_room_fileposition_list[i].pSecMappingBin);
+                    g_BgRoomInfo[i].csize_secondary_DL_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[secondaryindex].pSecMappingBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pSecMappingBin);
                 }
             }
             else
@@ -1066,7 +1066,7 @@ void load_bg_file(LEVEL_INDEX levelid)
             {
                 s32 pointindex;
                 pointindex = getPointTableBinCount(i + 1);
-                g_BgRoomInfo[i].csize_point_index_binary = ((s32) ptr_bgdata_room_fileposition_list[pointindex].pPointTableBin) - ((s32) ptr_bgdata_room_fileposition_list[i].pPointTableBin);
+                g_BgRoomInfo[i].csize_point_index_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[pointindex].pPointTableBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pPointTableBin);
             }
             else
             {
@@ -2377,19 +2377,19 @@ u8 getROOMID_isNeighborToRendered(s32 roomID)
 }
 
 
-s32 getIndexOfPORTALID(s32 portalID)
+s32 getIndexOfPORTALID(bg_portal_entry *portalPtr)
 {
     s32 i;
 
     for(i = 0; g_BgPortals[i].offset_portal != NULL; i++)
     {
-        if (portalID == (s32)g_BgPortals[i].offset_portal)
+        if (portalPtr == g_BgPortals[i].offset_portal)
         {
             return i;
         }
     }
     #ifdef DEBUG
-    osSyncPrintf("bg: bgPortalIndexFromPtr(): No portal found for %08x ",portalID);
+    osSyncPrintf("bg: bgPortalIndexFromPtr(): No portal found for %p ",(void *)portalPtr);
     #endif
     return 0;
 }
@@ -5291,7 +5291,7 @@ void bgRoomCalcBB(s32 room) // canonical name
     StanRoomBounds limits;
     u8 wasloaded;
 
-    roomdata = (bg_room_data *) ((s32) ptr_bgdata_room_fileposition_list + room * 24);
+    roomdata = &ptr_bgdata_room_fileposition_list[room];
 
     if (roomdata->pPointTableBin == NULL)
     {
@@ -5333,7 +5333,7 @@ void bgRoomCalcBB(s32 room) // canonical name
     limits.maxY = -0x7fff;
     limits.maxZ = -0x7fff;
 
-    for (; vertices < (Vtx *) ((s32) g_BgRoomInfo[room].vertices + g_BgRoomInfo[room].usize_point_index_binary); vertices++)
+    for (; (u8 *)vertices < (u8 *)g_BgRoomInfo[room].vertices + g_BgRoomInfo[room].usize_point_index_binary; vertices++)
     {
         for (j = 0; j < 3; j++)
         {
