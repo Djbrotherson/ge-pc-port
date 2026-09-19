@@ -5912,7 +5912,7 @@ u32 modelFindNextProjectileHitCandidate(Model *model, coord3d *arg1, coord3d *ar
 /**
  * Unreferenced
  */
-u32 sub_GAME_7F07549C(void *arg0, f32 *arg1, f32 *arg2, ModelNode **nodeptr)
+u32 sub_GAME_7F07549C(Model *arg0, coord3d *arg1, coord3d *arg2, ModelNode **nodeptr)
 {
     *nodeptr = NULL;
     return modelFindNextProjectileHitCandidate(arg0, arg1, arg2, nodeptr);
