@@ -2484,6 +2484,27 @@ void subcalcmatrices(ModelRenderData *arg0, struct Model *arg1)
 
     if (arg1->anim != NULL)
     {
+#ifdef PORT
+        /*
+         * R36S/LP64: secondary animation blending is only valid while anim2
+         * exists. LEFTOVERDEBUG's historical return_null() is a no-op in this
+         * decomp, so a stale non-zero unk84 with anim2 == NULL used to fall
+         * through into process_02_position()/process_04_rotation and decode a
+         * NULL secondary bitstream. Normalize that impossible state here once
+         * for all node processors and render the primary animation normally.
+         */
+        if (arg1->unk84 != 0.0f && arg1->anim2 == NULL) {
+            static int warned_no_anim2 = 0;
+            if (warned_no_anim2 < 8) {
+                osSyncPrintf("R36S MODEL: stale anim2 blend cleared model=%p weight=%f\n",
+                             (void *)arg1, arg1->unk84);
+                warned_no_anim2++;
+            }
+            arg1->unk84 = 0.0f;
+            arg1->unk64 = 0;
+            arg1->unk68 = 0;
+        }
+#endif
 #if defined(LEFTOVERDEBUG)
         if ((arg1->attachedto != NULL) && (arg1->attachedto_objinst == NULL))
         {
