@@ -36,6 +36,10 @@
 #include "initmenus.h"
 #include "cheat.h"
 #include "bg.h"
+#ifdef PORT
+extern s32 ptr_bg_data;
+extern s32 gptr_stan;
+#endif
 #include "objective.h"
 #include "mpmenu.h"
 #include "vtxstore.h"
