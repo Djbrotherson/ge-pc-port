@@ -1,0 +1,71 @@
+name: ARM64 Port Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - r36s-first-frame-noaudio
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'port/**'
+      - 'tools/arm64_port_audit.py'
+      - '.github/workflows/arm64-port-audit.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'port/**'
+      - 'tools/arm64_port_audit.py'
+      - '.github/workflows/arm64-port-audit.yml'
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run static ARM64 port scan
+        run: |
+          python3 tools/arm64_port_audit.py             --json arm64-port-audit.json             --markdown arm64-port-audit.md
+          cat arm64-port-audit.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             cmake             libsdl2-dev             libgles2-mesa-dev             libegl1-mesa-dev             zlib1g-dev
+
+      - name: Configure ARM64 GLES build with pointer warnings
+        run: |
+          cmake -S . -B build-audit             -DROMID=ntsc-final             -DGL_LIBRARY=GLESv2             -DCMAKE_C_FLAGS="-DUSE_GLES=1 -Wpointer-to-int-cast -Wint-to-pointer-cast -Wconversion"             -DCMAKE_CXX_FLAGS="-DUSE_GLES=1 -Wconversion"             2>&1 | tee configure-audit.log
+
+      - name: Build and capture warnings
+        continue-on-error: true
+        run: |
+          cmake --build build-audit -j$(nproc) 2>&1 | tee build-audit.log
+          grep -nE "warning:|error:" build-audit.log > compiler-findings.txt || true
+          {
+            echo
+            echo "## Compiler warning sample"
+            echo
+            if [ -s compiler-findings.txt ]; then
+              head -200 compiler-findings.txt
+            else
+              echo "No matching compiler warnings/errors captured."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload audit reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: arm64-port-audit
+          path: |
+            arm64-port-audit.json
+            arm64-port-audit.md
+            configure-audit.log
+            build-audit.log
+            compiler-findings.txt
+          if-no-files-found: error
