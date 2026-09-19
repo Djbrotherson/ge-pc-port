@@ -44,7 +44,10 @@
 
 #include "platform.h"
 #include "system.h"
-#include "crash.h"   /* D38: crashDumpThreads() */
+#include "crash.h"
+#if defined(__aarch64__) && defined(USE_GLES)
+extern s8 g_sndBootswitchSound;
+#endif   /* D38: crashDumpThreads() */
 #include "video.h"
 #include "audio.h"
 #include "input.h"
@@ -939,6 +942,26 @@ static void piServiceDma(s32 direction, u32 srcPA, void *dstVA, u32 size)
     if (size == 0)
         return;
     if (direction == OS_READ) {
+#if defined(__aarch64__) && defined(USE_GLES)
+        /* R36S bring-up runs with game audio disabled. If the dormant audio
+         * DMA path hands us a clearly truncated host pointer (low 32-bit
+         * address outside the deliberately mapped N64 DRAM windows), drop
+         * that transfer instead of letting memcpy kill the renderer test.
+         * Real game DRAM targets at 0x70000000/0x80000000 remain untouched. */
+        if (g_sndBootswitchSound &&
+            (uintptr_t)dstVA < 0x100000000ULL &&
+            !(((uintptr_t)dstVA >= 0x70000000ULL && (uintptr_t)dstVA < 0x70800000ULL) ||
+              ((uintptr_t)dstVA >= 0x80000000ULL && (uintptr_t)dstVA < 0x80800000ULL))) {
+            static int warned = 0;
+            if (warned < 8) {
+                ++warned;
+                sysLogPrintf(LOG_WARNING,
+                    "R36S noaudio: dropped truncated DMA target dst=%p src=0x%08X size=0x%X",
+                    dstVA, srcPA, size);
+            }
+            return;
+        }
+#endif
         d60logSidecarRead(srcPA, dstVA, size); /* TEMP D60 */
         if (!romdataCartAddrValid(srcPA, size)) {
             sysLogPrintf(LOG_WARNING,
