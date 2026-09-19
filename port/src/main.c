@@ -113,21 +113,21 @@ static void telemetryReadMemory(long *rssKb, long *vmKb, long *threads,
 
     f = fopen("/proc/self/status", "r");
     if (f) {
-        while (fscanf(f, "%63s %ld %15s", key, &val, unit) >= 2) {
-            if (!strcmp(key, "VmRSS:")) *rssKb = val;
-            else if (!strcmp(key, "VmSize:")) *vmKb = val;
-            else if (!strcmp(key, "Threads:")) *threads = val;
-            int c; while ((c = fgetc(f)) != '\n' && c != EOF) {}
+        char line[256];
+        while (fgets(line, sizeof(line), f)) {
+            if (sscanf(line, "VmRSS: %ld kB", &val) == 1) *rssKb = val;
+            else if (sscanf(line, "VmSize: %ld kB", &val) == 1) *vmKb = val;
+            else if (sscanf(line, "Threads: %ld", &val) == 1) *threads = val;
         }
         fclose(f);
     }
 
     f = fopen("/proc/meminfo", "r");
     if (f) {
-        while (fscanf(f, "%63s %ld %15s", key, &val, unit) >= 2) {
-            if (!strcmp(key, "MemTotal:")) *memTotalKb = val;
-            else if (!strcmp(key, "MemAvailable:")) *memAvailKb = val;
-            int c; while ((c = fgetc(f)) != '\n' && c != EOF) {}
+        char line[256];
+        while (fgets(line, sizeof(line), f)) {
+            if (sscanf(line, "MemTotal: %ld kB", &val) == 1) *memTotalKb = val;
+            else if (sscanf(line, "MemAvailable: %ld kB", &val) == 1) *memAvailKb = val;
         }
         fclose(f);
     }
