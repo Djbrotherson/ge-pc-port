@@ -195,8 +195,8 @@ s32 initResolveAnimTable(struct StruckAnim *entries)
 }
 
 
-#define ANIM_PTR(anim) \
-    ((ModelAnimation *)((s32)&anim + ((s32)ptr_animation_table)))
+#define ANIM_PTR(offset) \
+    ((ModelAnimation *)((u8 *)ptr_animation_table + (u32)(offset)))
 
 #define ANIM_FRAC(anim) \
     ((((f32)sub_GAME_7F000290(ANIM_PTR(anim), 0, ANIM_PTR(anim)->unk04 - 1)) * 0.10000001f) / \
@@ -244,15 +244,15 @@ void initWeaponAnimGroups(void)
     initResolveAnimGroupTable(D_80030078);
     initResolveAnimGroupTable(D_80030660);
 
-    D_80030984 = ANIM_FRAC(ANIM_DATA_walking);
-    D_80030988 = ANIM_FRAC(ANIM_DATA_running);
-    D_8003098C = ANIM_FRAC(ANIM_DATA_sprinting);
-    D_80030990 = ANIM_FRAC(ANIM_DATA_walking_unarmed);
-    D_80030994 = ANIM_FRAC(ANIM_DATA_running_one_handed_weapon);
-    D_80030998 = ANIM_FRAC(ANIM_DATA_sprinting_one_handed_weapon);
-    D_8003099C = ANIM_FRAC(ANIM_DATA_walking_female);
-    D_800309A0 = ANIM_FRAC_MUL_FIRST(ANIM_DATA_running_female);
-    D_800309A4 = ANIM_FRAC(ANIM_DATA_sprinting_one_handed_weapon);
+    D_80030984 = ANIM_FRAC(PTR_ANIM_walking);
+    D_80030988 = ANIM_FRAC(PTR_ANIM_running);
+    D_8003098C = ANIM_FRAC(PTR_ANIM_sprinting);
+    D_80030990 = ANIM_FRAC(PTR_ANIM_walking_unarmed);
+    D_80030994 = ANIM_FRAC(PTR_ANIM_running_one_handed_weapon);
+    D_80030998 = ANIM_FRAC(PTR_ANIM_sprinting_one_handed_weapon);
+    D_8003099C = ANIM_FRAC(PTR_ANIM_walking_female);
+    D_800309A0 = ANIM_FRAC_MUL_FIRST(PTR_ANIM_running_female);
+    D_800309A4 = ANIM_FRAC(PTR_ANIM_sprinting_one_handed_weapon);
 }
 
 #undef ANIM_PTR
