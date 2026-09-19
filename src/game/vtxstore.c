@@ -8,7 +8,11 @@
 // unsure if these structs are defined as something else, elsewhere
 struct unk_09B7A0_struct_parent {
     Vertex* unk00;
+#ifdef PORT
+    uintptr_t unk04; /* N64 stored this pointer-like identity in 32 bits. */
+#else
     s32 unk04;
+#endif
     s32 unk08;
     s16 unk0C;
     s16 unk0E;
@@ -101,11 +105,34 @@ void sub_GAME_7F09B820(void)
         }
     }
 
+#ifdef PORT
+    /*
+     * N64 descriptors are 0x14 bytes because pointers are 32-bit.  On LP64
+     * hosts this struct grows; allocating count*0x14 and then indexing it with
+     * the native sizeof(struct) walks beyond the allocation during stage reset.
+     */
+    dword_CODE_bss_8007A0E8 = mempAllocBytesInBank(
+        dword_CODE_bss_8007A0D4 * sizeof(*dword_CODE_bss_8007A0E8), MEMPOOL_STAGE);
+    dword_CODE_bss_8007A0E0 = mempAllocBytesInBank(
+        dword_CODE_bss_8007A0D0 * sizeof(*dword_CODE_bss_8007A0E0), MEMPOOL_STAGE);
+    dword_CODE_bss_8007A0EC = mempAllocBytesInBank(
+        dword_CODE_bss_8007A0DC * sizeof(*dword_CODE_bss_8007A0EC), MEMPOOL_STAGE);
+    dword_CODE_bss_8007A0E4 = mempAllocBytesInBank(
+        dword_CODE_bss_8007A0D8 * sizeof(*dword_CODE_bss_8007A0E4), MEMPOOL_STAGE);
+
+    osSyncPrintf("R36S VTXSTORE reset desc=%zu vertex=%zu counts=%d/%d %d/%d ptrs=%p/%p/%p/%p\n",
+        sizeof(*dword_CODE_bss_8007A0E8), sizeof(*dword_CODE_bss_8007A0E0),
+        dword_CODE_bss_8007A0D0, dword_CODE_bss_8007A0D4,
+        dword_CODE_bss_8007A0D8, dword_CODE_bss_8007A0DC,
+        (void *)dword_CODE_bss_8007A0E0, (void *)dword_CODE_bss_8007A0E8,
+        (void *)dword_CODE_bss_8007A0E4, (void *)dword_CODE_bss_8007A0EC);
+#else
     tmp = 0x14;
     dword_CODE_bss_8007A0E8 = mempAllocBytesInBank(dword_CODE_bss_8007A0D4 * tmp, MEMPOOL_STAGE);
     dword_CODE_bss_8007A0E0 = mempAllocBytesInBank(dword_CODE_bss_8007A0D0 * 0x10, MEMPOOL_STAGE);
     dword_CODE_bss_8007A0EC = mempAllocBytesInBank(dword_CODE_bss_8007A0DC * tmp, MEMPOOL_STAGE);
     dword_CODE_bss_8007A0E4 = mempAllocBytesInBank(dword_CODE_bss_8007A0D8 * 0x10, MEMPOOL_STAGE);
+#endif
 
     word_CODE_bss_8007A0F0 = (s16) dword_CODE_bss_8007A0D0;
     dword_CODE_bss_8007A0E8->unk00 = dword_CODE_bss_8007A0E0;
@@ -141,11 +168,10 @@ void sub_GAME_7F09B820(void)
 *  Search all props and their model data for references to the `find` address
 *  and replace it with the `replacement` address.
 */
-void sub_GAME_7F09BAC4(s32 find, s32 replacement) {
+void sub_GAME_7F09BAC4(Vertex *find, Vertex *replacement) {
     PropRecord* var_s1;
     ChrRecord* var_v0;
-    Model* temp_a0;
-    s32* temp_v0_2;
+    ModelRwData_DisplayList_CollisionRecord* temp_v0_2;
     ModelNode* var_a1;
     ModelFileHeader* var_v1;
     s32 val;
@@ -159,9 +185,10 @@ void sub_GAME_7F09BAC4(s32 find, s32 replacement) {
             while (var_a1 != NULL) {
                 val = var_a1->Opcode & 0xFF;
                 if (val == 0x18) {
-                    temp_v0_2 = modelGetNodeRwData((Model*)var_v0->chrflags, var_a1);
-                    if (find == *temp_v0_2) {
-                        *temp_v0_2 = replacement;
+                    temp_v0_2 = (ModelRwData_DisplayList_CollisionRecord *)
+                        modelGetNodeRwData((Model*)var_v0->chrflags, var_a1);
+                    if (find == temp_v0_2->Vertices) {
+                        temp_v0_2->Vertices = replacement;
                     }
                     break;
                 } else {
@@ -214,7 +241,7 @@ void sub_GAME_7F09BBBC(void)
                         (dword_CODE_bss_8007A0EC[var_fp].unk04 == dword_CODE_bss_8007A0EC[var_s2].unk04) &&
                         (dword_CODE_bss_8007A0EC[var_fp].unk08 == dword_CODE_bss_8007A0EC[var_s2].unk08))
                     {
-                        sub_GAME_7F09BAC4((s32)dword_CODE_bss_8007A0EC[var_s2].unk00, (s32)dword_CODE_bss_8007A0EC[var_fp].unk00);
+                        sub_GAME_7F09BAC4(dword_CODE_bss_8007A0EC[var_s2].unk00, dword_CODE_bss_8007A0EC[var_fp].unk00);
                         var_s6 = 1;
 
                         dword_CODE_bss_8007A0EC[var_fp].unk0E += dword_CODE_bss_8007A0EC[var_s2].unk0E;
@@ -266,7 +293,7 @@ void sub_GAME_7F09BBBC(void)
 * PD name: vtxstore_allocate
 * Description: Allocation for batches within the storage space
 */
-s32 vtxstore_allocate(s32 arg0, s32 type, s32 arg2, s32 arg3) 
+Vertex *vtxstore_allocate(s32 arg0, s32 type, uintptr_t arg2, s32 arg3) 
 {
     s16* var_t3;
     s16 temp_t2;
@@ -282,15 +309,23 @@ s32 vtxstore_allocate(s32 arg0, s32 type, s32 arg2, s32 arg3)
         case 0xCCCC:
             var_t0 = dword_CODE_bss_8007A0E8;
             var_t3 = &word_CODE_bss_8007A0F0;
+#ifdef PORT
+            var_a2 = dword_CODE_bss_8007A0D4;
+#else
             var_a2 = ((s16 *)&dword_CODE_bss_8007A0D4)[1];
+#endif
             break;
         case 0xB0B:
             var_t0 = dword_CODE_bss_8007A0EC;
             var_t3 = &word_CODE_bss_8007A0F2;
+#ifdef PORT
+            var_a2 = dword_CODE_bss_8007A0DC;
+#else
             var_a2 = ((s16 *)&dword_CODE_bss_8007A0DC)[1];
+#endif
             break;
         default:
-            return 0;
+            return NULL;
     }
 
     var_v1_2 = 0;
@@ -344,9 +379,9 @@ s32 vtxstore_allocate(s32 arg0, s32 type, s32 arg2, s32 arg3)
         } else {
             *var_t3 -= temp_t2;
         }
-        return (s32)var_t0[var_a1].unk00;
+        return var_t0[var_a1].unk00;
     }
-    return 0;
+    return NULL;
 }
 
 
