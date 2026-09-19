@@ -1029,11 +1029,11 @@ void load_bg_file(LEVEL_INDEX levelid)
  
                 if (primaryindex <= secondaryindex)
                 {
-                    g_BgRoomInfo[i].csize_primary_DL_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[primaryindex].pPriMappingBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pPriMappingBin);
+                    g_BgRoomInfo[i].csize_primary_DL_binary = (s32)(ptr_bgdata_room_fileposition_list[primaryindex].pPriMappingBin - ptr_bgdata_room_fileposition_list[i].pPriMappingBin);
                 }
                 else
                 {
-                    g_BgRoomInfo[i].csize_primary_DL_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[secondaryindex].pSecMappingBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pPriMappingBin);
+                    g_BgRoomInfo[i].csize_primary_DL_binary = (s32)(ptr_bgdata_room_fileposition_list[secondaryindex].pSecMappingBin - ptr_bgdata_room_fileposition_list[i].pPriMappingBin);
                 }
             }
             else
@@ -1050,11 +1050,11 @@ void load_bg_file(LEVEL_INDEX levelid)
  
                 if (primaryindex <= secondaryindex)
                 {
-                    g_BgRoomInfo[i].csize_secondary_DL_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[primaryindex].pPriMappingBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pSecMappingBin);
+                    g_BgRoomInfo[i].csize_secondary_DL_binary = (s32)(ptr_bgdata_room_fileposition_list[primaryindex].pPriMappingBin - ptr_bgdata_room_fileposition_list[i].pSecMappingBin);
                 }
                 else
                 {
-                    g_BgRoomInfo[i].csize_secondary_DL_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[secondaryindex].pSecMappingBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pSecMappingBin);
+                    g_BgRoomInfo[i].csize_secondary_DL_binary = (s32)(ptr_bgdata_room_fileposition_list[secondaryindex].pSecMappingBin - ptr_bgdata_room_fileposition_list[i].pSecMappingBin);
                 }
             }
             else
@@ -1066,7 +1066,7 @@ void load_bg_file(LEVEL_INDEX levelid)
             {
                 s32 pointindex;
                 pointindex = getPointTableBinCount(i + 1);
-                g_BgRoomInfo[i].csize_point_index_binary = (s32)((u8 *)ptr_bgdata_room_fileposition_list[pointindex].pPointTableBin - (u8 *)ptr_bgdata_room_fileposition_list[i].pPointTableBin);
+                g_BgRoomInfo[i].csize_point_index_binary = (s32)(ptr_bgdata_room_fileposition_list[pointindex].pPointTableBin - ptr_bgdata_room_fileposition_list[i].pPointTableBin);
             }
             else
             {
@@ -1122,9 +1122,14 @@ void load_bg_file(LEVEL_INDEX levelid)
 #endif
         for (i = 0; i < g_MaxNumRooms; i++)
         {
+#ifdef PORT
+            if (i < 8 || (i & 15) == 0)
+                sysLogPrintf(LOG_NOTE, "R36S BG room-finalize dispatch i=%d", i);
+#endif
             sub_GAME_7F0B95D8(i);
 #ifdef PORT
-            if ((i & 31) == 31) sysLogPrintf(LOG_NOTE, "R36S BG room-finalize progress i=%d", i);
+            if (i < 8 || (i & 15) == 0)
+                sysLogPrintf(LOG_NOTE, "R36S BG room-finalize returned i=%d", i);
 #endif
         }
 #ifdef PORT
@@ -5371,8 +5376,29 @@ void sub_GAME_7F0B95D8(s32 roomID)
     s32 k;
     f32 value;
 
-    for (i = 0; g_BgPortals[i].offset_portal != NULL; i++)
+#ifdef PORT
+    if (roomID < 0 || roomID >= g_MaxNumRooms)
     {
+        sysLogPrintf(LOG_ERROR, "R36S BG finalize invalid room=%d max=%d", roomID, g_MaxNumRooms);
+        return;
+    }
+
+    if (roomID < 8 || (roomID & 15) == 0)
+    {
+        sysLogPrintf(LOG_NOTE, "R36S BG finalize room=%d enter", roomID);
+    }
+#endif
+
+    for (i = 0; i < PORTMAX && g_BgPortals[i].offset_portal != NULL; i++)
+    {
+#ifdef PORT
+        if ((roomID < 2) && ((i & 31) == 0))
+        {
+            sysLogPrintf(LOG_NOTE, "R36S BG finalize room=%d portal=%d ptr=%p points=%u",
+                         roomID, i, (void *)g_BgPortals[i].offset_portal,
+                         (unsigned)g_BgPortals[i].offset_portal->numPoints);
+        }
+#endif
         if ((roomID == g_BgPortals[i].connectedRoom1) || (roomID == g_BgPortals[i].connectedRoom2))
         {
             for (j = 0; j < g_BgPortals[i].offset_portal->numPoints; j++)
@@ -5396,6 +5422,19 @@ void sub_GAME_7F0B95D8(s32 roomID)
             }
         }
     }
+
+#ifdef PORT
+    if (i == PORTMAX)
+    {
+        sysLogPrintf(LOG_ERROR, "R36S BG finalize portal scan hit PORTMAX room=%d", roomID);
+    }
+
+    if (roomID < 8 || (roomID & 15) == 0)
+    {
+        sysLogPrintf(LOG_NOTE, "R36S BG finalize room=%d done portals=%d updates=%d",
+                     roomID, i, numupdated);
+    }
+#endif
 
     if (numupdated);
 }
