@@ -3761,7 +3761,14 @@ typedef union
     typedef struct TankRecord
     {
         inherits ObjectRecord;
+#ifdef PORT
+        /* Inline collision-data edge count. The runtime overlays
+         * collision_data starting here; this must remain a 4-byte N64 word,
+         * not widen to an LP64 pointer and shift the rest of TankRecord. */
+        s32 collision /*0x80*/;
+#else
         collision_data *collision /*0x80*/;
+#endif
         rect4f  rect;       /*0x84*/
         //s32 unk88;
         //s32 unk8C;

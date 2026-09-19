@@ -1186,7 +1186,9 @@ void bondviewCalcIntroSwirlCamera(s32 index, f32 time, coord3d *pos, coord3d *lo
 
         base = swirl;
         scale = base->scale.fval;
+#ifndef PORT
         base = (void *)(index << 5);
+#endif
 
         coord3dCubicSplineInterp((coord3d *) &pointbuf[0], (coord3d *) &pointbuf[3], (coord3d *) &pointbuf[6], (coord3d *) &pointbuf[9], frac, scale, pos);
 
@@ -2631,7 +2633,13 @@ void bondviewCalcUpdatePlayerCollision(struct coord3d *offset, s32 allow_scoot)
             temp_f2 = (farr5[4] - farr5[3]) * obj->model->scale;
 
             if (g_PlayerIsInTank == 1
-                || (chrpropTestPointInPolygon(&g_CurrentPlayer->field_488.collision_position, &tank_objrecord->rect, (s32)tank_objrecord->collision) != 0))
+                || (chrpropTestPointInPolygon(&g_CurrentPlayer->field_488.collision_position, &tank_objrecord->rect,
+#ifdef PORT
+                    tank_objrecord->collision
+#else
+                    (s32)tank_objrecord->collision
+#endif
+                ) != 0))
             {
                 temp_f2 += (farr6[4] - farr6[3]) * obj->model->scale;
                 g_BondCanEnterTank = 1;
@@ -8473,7 +8481,11 @@ void bondviewSelectCuff(Model *model, ModelFileHeader *header, s32 switchindex)
 
     index = switchindex + 1;
 
+#ifdef PORT
+    if (base[1] != NULL)
+#else
     if (((void *) (index * 0)) != base[1])
+#endif
     {
         node = switches[index];
         rwdata = (s32 *) modelGetNodeRwData(model, node);
@@ -8588,7 +8600,11 @@ Gfx *bondviewRenderWatch(Gfx *gdl)
     guPerspective(perspmtx, &perspNorm, g_CurrentPlayer->zoominfovy, 1.4545455f, 10.0f, 300.0f, 1.0f);
 #endif
  
+    #ifdef PORT
+    gSPMatrix(gdl++, OS_PHYSICAL_TO_K0((uintptr_t)perspmtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+#else
     gSPMatrix(gdl++, OS_PHYSICAL_TO_K0((u32) perspmtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+#endif
     gSPPerspNormalize(gdl++, perspNorm);
 
     // Keep this nested block for matching.
