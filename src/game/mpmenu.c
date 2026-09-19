@@ -40,6 +40,14 @@ s32 alt_gameover_msg_timer;
 s32 g_pausedFlag;
 s32 who_paused;
 
+#ifdef PORT
+/* Multiplayer award strings are host pointers returned by langGet(). The N64
+ * player struct stores them in 32-bit fields, which cannot safely carry an
+ * arbitrary LP64 address. Keep the original struct layout intact and hold the
+ * live host pointers in a PORT-only per-player sidecar. */
+static u8 *s_mpAwardText[MAX_PLAYER_COUNT][2];
+#endif
+
 // data
 u16 g_AwardNames[] = {
     getStringID(LMPMENU, MPMENU_STR_00_LEMMINGAWARD),getStringID(LMPMENU, MPMENU_STR_01_WHERESTHEAMMO),getStringID(LMPMENU, MPMENU_STR_02_WHERESTHEARMOR),getStringID(LMPMENU, MPMENU_STR_03_AC10AWARD),getStringID(LMPMENU, MPMENU_STR_04_MARKSMANSHIPAWARD),getStringID(LMPMENU, MPMENU_STR_05_MOSTPROFESSIONAL),
@@ -383,8 +391,13 @@ void mpCalculateAwards(bool gameoverdelay)
 
         g_CurrentPlayer->mpmenuon = TRUE;
         g_CurrentPlayer->mpmenumode = MENU_SCORES;
+#ifdef PORT
+        s_mpAwardText[i][0] = NULL;
+        s_mpAwardText[i][1] = NULL;
+#else
         g_CurrentPlayer->ptr_text_first_mp_award = 0;
         g_CurrentPlayer->ptr_text_second_mp_award = 0;
+#endif
 
         bondinvGetWeaponOfChoice(&weapon_choice_1, &weapon_choice_2);
         store_favorite_weapon_current_player((u32) weapon_choice_1, (u32) weapon_choice_2);
@@ -539,7 +552,11 @@ void mpCalculateAwards(bool gameoverdelay)
             if (metrics[i].awards & (1 << awardindex))
             {
                 metrics[i].awards &= ~(1 << awardindex);
+#ifdef PORT
+                s_mpAwardText[i][0] = langGet(g_AwardNames[awardindex]);
+#else
                 g_playerPointers[i]->ptr_text_first_mp_award = langGet(g_AwardNames[awardindex]);
+#endif
                 numdone = 1;
             }
 
@@ -558,7 +575,11 @@ void mpCalculateAwards(bool gameoverdelay)
             if (metrics[i].awards & (1 << awardindex))
             {
                 metrics[i].awards &= ~(1 << awardindex);
+#ifdef PORT
+                s_mpAwardText[i][1] = langGet(g_AwardNames[awardindex]);
+#else
                 g_playerPointers[i]->ptr_text_second_mp_award = langGet(g_AwardNames[awardindex]);
+#endif
                 numdone = 2;
             }
 
@@ -1403,11 +1424,19 @@ Gfx *mp_watch_menu_display(Gfx *gdl)
                 gdl = textRender(gdl, &x, &y, rankbuffer, ptrFontBankGothicChars, ptrFontBankGothic, 0x00ff00b0, viewleft, h1, 0, 0);
             }
  
+#ifdef PORT
+            {
+                char *ptext = (char *)langGet(getStringID(LMPMENU, MPMENU_STR_1C_P));
+                char *killstext = (char *)langGet(getStringID(LMPMENU, MPMENU_STR_1D_KILLS));
+                sprintf(rankbuffer, ascii_pnum_KILLS, ptext, curplayernum + 1, killstext); /* -> "P<n> KILLS" */
+            }
+#else
             q = (s32) langGet(getStringID(LMPMENU, MPMENU_STR_1C_P)); /* P */
  
             // Must remain a comma expression for matching
             h2 = (s32) langGet(getStringID(LMPMENU, MPMENU_STR_1D_KILLS)), /* KILLS */
                 sprintf(rankbuffer, ascii_pnum_KILLS, (char *) q, curplayernum + 1, (char *) h2); /* -> "P<n> KILLS" */
+#endif
  
             textMeasure(&textheight, &textwidth, rankbuffer, ptrFontBankGothicChars, ptrFontBankGothic, 0);
             x = ((viGetViewLeft() + two_player_x_offset) - (textwidth >> 1)) + 80;
@@ -1473,11 +1502,19 @@ Gfx *mp_watch_menu_display(Gfx *gdl)
                 gdl = textRender(gdl, &x, &y, rankbuffer, ptrFontBankGothicChars, ptrFontBankGothic, 0x00ff00b0, viewleft, h1, 0, 0);
             }
  
+#ifdef PORT
+            {
+                char *ptext = (char *)langGet(getStringID(LMPMENU, MPMENU_STR_1C_P));
+                char *lossestext = (char *)langGet(getStringID(LMPMENU, MPMENU_STR_1E_LOSSES));
+                sprintf(rankbuffer, ascii_pnum_LOSSES, ptext, curplayernum + 1, lossestext); /* -> "P<n> LOSSES" */
+            }
+#else
             q = (s32) langGet(getStringID(LMPMENU, MPMENU_STR_1C_P)); /* P */
  
             // Must remain a comma expression for matching.
             h2 = (s32) langGet(getStringID(LMPMENU, MPMENU_STR_1E_LOSSES)), /* LOSSES */
                 sprintf(rankbuffer, ascii_pnum_LOSSES, (char *) q, curplayernum + 1, (char *) h2); /* -> "P<n> LOSSES" */
+#endif
  
             textMeasure(&textheight, &textwidth, rankbuffer, ptrFontBankGothicChars, ptrFontBankGothic, 0);
             x = ((viGetViewLeft() + two_player_x_offset) - (textwidth >> 1)) + 80;
@@ -1613,6 +1650,29 @@ Gfx *mp_watch_menu_display(Gfx *gdl)
             h1 = viGetY();
             gdl = textRender(gdl, &x, &y, text, ptrFontBankGothicChars, ptrFontBankGothic, 0x00ff00b0, viewleft, h1, 0, 0);
  
+#ifdef PORT
+            if (s_mpAwardText[curplayernum][0])
+            {
+                text = (char *)s_mpAwardText[curplayernum][0];
+                textMeasure(&fav_textheight, &fav_textwidth, text, ptrFontBankGothicChars, ptrFontBankGothic, 0);
+                x = ((viGetViewLeft() + fav_x_offset) - (fav_textwidth >> 1)) + 80;
+                y = (viGetViewTop() - (fav_textheight >> 1)) + (75 + MPMENU_YOFF);
+                viewleft = viGetX();
+                h1 = viGetY();
+                gdl = textRender(gdl, &x, &y, text, ptrFontBankGothicChars, ptrFontBankGothic, 0x00ff00b0, viewleft, h1, 0, 0);
+            }
+
+            if (s_mpAwardText[curplayernum][1])
+            {
+                text = (char *)s_mpAwardText[curplayernum][1];
+                textMeasure(&fav_textheight, &fav_textwidth, text, ptrFontBankGothicChars, ptrFontBankGothic, 0);
+                x = ((viGetViewLeft() + fav_x_offset) - (fav_textwidth >> 1)) + 80;
+                y = (viGetViewTop() - (fav_textheight >> 1)) + (88 + MPMENU_YOFF);
+                viewleft = viGetX();
+                h1 = viGetY();
+                gdl = textRender(gdl, &x, &y, text, ptrFontBankGothicChars, ptrFontBankGothic, 0x00ff00b0, viewleft, h1, 0, 0);
+            }
+#else
             if (g_CurrentPlayer->ptr_text_first_mp_award)
             {
                 text = (char *) g_CurrentPlayer->ptr_text_first_mp_award;
@@ -1634,6 +1694,7 @@ Gfx *mp_watch_menu_display(Gfx *gdl)
                 h1 = viGetY();
                 gdl = textRender(gdl, &x, &y, text, ptrFontBankGothicChars, ptrFontBankGothic, 0x00ff00b0, viewleft, h1, 0, 0);
             }
+#endif
         }
 
         if (g_CurrentPlayer->mpmenumode == MENU_EXIT_CONFIRM)
