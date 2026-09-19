@@ -31,7 +31,7 @@
 #include "audio.h"
 #include "input.h"
 #include "mixer.h"
-#include "crash.h"
+#include "../include/crash.h"
 #include "thread_config.h"
 
 /* Defined in the game (src/init.c). The port calls into the real game entry. */
