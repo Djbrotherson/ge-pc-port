@@ -208,19 +208,26 @@ jobs:
             -DROMID=ntsc-final \
             -DGL_LIBRARY=GLESv2 \
             -DCMAKE_C_FLAGS="-DUSE_GLES=1" \
-            -DCMAKE_CXX_FLAGS="-DUSE_GLES=1"
+            -DCMAKE_CXX_FLAGS="-DUSE_GLES=1" \
+            -DCMAKE_EXE_LINKER_FLAGS="-Wl,-Map=ge007.link.map -Wl,--cref"
 
       - name: Build ge007.aarch64
         run: cmake --build build-pc -j$(nproc)
 
-      - name: Verify binary
+      - name: Verify binary and emit symbols
         run: |
           file build-pc/ge007.aarch64
           ls -lh build-pc/ge007.aarch64
+          nm -n build-pc/ge007.aarch64 > build-pc/ge007.symbols.txt
+          objdump -d build-pc/ge007.aarch64 > build-pc/ge007.disasm.txt
 
       - name: Upload ge007.aarch64
         uses: actions/upload-artifact@v4
         with:
           name: ge007-aarch64-native-gles-noaudio
-          path: build-pc/ge007.aarch64
+          path: |
+            build-pc/ge007.aarch64
+            build-pc/ge007.link.map
+            build-pc/ge007.symbols.txt
+            build-pc/ge007.disasm.txt
           if-no-files-found: error
