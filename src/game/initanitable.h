@@ -40,4 +40,18 @@ extern s32 animation_table_ptrs1[];
 */
 extern s32 animation_table_ptrs2[];
 
+#ifdef PORT
+/*
+ * animation_table_ptrs1/2 keep the original N64 4-byte storage. After
+ * expand_ani_table_entries() each non-sentinel element is the low 32 bits of
+ * a valid host address in the port's 32-bit-compatible mapping. The arrays
+ * remain s32 for source/layout parity, so an ordinary integer->pointer cast
+ * would sign-extend values >= 0x80000000 on AArch64. Always zero-extend the
+ * token at a native-pointer boundary.
+ */
+#define ANIM_TABLE_EXPANDED_PTR(token) ((void *)(uintptr_t)(u32)(token))
+#else
+#define ANIM_TABLE_EXPANDED_PTR(token) ((void *)(token))
+#endif
+
 #endif
