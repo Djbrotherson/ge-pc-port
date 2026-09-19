@@ -584,7 +584,7 @@ static void ramromFixupEndian(ramromfilestructure *f)
 
 void replay_recorded_ramrom_at_address(ramromfilestructure *demofile)
 {
-    address_demo_loaded = demofile;
+    address_demo_loaded = (u8 *)demofile;
     ptr_active_demofile = romCopyAligned(&ramrom_data_target, address_demo_loaded, sizeof(struct ramromfilestructure));
 #ifdef PORT
     ramromFixupEndian(ptr_active_demofile);
@@ -598,7 +598,7 @@ void replay_recorded_ramrom_at_address(ramromfilestructure *demofile)
 
 void replay_recorded_ramrom_from_indy(void)
 {
-    replay_recorded_ramrom_at_address(INDY_RAMROM_DEMO_ADDRESS);
+    replay_recorded_ramrom_at_address((ramromfilestructure *)INDY_RAMROM_DEMO_POINTER);
 }
 
 void ramromFadeToTitle(void)
@@ -618,7 +618,7 @@ void stop_demo_playback(void)
     }
     if (ramrom_demo_related_3 != 0)
     {
-        copy_recorded_ramrom_registers_to_proper_place_ingame(ramrom_data_target + 0x110);
+        copy_recorded_ramrom_registers_to_proper_place_ingame((ramromfilestructure *)(ramrom_data_target + 0x110));
         joySetPlaybackFunc(0, -1);
         joySetContDataIndex(0);
         ramrom_demo_related_3 = 0;
