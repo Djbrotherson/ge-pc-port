@@ -302,8 +302,16 @@ Gfx *glassRenderShards(Gfx *gdl)
     #undef WINDOW_PIECE
 
     gSPClearGeometryMode(gdl++, G_LIGHTING | G_TEXTURE_GEN);
+#ifdef PORT
+    gSPMatrix(gdl++, osVirtualToPhysical(currentPlayerGetProjectionMatrix()), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+#else
     gSPMatrix(gdl++, (u32)currentPlayerGetProjectionMatrix(), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+#endif
+#ifdef PORT
+    gSPMatrix(gdl++, osVirtualToPhysical(currentPlayerGetMatrix10C8()), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+#else
     gSPMatrix(gdl++, (u32)currentPlayerGetMatrix10C8(), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
+#endif
 
     return gdl;
 }
