@@ -44,6 +44,13 @@
 #include "game/frametiming.h"
 #include "PR/R4300.h"
 
+#ifdef PORT
+volatile const char *g_R36SMainBreadcrumb = "boss:init";
+#define R36S_BREADCRUMB(x) do { g_R36SMainBreadcrumb = (x); } while (0)
+#else
+#define R36S_BREADCRUMB(x) do { } while (0)
+#endif
+
 /**
  * @file boss.c
  * @brief Main game loop and initialization functions.
