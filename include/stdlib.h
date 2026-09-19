@@ -16,6 +16,15 @@ typedef struct ldiv_t
 lldiv_t lldiv(long long, long long);
 ldiv_t  ldiv(long, long);
 
+#ifdef PORT
+/* The decomp's N64 stdlib header shadows the host libc header on PORT builds.
+ * Expose the host functions used by the platform layer with their real ABI. */
+void free(void *);
+void abort(void);
+void exit(int);
+unsigned long long strtoull(const char *, char **, int);
+#endif
+
 #endif
 
 
