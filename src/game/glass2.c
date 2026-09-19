@@ -439,7 +439,11 @@ struct WatchVertex *setup_watch_rectangles(struct WatchVertex *vtx, s32 startx, 
 }
 
 
+#ifdef PORT
+Gfx *sub_GAME_7F0A3B40(Gfx *gdl, uintptr_t arg1)
+#else
 Gfx *sub_GAME_7F0A3B40(Gfx *gdl, s32 *arg1)
+#endif
 {
     gSPVertex(gdl++, arg1, 4, 0);
 

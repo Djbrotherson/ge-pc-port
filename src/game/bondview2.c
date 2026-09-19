@@ -3864,11 +3864,11 @@ void trigger_solo_watch_menu(s32 arg0)
             bondviewInitPauseTransition();
             bondviewTriggerWatchZoomDefault();
 
-            hudMakeDamageSegments(&g_CurrentPlayer->armor_display_values, 23*2, 1, currentPlayerGetArmor());
-            buildGaugeBarDL(&g_CurrentPlayer->watch_body_armor_bar_gdl, OS_K0_TO_PHYSICAL(&g_CurrentPlayer->armor_display_values), 0x2E);
+            hudMakeDamageSegments(&g_CurrentPlayer->armor_display_values[0].items[0], 23*2, 1, currentPlayerGetArmor());
+            buildGaugeBarDL((Gfx *)&g_CurrentPlayer->watch_body_armor_bar_gdl, (uintptr_t)OS_PHYSICAL_TO_K0(&g_CurrentPlayer->armor_display_values[0].items[0]), 0x2E);
 
-            hudMakeDamageSegments(&g_CurrentPlayer->health_display_values, 23*2, -1, currentPlayerGetHealth());
-            buildGaugeBarDL(&g_CurrentPlayer->watch_health_bar_gdl, OS_K0_TO_PHYSICAL(&g_CurrentPlayer->health_display_values), 0x2E);
+            hudMakeDamageSegments(&g_CurrentPlayer->health_display_values[0].items[0], 23*2, -1, currentPlayerGetHealth());
+            buildGaugeBarDL((Gfx *)&g_CurrentPlayer->watch_health_bar_gdl, (uintptr_t)OS_PHYSICAL_TO_K0(&g_CurrentPlayer->health_display_values[0].items[0]), 0x2E);
 
             sub_GAME_7F0A69A8();
 
@@ -8744,11 +8744,11 @@ Gfx *bondviewRenderGaugeBars(Gfx *gdl)
 
     //Set up armor bars.
     hudMakeDamageSegments(&g_CurrentPlayer->armor_display_values[0].items[0], 0x2e, 1, g_CurrentPlayer->apparentarmour);
-    buildGaugeBarDL((Gfx *)&g_CurrentPlayer->watch_body_armor_bar_gdl, OS_PHYSICAL_TO_K0(&g_CurrentPlayer->armor_display_values[0].items[0]), 0x2e);
+    buildGaugeBarDL((Gfx *)&g_CurrentPlayer->watch_body_armor_bar_gdl, (uintptr_t)OS_PHYSICAL_TO_K0(&g_CurrentPlayer->armor_display_values[0].items[0]), 0x2e);
 
     // Set up health bars.
     hudMakeDamageSegments(&g_CurrentPlayer->health_display_values[0].items[0], 0x2e, -1, g_CurrentPlayer->apparenthealth);
-    buildGaugeBarDL((Gfx *)&g_CurrentPlayer->watch_health_bar_gdl, OS_PHYSICAL_TO_K0(&g_CurrentPlayer->health_display_values[0].items[0]), 0x2e);
+    buildGaugeBarDL((Gfx *)&g_CurrentPlayer->watch_health_bar_gdl, (uintptr_t)OS_PHYSICAL_TO_K0(&g_CurrentPlayer->health_display_values[0].items[0]), 0x2e);
 
     // Create an orthographic render state for the gauge.
     lookatmtx = dynAllocateMatrix();
@@ -8765,7 +8765,7 @@ Gfx *bondviewRenderGaugeBars(Gfx *gdl)
         0.0f, 0.0f,  -1.0f
     );
 
-    matrix_4x4_f32_to_s32(&lookatmtxf, (Mtxf *)lookatmtx);
+    matrix_4x4_f32_to_s32(lookatmtxf.m, lookatmtx->m);
 
     gSPMatrix(gdl++, osVirtualToPhysical(lookatmtx), G_MTX_MODELVIEW | G_MTX_LOAD | G_MTX_NOPUSH);
 
@@ -9443,8 +9443,8 @@ void record_damage_kills(f32 damage_amount, f32 vectorx, f32 vectorz, s32 player
 
     if (g_CurrentPlayer->watch_animation_state != WATCH_ANIMATION_0x0)
     {
-        hudMakeDamageSegments(g_CurrentPlayer->armor_display_values, 0x2E, 1, currentPlayerGetArmor());
-        hudMakeDamageSegments(g_CurrentPlayer->health_display_values, 0x2E, -1, currentPlayerGetHealth());
+        hudMakeDamageSegments(&g_CurrentPlayer->armor_display_values[0].items[0], 0x2E, 1, currentPlayerGetArmor());
+        hudMakeDamageSegments(&g_CurrentPlayer->health_display_values[0].items[0], 0x2E, -1, currentPlayerGetHealth());
     }
 
     if (getPlayerCount() < 2 || (g_stopPlayFlag == 0 && g_gameOverFlag == 0))
