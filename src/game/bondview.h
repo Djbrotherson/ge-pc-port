@@ -2818,7 +2818,7 @@ void jp_hudmsgBottomShow(char *string);
 // VERSION_US
 #define HUDMESSAGEBOTTOM hudmsgBottomShow
 void hudmsgBottomShow(char *string);
-void setFontTables(s32 arg0, s32 arg1);
+void setFontTables(struct fontchar *arg0, struct font *arg1);
 #endif
 
 Gfx * bondviewRenderDebugBondView(Gfx *arg0);
