@@ -2091,7 +2091,7 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
 
     for (i = 0; i < objheader->numMatrices; i++)
     {
-        matrix_4x4_copy((u32)modelstack.render_pos + i * sizeof(Mtxf), &sp41c);
+        matrix_4x4_copy((Mtxf *)((u8 *)modelstack.render_pos + i * sizeof(Mtxf)), &sp41c);
         matrix_4x4_f32_to_s32(&sp41c, &modelstack.render_pos[i]);
     }
 
@@ -2326,7 +2326,7 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
 
         for (i = 0; i < objheader->numMatrices; i++)
         {
-            matrix_4x4_copy((u32)modelstack.render_pos + i * sizeof(Mtxf), &sp41c);
+            matrix_4x4_copy((Mtxf *)((u8 *)modelstack.render_pos + i * sizeof(Mtxf)), &sp41c);
             matrix_4x4_f32_to_s32(&sp41c, &modelstack.render_pos[i]);
         }
 
@@ -2723,7 +2723,7 @@ void gunTickHandState(enum GUNHAND hand, s32 triggerOn)
     struct PropRecord *temp_v0_8;
     Weapon1PTransformKeyframe *sp74;
     f32 temp_f0_2;
-    u32 var_a0_2;
+    Weapon1PTransformKeyframe *var_a0_2;
     f32 temp_v1_9;
     struct hand *temp_v1_5;
     f32 un_f32_num = 0.0f;
@@ -2779,7 +2779,7 @@ void gunTickHandState(enum GUNHAND hand, s32 triggerOn)
     Weapon1PTransformKeyframe *sp74;
     struct PropRecord *temp_v0_8;
     f32 temp_f0_2;
-    u32 var_a0_2;
+    Weapon1PTransformKeyframe *var_a0_2;
     f32 temp_v1_9;
     struct hand *temp_v1_5;
     f32 un_f32_num = 0.0f;
@@ -2834,7 +2834,7 @@ void gunTickHandState(enum GUNHAND hand, s32 triggerOn)
     Weapon1PTransformKeyframe *sp74;
     struct PropRecord *temp_v0_8;
     f32 temp_f0_2;
-    u32 var_a0_2;
+    Weapon1PTransformKeyframe *var_a0_2;
     f32 temp_v1_9;
     struct hand *temp_v1_5;
     f32 un_f32_num = 0.0f;
@@ -4056,11 +4056,11 @@ void gunTickHandState(enum GUNHAND hand, s32 triggerOn)
             || (handptr->weapon_action_state == GUN_ANIM_STATE_KNIFE_SLASH1_STRIKE)
             || (handptr->weapon_action_state == GUN_ANIM_STATE_KNIFE_SLASH1_RECOVER))
         {
-            var_a0_2 = D_80034CA4;
+            var_a0_2 = (Weapon1PTransformKeyframe *)D_80034CA4;
         }
         else
         {
-            var_a0_2 = D_80034E0C;
+            var_a0_2 = (Weapon1PTransformKeyframe *)D_80034E0C;
         }
 
         if (gunSample1PTransform(var_a0_2, sp88, &handptr->field_8EC, hand) != 0)
