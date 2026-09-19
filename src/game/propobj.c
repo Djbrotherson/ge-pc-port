@@ -6847,7 +6847,11 @@ Gfx *process_monitor_animation_microcode(Model *model, ModelNode *node, MonitorR
                 screen->offset += 3;
                 break;
             case TVCMD_SETTEXTURE:
+#ifdef PORT
+                save_img_index_to_obj_ani_slot(screen, (void *)(uintptr_t)(u32)m->time);
+#else
                 save_img_index_to_obj_ani_slot(screen, m->time);
+#endif
                 screen->offset += 2;
                 break;
             case TVCMD_PAUSE:
@@ -7050,6 +7054,16 @@ Gfx *process_monitor_animation_microcode(Model *model, ModelNode *node, MonitorR
         vertices[2] = rodata->DisplayListCollisions.Vertices[2];
         vertices[3] = rodata->DisplayListCollisions.Vertices[3];
 
+#ifdef PORT
+        if ((uintptr_t)screen->tconfig < 100u)
+        {
+            tconfig = &monitorimages[(s32)(uintptr_t)screen->tconfig];
+        }
+        else
+        {
+            tconfig = screen->tconfig;
+        }
+#else
         if ((u32)screen->tconfig < 100) 
         {
             tconfig = &monitorimages[(s32)screen->tconfig];
@@ -7058,6 +7072,7 @@ Gfx *process_monitor_animation_microcode(Model *model, ModelNode *node, MonitorR
         {
             tconfig = screen->tconfig;
         }
+#endif
 
         {
             f32 tmp1;
