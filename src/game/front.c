@@ -314,7 +314,11 @@ s32 is_emulating_spectrum = FALSE;
 s32 is_cheat_menu_available = FALSE;
 
 u8 * ptr_logo_and_walletbond_DL = NULL;
+#ifdef PORT
+uintptr_t ptr_menu_videobuffer = 0;
+#else
 s32 ptr_menu_videobuffer = 0;
+#endif
 struct Model *logoinst = NULL;
 struct Model * walletinst[] = { NULL, NULL, NULL, NULL};
 
@@ -8615,7 +8619,11 @@ void menu_init(void)
     {
         if (viGetFrameBuf2() == (cfb_16[1]))
         {
+#ifdef PORT
+            viSetFrameBuf2((void *)ptr_menu_videobuffer);
+#else
             viSetFrameBuf2(ptr_menu_videobuffer);
+#endif
         }
 
         viSetAspect(MENU_INIT_ASPECT_440);

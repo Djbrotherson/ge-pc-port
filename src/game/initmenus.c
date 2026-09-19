@@ -41,12 +41,24 @@ void init_menus_or_reset(void)
 #endif
 
 #if defined(VERSION_EU)
+#ifdef PORT
+    ptr_menu_videobuffer = (uintptr_t)mempAllocBytesInBank(0x55040, MEMPOOL_STAGE);
+#else
     ptr_menu_videobuffer = mempAllocBytesInBank(0x55040, MEMPOOL_STAGE);
+#endif
+#else
+#ifdef PORT
+    ptr_menu_videobuffer = (uintptr_t)mempAllocBytesInBank(0x4b040, MEMPOOL_STAGE);
 #else
     ptr_menu_videobuffer = mempAllocBytesInBank(0x4b040, MEMPOOL_STAGE);
 #endif
+#endif
 
+#ifdef PORT
+    ptr_menu_videobuffer = (ptr_menu_videobuffer + 0x3fu) & ~(uintptr_t)0x3fu;
+#else
     ptr_menu_videobuffer = ALIGN64_V1(ptr_menu_videobuffer);
+#endif
 
     for (i = 0; i < 4; i++)
     {
