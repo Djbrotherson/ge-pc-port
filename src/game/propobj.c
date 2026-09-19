@@ -1883,6 +1883,7 @@ s32 objTryMovePropWithCollision(ObjectRecord *obj, coord3d *targetpos, coord3d *
     s32 pad;
 
     prop = obj->prop;
+    partialpos = prop->pos;
     stan = prop->stan;
     width = objGetWidth(obj);
     result = 1;
@@ -3686,7 +3687,7 @@ bool chrobjSeparatingAxisTheorem(rect4f* rect1, s32 numvertices0, rect4f* rect2,
     s32 next;
     s32 i;
     f64 sum3;
-    f64 sum2;
+    f64 sum2 = 0.0;
     f64 sum1;
     coord3d tmp;
 
@@ -4240,7 +4241,7 @@ s32 objTick(struct PropRecord *prop)
 
 	struct coord3d sp658;
 	struct coord3d sp64C;
-	struct WeaponObjRecord *weaponObj;
+	struct WeaponObjRecord *weaponObj = NULL;
 	f32 temp_f12_5;
 	struct ModelRoData_BoundingBoxRecord *projectileBBox;
 	f32 sp63C;
@@ -7721,7 +7722,7 @@ void objDeform(ObjectRecord *obj, E_EXPLOSIONTYPE explosiontype)
         adjust_height = 1;
     }
     
-    newverts = vtxstore_allocate(rodata->numVertices, 0x0b0b, model->obj, objGetDestroyedLevel(obj));
+    newverts = vtxstore_allocate(rodata->numVertices, 0x0b0b, (uintptr_t)model->obj, objGetDestroyedLevel(obj));
     
     if (newverts != NULL)
     {
@@ -8466,7 +8467,7 @@ coord3d  D_80032088 = {0, 0, 0};
 
 bool bgTestHitOnObj(coord3d *arg0, coord3d *arg1, coord3d *arg2, Gfx *gdl, Gfx *gdl2, Vertex *vertices, struct HitThing *hitthing)
 {
-    Vertex *vtxbase;
+    Vertex *vtxbase = NULL;
     HitThing hitbuf;
     Vertex *pt0;
     Vertex *pt1;
@@ -8545,6 +8546,14 @@ bool bgTestHitOnObj(coord3d *arg0, coord3d *arg1, coord3d *arg2, Gfx *gdl, Gfx *
 #endif
             gdl++;
 
+            continue;
+        }
+
+        if ((op == (s8)G_TRI1 || op == (s8)G_TRI4) && vtxbase == NULL)
+        {
+            /* A valid display list loads vertices before triangle commands.
+             * Avoid undefined host reads if converted/corrupt data violates that. */
+            gdl++;
             continue;
         }
 
@@ -12762,7 +12771,7 @@ s32 sub_GAME_7F0537B8(f32 distance, f32 min, f32 max)
 
 s32 sub_GAME_7F053894(coord3d *pos, f32 low, f32 high)
 {
-    PropRecord *prop;
+    PropRecord *prop = NULL;
     s32 index;
     f32 shortest_distance;
     f32 diffx;
@@ -12792,7 +12801,7 @@ s32 sub_GAME_7F053894(coord3d *pos, f32 low, f32 high)
      * Log the hit pos, nearest player pos, distance and resulting vol so a
      * "loud impact that N64 plays silent" can be told apart as wrong-HIT vs
      * wrong-DISTANCE. Remove with probe set. */
-    if (getenv("GE_AUDIOTRACE")) {
+    if (getenv("GE_AUDIOTRACE") && prop != NULL) {
         geTracePrintf("audiotrace.log",
             "[DISTVOL] pos=(%.0f,%.0f,%.0f) player=(%.0f,%.0f,%.0f) dist=%.1f vol=%d\n",
             (double)pos->x, (double)pos->y, (double)pos->z,
