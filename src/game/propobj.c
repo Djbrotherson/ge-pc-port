@@ -39,6 +39,7 @@
 #include "glass.h"
 #include "gun.h"
 #include "image_bank.h"
+#include "initanitable.h"
 #include "lv.h"
 #include "language.h"
 #include "math_floor.h"
