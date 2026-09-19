@@ -176,7 +176,7 @@ void sets_a_bunch_of_BONDdata_values_to_default(void)
 
     renderData = D_8002A790;
 
-    modelSetAnimation(&g_CurrentPlayer->model, (struct ModelAnimation *)&ptr_animation_table->data[(s32)&ANIM_DATA_idle], 0, 0.0f, 0.5f, 0.0f);
+    modelSetAnimation(&g_CurrentPlayer->model, (struct ModelAnimation *)&ptr_animation_table->data[PTR_ANIM_idle], 0, 0.0f, 0.5f, 0.0f);
 
     subcalcpos(&g_CurrentPlayer->model);
     matrix_4x4_set_identity(&identityMatrix);
