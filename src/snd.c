@@ -1149,7 +1149,11 @@ ALSoundState *sndPlaySfx(struct ALBankAlt_s *soundBank, s16 soundIndex, ALSoundS
         {
             ALSndpEvent playEvent;
 
+#ifdef PORT
+            g_sndPlayerPtr->target = (uintptr_t)newState;
+#else
             g_sndPlayerPtr->target = (s32)newState;
+#endif
             playEvent.common.type = AL_SNDP_PLAY_EVT;
             playEvent.common.state = newState;
             deltaLoop = sound->keyMap->velocityMax * DELTA_33_MS;
