@@ -1601,7 +1601,7 @@ void chrlvInitActAttackWalk(ChrRecord *chr, s32 arg1)
     }
     else if (weaponIsOneHanded(left) || weaponIsOneHanded(right))
     {
-        sp78 = (s32)left != 0;
+        sp78 = left != NULL;
 
         if (arg1)
         {
@@ -1623,7 +1623,7 @@ void chrlvInitActAttackWalk(ChrRecord *chr, s32 arg1)
     }
     else
     {
-        sp78 = (s32)left != 0;
+        sp78 = left != NULL;
 
         if (arg1)
         {
@@ -1742,7 +1742,7 @@ void chrlvInitActAttackRoll(ChrRecord *chr, GUNHAND side)
         }
         else
         {
-            sp7C = (s32)right_2 == 0;
+            sp7C = right_2 == NULL;
             sp78 = 1;
             sp64.p[1] = sp7C;
             sp64.p[0] = sp7C == 0;
@@ -1750,14 +1750,14 @@ void chrlvInitActAttackRoll(ChrRecord *chr, GUNHAND side)
     }
     else if (weaponIsOneHanded(left) || weaponIsOneHanded(right))
     {
-        sp7C = (s32)left != 0;
+        sp7C = left != NULL;
         sp78 = 1;
         sp64.p[1] = sp7C;
         sp64.p[0] = sp7C == 0;
     }
     else
     {
-        sp7C = (s32)left != 0;
+        sp7C = left != NULL;
         sp64.p[1] = sp7C;
         sp64.p[0] = sp7C == 0;
     }
@@ -3606,13 +3606,13 @@ void get_sound_at_range(ChrRecord *self, s32 arg1, s32 arg2)
         {
             t = 0;
             flag = t;
-            ani_arg = (s32)left != 0;
+            ani_arg = left != NULL;
         }
         else
         {
             t = 1;
             flag = t;
-            ani_arg = (s32)left != 0;
+            ani_arg = left != NULL;
         }
     }
 
@@ -3798,13 +3798,13 @@ void chrlvWalkingAnimationRelated(ChrRecord *self)
         {
             t = 0;
             flag = t;
-            ani_arg = (s32)left != 0;
+            ani_arg = left != NULL;
         }
         else
         {
             t = 1;
             flag = t;
-            ani_arg = (s32)left != 0;
+            ani_arg = left != NULL;
         }
     }
 
