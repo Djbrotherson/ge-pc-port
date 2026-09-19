@@ -2699,9 +2699,9 @@ extern s32 status_bar_text_buffer_index;
 //D:8003689C
 extern s32 display_statusbar;
 //D:800368A0
-extern s32 copy_1stfonttable;
+extern struct font *copy_1stfonttable;
 //D:800368A4
-extern s32 copy_2ndfonttable;
+extern struct fontchar *copy_2ndfonttable;
 //D:800368A8
 extern s32 upper_text_buffer_index;
 //D:800368AC
