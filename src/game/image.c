@@ -414,7 +414,11 @@ s32 texAlignIndices(u8 *src, s32 width, s32 height, s32 format, u8 *dst)
             src++;
         }
 
+#ifdef PORT
+        outptr = (u8 *)(((uintptr_t)outptr + 7u) & ~(uintptr_t)7u);
+#else
         outptr = (u8 *)(((u32)outptr + 7) & ~7);
+#endif
     }
 
     return outptr - dst;
@@ -1739,9 +1743,15 @@ void texReadAlphaBits(u8 *image,s32 count)
  */
 s32 texReadUncompressed(u8 *dst, s32 width, s32 height, s32 format)
 {
+#ifdef PORT
+	u32 *dst32 = (u32 *)(((uintptr_t)dst + 0xfu) & ~(uintptr_t)0xfu);
+	u16 *dst16 = (u16 *)(((uintptr_t)dst + 7u) & ~(uintptr_t)7u);
+	u8 *dst8 = (u8 *)(((uintptr_t)dst + 7u) & ~(uintptr_t)7u);
+#else
 	u32 *dst32 = (u32 *)(((u32)dst + 0xf) & ~0xf);
 	u16 *dst16 = (u16 *)(((u32)dst + 7) & ~7);
 	u8 *dst8 = (u8 *)(((u32)dst + 7) & ~7);
+#endif
 	s32 x;
 	s32 y;
 
@@ -2442,7 +2452,11 @@ struct tex *texFindInPool(s32 texturenum, struct texpool *arg1)
 
 s32 texFreeBytesInBuffer(struct texpool *arg0)
 {
+#ifdef PORT
+    return (s32)(arg0->rightpos - arg0->leftpos);
+#else
 	return (u32)arg0->rightpos - (u32)arg0->leftpos;
+#endif
 }
 
 
@@ -2462,7 +2476,11 @@ void texLoadFromDisplayList(Gfx *gdl, struct texpool *arg1)
         if (bytes[0] == G_SETTIMG && bytes[4] == 0xab && bytes[5] == 0xcd)
 #endif
         {
+#ifdef PORT
+            texLoad((u32 *)(bytes + 4), arg1);
+#else
             texLoad((u32 *)((s32)bytes + 4), arg1);
+#endif
         }
 
         bytes += 8;
