@@ -1,0 +1,27 @@
+{
+  "version": 4,
+  "name": "goldeneye007-r36s-fresh.zip",
+  "items": [
+    "ge007/",
+    "GoldenEye 007.sh"
+  ],
+  "items_opt": null,
+  "attr": {
+    "title": "GoldenEye 007 ARM64 - Fresh Extract Test",
+    "porter": ["bitflipunix"],
+    "desc": "Experimental R36S/PortMaster ARM64 GLES build. First launch forces ROM-derived sidecar extraction, verifies it, then launches the game.",
+    "desc_md": null,
+    "inst": "Provide your own US NTSC big-endian GoldenEye 007 ROM as ge007/data/ge007.ntsc-final.z64. The package contains no ROM-derived game data; first launch generates required sidecars from your ROM.",
+    "inst_md": null,
+    "genres": ["action"],
+    "image": {},
+    "rtr": false,
+    "exp": true,
+    "runtime": [],
+    "store": [],
+    "availability": "testing",
+    "reqs": [],
+    "arch": ["aarch64"],
+    "min_glibc": ""
+  }
+}
