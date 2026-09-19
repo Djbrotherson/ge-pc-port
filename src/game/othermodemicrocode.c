@@ -364,7 +364,13 @@ void texSelect(Gfx **gdlptr, struct sImageTableEntry *tconfig, u32 arg2, s32 arg
             texLoad((s32 *)tconfig, NULL);
         }
 
+#ifdef PORT
+        /* texLoad stores a 32-bit V1 game-DRAM address in the serialized
+         * index word. Reconstruct it explicitly as an unsigned host pointer. */
+        aa = (u16 *)(uintptr_t)(u32)tconfig->index;
+#else
         aa = PHYS_TO_K0(tconfig->index);
+#endif
         tex = texFindInPool((aa)[-4], NULL);
 
         if (tconfig->level == 0)
