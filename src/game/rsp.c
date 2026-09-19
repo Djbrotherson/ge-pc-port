@@ -28,12 +28,20 @@ s32 g_gfxDebugEntryData = 0;
 /**
  * Address 8004E9E4.
  */
-#ifdef PORT\nu8 *g_gfxRdpOutputBufferEnd = NULL;\n#else\ns32 g_gfxRdpOutputBufferEnd = 0;\n#endif
+#ifdef PORT
+u8 *g_gfxRdpOutputBufferEnd = NULL;
+#else
+s32 g_gfxRdpOutputBufferEnd = 0;
+#endif
 
 /**
  * Address 8004E9E8.
  */
-#ifdef PORT\nu8 *g_gfxRdpOutputBufferStart = NULL;\n#else\ns32 g_gfxRdpOutputBufferStart = 0;\n#endif
+#ifdef PORT
+u8 *g_gfxRdpOutputBufferStart = NULL;
+#else
+s32 g_gfxRdpOutputBufferStart = 0;
+#endif
 
 /**
  * Address 8004E9EC.
