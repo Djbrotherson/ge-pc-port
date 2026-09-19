@@ -36,7 +36,11 @@
 #endif
 
 typedef struct memaspace {
+#ifdef PORT
+    uintptr_t addr;
+#else
     s32 addr;
+#endif
     u32 size;
 } memaspace;
 
@@ -56,14 +60,18 @@ struct memaheap {
 	struct memaspace end2;
 };
 
+#ifdef PORT
+uintptr_t g_MemaHeapStart;
+#else
 s32 g_MemaHeapStart;
+#endif
 s32 g_MemaHeapSize;
 struct memaheap g_MemoryAllocations;
 void *g_MemoryAllocationDebugData = NULL;
 
 // Swap two allocations.
 void memaSwap(memaspace *a, memaspace *b) {
-    u32 tempaddr = a->addr;
+    uintptr_t tempaddr = a->addr;
     u32 tempsize = a->size;
     a->addr = b->addr;
     a->size = b->size;
@@ -137,7 +145,7 @@ memaspace *memaSearch(struct memaheap *heap)
                 return curr;
             }
 
-            if ((u32)curr[1].addr < (u32)curr[0].addr) {
+            if (curr[1].addr < curr[0].addr) {
                 memaSwap(&curr[0], &curr[1]);
             }
 
@@ -174,14 +182,14 @@ memaspace *memaSearch(struct memaheap *heap)
     return best;
 }
 
-void _memaFree(s32 addr, s32 size)
+void _memaFree(uintptr_t addr, s32 size)
 {
     // Choose an index in the spaces array which we'll mark a space as free,
 	// based on how far into the heap the allocation is. This is a rough
 	// estimate and doesn't need to be any particular index, but the defrag
 	// function tries to order the spaces by address so the closer we get to it
 	// the less work the defrag function will have to do should it be called.
-    s32 index = ((addr - g_MemaHeapStart) * (ALLOCATIONS_LENGTH-1)) / g_MemaHeapSize;
+    s32 index = (s32)(((addr - g_MemaHeapStart) * (ALLOCATIONS_LENGTH - 1)) / (uintptr_t)g_MemaHeapSize);
     struct memaspace *curr = &g_MemoryAllocations.spaces[index];
 
     // If the entry is taken, keep moving forward until a zero is found.
@@ -223,9 +231,9 @@ void memaReset(void *heapaddr, u32 heapsize)
 	g_MemoryAllocations.start.addr = 0;
 	g_MemoryAllocations.start.size = 0;
 
-	g_MemoryAllocations.end1.addr = 0xffffffff;
+	g_MemoryAllocations.end1.addr = (uintptr_t)-1;
 	g_MemoryAllocations.end1.size = 0;
-	g_MemoryAllocations.end2.addr = 0xffffffff;
+	g_MemoryAllocations.end2.addr = (uintptr_t)-1;
 	g_MemoryAllocations.end2.size = 0xffffffff;
 
 	for (space = &g_MemoryAllocations.spaces[0]; space <= &g_MemoryAllocations.spaces[ALLOCATIONS_LENGTH - 2]; space++) {
@@ -248,7 +256,7 @@ void memaSingleDefragPass(void)
 // large enough. If this also fails, then do 8 merge iterations and then look through
 // entire buffer again. If successful, return the address to the freed memory, otherwise 0.
 void *memaAlloc(u32 amount) {
-    s32 addr;
+    uintptr_t addr;
     u32 diff;
     s32 i;
 
@@ -267,7 +275,7 @@ void *memaAlloc(u32 amount) {
             continue;
         }
 
-        if (curr->addr == 0xffffffff) {
+        if (curr->addr == (uintptr_t)-1) {
             break;
         }
 
@@ -287,7 +295,7 @@ void *memaAlloc(u32 amount) {
             curr++;
         }
 
-        if (curr->addr == 0xffffffff) {
+        if (curr->addr == (uintptr_t)-1) {
             for (i = 0; i < 8; i++) {
                 memaDefragPass(&g_MemoryAllocations);
             }
@@ -298,7 +306,7 @@ void *memaAlloc(u32 amount) {
                 curr++;
             }
 
-            if (curr->addr == 0xffffffff) {
+            if (curr->addr == (uintptr_t)-1) {
                 return NULL;
             }
         }
@@ -314,15 +322,15 @@ void *memaAlloc(u32 amount) {
         best->addr = 0;
     }
 
-    return (void*)addr;
+    return (void *)addr;
 }
 
 // Find the memaspace of the given address and reduce its size by the given
 // amount. If successful, return the same address, otherwise 0.
-s32 memaGrow(u32 addr, u32 amount)
+uintptr_t memaGrow(uintptr_t addr, u32 amount)
 {
     u32        size = 0;
-    s32        new_addr;
+    uintptr_t  new_addr;
     memaspace *curr;
     short      __unused_1 = addr + 3;
     u32        __unused_2;
@@ -535,7 +543,7 @@ s32 memaGetLongestFree(void)
  * 
  * US address 7000A3DC.
 */
-s32 memaRealloc(s32 addr, u32 oldsize, u32 newsize)
+s32 memaRealloc(uintptr_t addr, u32 oldsize, u32 newsize)
 {
     if ((newsize > oldsize))
     {
@@ -569,7 +577,7 @@ s32 memaRealloc(s32 addr, u32 oldsize, u32 newsize)
 
     if ((oldsize > newsize))
     {
-        memaFree(addr + newsize, oldsize - newsize);
+        memaFree((void *)(addr + newsize), oldsize - newsize);
     }
     
 	return 1;
