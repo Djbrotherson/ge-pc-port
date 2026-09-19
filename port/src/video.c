@@ -52,6 +52,7 @@
 static struct GfxWindowManagerAPI *wmAPI;
 static struct GfxRenderingAPI *renderingAPI;
 static int initDone = 0;
+static int crashScreenActive = 0;
 
 /*
  * [Video] ge007.ini knobs. Every default reproduces the previously-hardcoded
@@ -506,8 +507,6 @@ void videoStartFrame(void)
  */
 
 #if defined(__aarch64__)
-static int crashScreenActive = 0;
-
 static const unsigned char *crashGlyph(char c)
 {
     /* 5x7 uppercase font; each row uses bits 4..0. Only characters used by
