@@ -61,6 +61,9 @@ extern s8 g_sndBootswitchSound;
 
 /* fast3d (C++): the software RSP entry point. */
 extern void gfx_run(Gfx *commands);
+#if defined(__aarch64__) && defined(USE_GLES)
+extern volatile const char *g_R36SMainBreadcrumb;
+#endif
 
 /* ------------------------------------------------------------------------ */
 /* Globals the game expects to exist (normally set by osInitialize).        */
@@ -246,6 +249,10 @@ static void portHeartbeatCheck(void)
             "  viRetraceMQ=%p msg=%llu tickInterval=%u us",
             (void *)g_viRetraceMQ,
             (unsigned long long)g_viRetraceMsg, g_tickIntervalUs);
+#if defined(__aarch64__) && defined(USE_GLES)
+        sysLogPrintf(LOG_ERROR, "  main breadcrumb=%s",
+            g_R36SMainBreadcrumb ? g_R36SMainBreadcrumb : "(null)");
+#endif
 
         /* Where is every thread actually stuck? Unwind them all. */
         /* Indexed by game OSId (thread_config.h): RMON=0 IDLE=1 SCHED=2
