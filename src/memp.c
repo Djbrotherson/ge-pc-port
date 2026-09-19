@@ -43,8 +43,8 @@ void mempCheckMemflagTokens(uintptr_t poolAreaStart, s32 poolAreaSize)
 
     //set pool 0 to what boss wants (room_model_buffer)
     //pool 0 = TotalPoolArea
-    g_mempPools[MEMPOOL_TOTAL].start = poolAreaStart;
-    g_mempPools[MEMPOOL_TOTAL].end = poolAreaStart + poolAreaSize;
+    g_mempPools[MEMPOOL_TOTAL].start = (u8 *)poolAreaStart;
+    g_mempPools[MEMPOOL_TOTAL].end = (u8 *)(poolAreaStart + (uintptr_t)poolAreaSize);
 
     poolSizes = sdefaultmvals;
 
@@ -130,13 +130,13 @@ void mempSetBankStarts(s32 poolSizes[MEMPOOL_COUNT+1])
     // {0,0,0,0,poolAreaSize - 303104, poolAreaSize - 303104, poolAreaSize}
 
 
-    mempStart = g_mempPools[MEMPOOL_TOTAL].start;
+    mempStart = (uintptr_t)g_mempPools[MEMPOOL_TOTAL].start;
     //for each bank 1-7, add new start position
     for (i = MEMPOOL_TOTAL; i < MEMPOOL_COUNT - 1; i++)
     {
-        g_mempPools[i + 1].start = bankstarts[i] + mempStart;
+        g_mempPools[i + 1].start = (u8 *)(mempStart + (uintptr_t)bankstarts[i]);
         g_mempPools[i + 1].pos   = 0;
-        g_mempPools[i + 1].end   = bankstarts[i + 1] + mempStart;
+        g_mempPools[i + 1].end   = (u8 *)(mempStart + (uintptr_t)bankstarts[i + 1]);
     }
     /*
                            rel-start              size
@@ -286,9 +286,15 @@ s32 mempGetBankSizeLeft(u8 bank) {
 }
 
 // Last three bits contains the bank, the rest contains the size.
+#ifdef PORT
+void *mempAllocPackedBytesInBank(u32 sizeandbank) {
+    return mempAllocBytesInBank((sizeandbank >> 3), (sizeandbank & 7));
+}
+#else
 u32 mempAllocPackedBytesInBank(u32 sizeandbank) {
     return mempAllocBytesInBank((sizeandbank >> 3), (sizeandbank & 7));
 }
+#endif
 
 void mempResetBank(u8 bank) {
     g_mempPools[bank].prevpos = 0;
