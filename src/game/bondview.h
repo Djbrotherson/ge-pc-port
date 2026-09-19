@@ -1217,8 +1217,13 @@ struct player
   Mtxf* viewtoworldmtxf;
   Mtx* projmatrix;
   Mtxf* projmatrixf;
+#ifdef PORT
+  Mtx* field_10E0;
+  LookAt* field_10E4;
+#else
   s32 field_10E0; // ptr
   s32 field_10E4; // ptr
+#endif
   Mtxf* field_10E8;
   Mtxf* field_10EC;
   f32 c_scalelod60; // canonical name
@@ -2875,8 +2880,17 @@ f32 bondviewGetPlayerYawRadians(void);
 Mtxf *camGetWorldToScreenMtxf(void);
 void transformAndNormalizeByLength2Dto3D(struct coord2d *in, coord3d *out, f32 value);
 void bondviewTransformManyPosToViewMatrix(RenderPosView *arg0, s32 arg1);
-s32 sub_GAME_7F078474(void);
+#ifdef PORT
+void set_BONDdata_field_10E0(Mtx *arg0);
+Mtx *get_BONDdata_field_10E0(void);
+void sub_GAME_7F078464(LookAt *arg0);
+LookAt *sub_GAME_7F078474(void);
+#else
+void set_BONDdata_field_10E0(s32 arg0);
 s32 get_BONDdata_field_10E0(void);
+void sub_GAME_7F078464(s32 arg0);
+s32 sub_GAME_7F078474(void);
+#endif
 Mtx *currentPlayerGetProjectionMatrix(void);
 Gfx *bondviewRenderProp(PropRecord *arg0, Gfx *arg1, s32 arg2);
 f32 getPlayer_c_lodscalez(void);
