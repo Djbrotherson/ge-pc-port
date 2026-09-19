@@ -48,7 +48,12 @@ s32 alSaveParam(void *filter, s32 paramID, void *param)
 {
     ALSave *a = (ALSave *) filter;
     ALFilter *f = (ALFilter *) filter;
+#ifdef PORT
+    /* AL_FILTER_SET_DRAM passes a 32-bit RSP/physical-address payload in param. */
+    s32 pp = (s32)(uintptr_t)param;
+#else
     s32 pp = (s32) param;
+#endif
 
     switch (paramID) {
         case (AL_FILTER_SET_SOURCE):
