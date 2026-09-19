@@ -155,27 +155,58 @@ void obInit(void)
 void obLoadBGFileBytesAtOffset(u8 *bgname, u8 *target, s32 offset, s32 len)
 {
   s32 index;
-   fileentry *fileentry;
+  fileentry *fileentry;
 
   index = fileGetIndex(bgname);
-  fileentry = &file_resource_table[index];
 
 #ifdef PORT
-  /* TEMP D69: trace BG-file loads (env GE_D69=1). */
-  if (getenv("GE_D69"))
-    fprintf(stderr, "D69 obLoadBGFile %s idx=%d rom_size=0x%X hw=0x%08X off=0x%X len=0x%X\n",
-            (const char *)bgname, index,
-            (unsigned)resource_lookup_data_array[index].rom_size,
-            (unsigned)(u32)fileentry->hw_address, (unsigned)offset, (unsigned)len);
+  {
+    static int r36s_bg_load_count = 0;
+    if (index <= 0 || index >= file_entry_max)
+    {
+      sysLogPrintf(LOG_ERROR,
+                   "R36S BGLOAD invalid index=%d name_ptr=%p off=0x%X len=0x%X",
+                   index, (void *)bgname, (unsigned)offset, (unsigned)len);
+      return;
+    }
+
+    fileentry = &file_resource_table[index];
+
+    if (r36s_bg_load_count < 16)
+    {
+      ++r36s_bg_load_count;
+      sysLogPrintf(LOG_NOTE,
+                   "R36S BGLOAD #%d name=%s idx=%d size=0x%X hw=%p target=%p off=0x%X len=0x%X",
+                   r36s_bg_load_count, (const char *)bgname, index,
+                   (unsigned)resource_lookup_data_array[index].rom_size,
+                   (void *)fileentry->hw_address, (void *)target,
+                   (unsigned)offset, (unsigned)len);
+    }
+
+    if (offset < 0 || len < 0 ||
+        (u64)(u32)offset + (u64)(u32)len >
+            (u64)resource_lookup_data_array[index].rom_size + 0xFULL)
+    {
+      sysLogPrintf(LOG_ERROR,
+                   "R36S BGLOAD range rejected idx=%d size=0x%X off=0x%X len=0x%X",
+                   index, (unsigned)resource_lookup_data_array[index].rom_size,
+                   (unsigned)offset, (unsigned)len);
+      return;
+    }
+  }
+#else
+  fileentry = &file_resource_table[index];
 #endif
 
   if (resource_lookup_data_array[index].rom_size != 0)
   {
+#ifndef PORT
     //if the size of offset data would exceed file size, loop forever
     if ((resource_lookup_data_array[index].rom_size + 0xF) < (offset + len))
     {
       while (1){};
     }
+#endif
     romCopy(target, &fileentry->hw_address[offset], len, fileentry);
   }
 
