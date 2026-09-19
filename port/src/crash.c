@@ -21,6 +21,13 @@
 #include "platform.h"
 #include "crash.h"
 
+#if defined(__aarch64__)
+/* The scheduler/render thread owns the SDL GL context during gameplay.
+ * Release it from that same thread before parking in the crash handler so the
+ * host thread can bind it and draw the diagnostic screen. */
+extern void gfx_sdl_release_context(void);
+#endif
+
 #define CRASH_LOG_FNAME "ge007.crash.log"
 #define CRASH_MAX_MSG 8192
 #define CRASH_MAX_SYM 256
@@ -421,6 +428,7 @@ static void crashHandler(int sig, siginfo_t *siginfo, void *ctx)
     gCrashScreenInfo.sp = (uintptr_t)sp;
     gCrashScreenInfo.fault = (uintptr_t)(siginfo ? siginfo->si_addr : NULL);
     gCrashScreenInfo.pending = 1;
+    gfx_sdl_release_context();
 
     sysLogPrintf(LOG_ERROR, "FATAL: Crashed: PC=%p LR=%p SP=%p FAULT=%p SIGNAL=%d",
                  pc, lr, sp, siginfo ? (void *)siginfo->si_addr : NULL, sig);
