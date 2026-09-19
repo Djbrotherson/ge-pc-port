@@ -483,10 +483,14 @@ void bossMainloop(void)
         init_player_data_ptrs_construct_viewports(localSelectedNumPlayers);
         dynInitMemory();
         joyCheckStatusThreadSafe();
+        R36S_BREADCRUMB("boss:lvlStageLoad");
         lvlStageLoad(g_StageNum);
+        R36S_BREADCRUMB("boss:post-lvlStageLoad");
         viInitBuffers();
         debmenuRefresh();
+        R36S_BREADCRUMB("boss:initial-waitForNextFrame");
         waitForNextFrame();
+        R36S_BREADCRUMB("boss:post-initial-wait");
         speedgraphMarkerCommit();
 
         if(1); // regalloc
@@ -502,7 +506,9 @@ void bossMainloop(void)
 
         while (g_MainStageNum < 0 || pendingGfx != 0)
         {
+            R36S_BREADCRUMB("boss:wait-gfxFrameMsgQ");
             osRecvMesg(&gfxFrameMsgQ, (OSMesg *)&localGfxFrameMsg, OS_MESG_BLOCK);
+            R36S_BREADCRUMB("boss:got-gfxFrameMsgQ");
 
             switch (localGfxFrameMsg->gen.type)
             {
@@ -530,7 +536,9 @@ void bossMainloop(void)
                             }
                             else
                             {
+                                R36S_BREADCRUMB("boss:frame-waitForNextFrame");
                                 waitForNextFrame();
+                                R36S_BREADCRUMB("boss:post-frame-wait");
                             }
 
                             speedgraphRenderGraph();
@@ -563,7 +571,9 @@ void bossMainloop(void)
 			                	g_BossIsDebugMenuOpen = debug_menu_processor(joyStickXPos, joyStickYPos, joyButtons, joyGetButtonsPressedThisFrame(0, ANY_BUTTON));
 			                }
 
+                            R36S_BREADCRUMB("boss:lvlManageMpGame");
                             lvlManageMpGame();
+                            R36S_BREADCRUMB("boss:post-lvlManageMpGame");
                             shuffle_player_ids();
 
                             if (g_StageNum != LEVELID_TITLE)
@@ -578,7 +588,9 @@ void bossMainloop(void)
                                     localPlayer = g_CurrentPlayer;
                                     viSetViewPosition(localPlayer->viewleft, localPlayer->viewtop);
 
+                                    R36S_BREADCRUMB("boss:lvlViewMoveTick");
                                     lvlViewMoveTick();
+                                    R36S_BREADCRUMB("boss:post-lvlViewMoveTick");
                                 }
                             }
 
@@ -600,7 +612,9 @@ void bossMainloop(void)
                                 if (gd250 < 0) gd250 = getenv("GE_D250") != NULL;
                                 if (gd250) d250T0 = osGetTime();
 #endif
+                            R36S_BREADCRUMB("boss:lvlRender");
                             gdl = lvlRender(gdl);
+                            R36S_BREADCRUMB("boss:post-lvlRender");
 #ifdef PORT
                                 if (gd250) {
                                     OSTime now = osGetTime();
@@ -690,7 +704,9 @@ void bossMainloop(void)
                             }
 
                             rspReplyMsg = (OSMesg)&localGfxDoneMsg;
+                            R36S_BREADCRUMB("boss:rspGfxTaskStart");
                             rspGfxTaskStart(firstGdl, gdl, 0, rspReplyMsg);
+                            R36S_BREADCRUMB("boss:post-rspGfxTaskStart");
 
                             pendingGfx++;
                             memaSingleDefragPass();
@@ -716,7 +732,9 @@ void bossMainloop(void)
             }
         }
 
+        R36S_BREADCRUMB("boss:lvlUnloadStageTextData");
         lvlUnloadStageTextData();
+        R36S_BREADCRUMB("boss:post-lvlUnloadStageTextData");
         stop_demo_playback();
         mempNullNextEntryInBank(MEMPOOL_STAGE);
         obBlankResourcesLoadedInBank(MEMPOOL_STAGE);
