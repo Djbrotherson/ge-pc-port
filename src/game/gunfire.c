@@ -4451,25 +4451,25 @@ f32 get_45_degree_angle(s32 unk) {
 }
 
 
-u16 *get_ptr_first_title_line_item(ITEM_IDS item)
+u8 *get_ptr_first_title_line_item(ITEM_IDS item)
 {
   return langGet(gitem_structs[item].upper_watch_text);
 }
 
 
-u16 *get_ptr_second_title_line_item(ITEM_IDS item)
+u8 *get_ptr_second_title_line_item(ITEM_IDS item)
 {
     return langGet(gitem_structs[item].lower_watch_text);
 }
 
 
-u16 *get_ptr_short_watch_text_for_item(ITEM_IDS item)
+u8 *get_ptr_short_watch_text_for_item(ITEM_IDS item)
 {
     return langGet(gitem_structs[item].watch_equipment_text);
 }
 
 
-u16 *get_ptr_long_watch_text_for_item(ITEM_IDS item)
+u8 *get_ptr_long_watch_text_for_item(ITEM_IDS item)
 {
     return langGet(gitem_structs[item].weapon_of_choice_text);
 }

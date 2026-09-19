@@ -12,6 +12,10 @@ s32 bondinvCountTotalItemsInInv(void);
 InvItem *bondinvGetItemByIndex(s32 index);
 textoverride *bondinvGetTextbyObj(ObjectRecord *obj);
 textoverride *bondinvGetTextbyWeaponID(ITEM_IDS weaponnum);
+u8 *bondinvGetNameByIndex(s32 index);
+u8 *bondinvGetLongNameByIndex(s32 index);
+u8 *bondinvGetFirstTitlebyIndex(s32 index);
+u8 *bondinvGetSecondTitlebyIndex(s32 index);
 
 void bondinvCycleBackward(s32 *nextright, s32 *nextleft, s32 requireammo);
 void bondinvCycleForward(s32 *nextright, s32 *nextleft, s32 requireammo);

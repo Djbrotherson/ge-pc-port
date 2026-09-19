@@ -1064,7 +1064,7 @@ s32 bondinvGetTextbyInvIndex(s32 index)
     return 0;
 }
 
-u16 *bondinvGetNameByIndex(s32 index)
+u8 *bondinvGetNameByIndex(s32 index)
 {
     InvItem      *item      = bondinvGetItemByIndex(index);
     ITEM_IDS      weaponnum = 0;
@@ -1124,7 +1124,7 @@ u16 *bondinvGetNameByIndex(s32 index)
     return get_ptr_short_watch_text_for_item(weaponnum);
 }
 
-u16 *bondinvGetLongNameByIndex(s32 index)
+u8 *bondinvGetLongNameByIndex(s32 index)
 {
     InvItem      *item      = bondinvGetItemByIndex(index);
     ITEM_IDS      weaponnum = 0;
@@ -1205,7 +1205,7 @@ int bondinvGetDepthForIndex(int index)
     return get_depth_offset_solo_watch_menu_inventory_page_for_item(bondinvGetTextbyInvIndex(index));
 }
 
-u16 *bondinvGetFirstTitlebyIndex(s32 index)
+u8 *bondinvGetFirstTitlebyIndex(s32 index)
 {
     InvItem      *item      = bondinvGetItemByIndex(index);
     ITEM_IDS      weaponnum = 0;
@@ -1265,7 +1265,7 @@ u16 *bondinvGetFirstTitlebyIndex(s32 index)
     return get_ptr_first_title_line_item(weaponnum);
 }
 
-u16 *bondinvGetSecondTitlebyIndex(s32 index)
+u8 *bondinvGetSecondTitlebyIndex(s32 index)
 {
     InvItem      *item      = bondinvGetItemByIndex(index);
     ITEM_IDS      weaponnum = 0;
