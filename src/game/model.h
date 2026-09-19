@@ -123,7 +123,11 @@ void modelInit(struct Model *objinst, struct ModelFileHeader *header, u32 *data)
 void animInit(struct Model *objinst, struct ModelFileHeader *header, u32 *data);
 void modelAttachPart(Model *pmodel, ModelFileHeader *pmodeldef, ModelNode *pnode, ModelFileHeader *cmodeldef);
 void modelIterateDisplayLists(ModelFileHeader *fileheader, ModelNode **nodeptr, Gfx **gdlptr);
+#ifdef PORT
+void modelNodeReplaceGdl(uintptr_t arg0, ModelNode *node, Gfx *find, Gfx *replacement);
+#else
 void modelNodeReplaceGdl(u32 arg0, ModelNode *node, Gfx *find, Gfx *replacement);
+#endif
 bool modelTestRayIntersectsTransformedBBox(ModelRoData_BoundingBoxRecord *bbox, Mtxf *mtx, coord3d *pos, coord3d *dir);
 
 #ifndef VERSION_EU
