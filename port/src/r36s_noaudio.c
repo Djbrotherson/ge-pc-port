@@ -14,6 +14,8 @@
  * This file exists only on the r36s-first-frame-noaudio diagnostic branch.
  */
 
+#if defined(__aarch64__) && defined(USE_GLES)
+
 #include "system.h"
 #include "snd.h"
 
@@ -21,7 +23,6 @@ extern signed char g_sndBootswitchSound;
 extern s16 *g_sndSfxSlotNaturalVolume;
 extern s16 *g_sndSfxSlotVolume;
 
-#if defined(__aarch64__) && defined(USE_GLES)
 static s16 s_r36sNaturalVolume[SFX_SLOT_COUNT];
 static s16 s_r36sScaledVolume[SFX_SLOT_COUNT];
 
