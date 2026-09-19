@@ -199,7 +199,9 @@ void bossInitMainthreadData(void)
         osRecvMesg(&bossmq, &bossmsg, OS_MESG_BLOCK);
         if (i == 1)
         {
-            joyCheckStatusThreadSafe();
+            R36S_BREADCRUMB("boss:joyCheckStatusThreadSafe");
+        joyCheckStatusThreadSafe();
+        R36S_BREADCRUMB("boss:post-joyCheckStatusThreadSafe");
         }
         else if (i >= 2)
         {
@@ -382,7 +384,9 @@ void bossMainloop(void)
     // end declarations
 
     done = 0;
+    R36S_BREADCRUMB("boss:reset_mem_bank_5");
     reset_mem_bank_5();
+    R36S_BREADCRUMB("boss:post-reset_mem_bank_5");
 
     if (tokenFind(1, "-level_") != NULL)
     {
@@ -467,15 +471,23 @@ void bossMainloop(void)
             tokenSetString(memallocstringtable[stringIndex].string);
         }
 
+        R36S_BREADCRUMB("boss:mempResetBank");
         mempResetBank(MEMPOOL_STAGE);
+        R36S_BREADCRUMB("boss:post-mempResetBank");
+        R36S_BREADCRUMB("boss:obBlankResourcesLoadedInBank");
         obBlankResourcesLoadedInBank(MEMPOOL_STAGE);
+        R36S_BREADCRUMB("boss:post-obBlankResourcesLoadedInBank");
         if (tokenFind(1, "-ma"))
         {
             g_CurentMaMallocValue = (s32) (strtol(tokenFind(1, "-ma"), NULL, 0) * 1024);
         }
 
+        R36S_BREADCRUMB("boss:memaReset");
         memaReset(mempAllocBytesInBank(g_CurentMaMallocValue, MEMPOOL_STAGE), g_CurentMaMallocValue);
+        R36S_BREADCRUMB("boss:post-memaReset");
+        R36S_BREADCRUMB("boss:reset_play_data_ptrs");
         reset_play_data_ptrs();
+        R36S_BREADCRUMB("boss:post-reset_play_data_ptrs");
 
         localSelectedNumPlayers = 0;
         if (g_StageNum != LEVELID_TITLE)
@@ -487,8 +499,12 @@ void bossMainloop(void)
             }
         }
 
+        R36S_BREADCRUMB("boss:init_player_data");
         init_player_data_ptrs_construct_viewports(localSelectedNumPlayers);
+        R36S_BREADCRUMB("boss:post-init_player_data");
+        R36S_BREADCRUMB("boss:dynInitMemory");
         dynInitMemory();
+        R36S_BREADCRUMB("boss:post-dynInitMemory");
         joyCheckStatusThreadSafe();
         R36S_BREADCRUMB("boss:lvlStageLoad");
         lvlStageLoad(g_StageNum);
