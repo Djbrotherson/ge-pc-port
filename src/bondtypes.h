@@ -1156,7 +1156,13 @@ typedef union
             f32     Scale;       /*0x1c*/
             u16     RwDataIndex; /*0x20*/
             u16     reserved;    /*0x22 padding*/
+#ifdef PORT
+            /* PC sidecar record is 48 bytes; bytes 0x28..0x2f are the
+             * runtime-only native base address and are emitted as zero. */
+            void   *BaseAddr;
+#else
             u32     BaseAddr;    /*0x24 padding*/
+#endif
         } ModelRoData_GunfireRecord;
 
         typedef struct ModelRwData_GunfireRecord
