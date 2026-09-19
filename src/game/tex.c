@@ -1066,7 +1066,11 @@ s32 texLoadFromGdl(Gfx *src, s32 srcsize, Gfx *dst, void *texpool)
         lightFixtureEntryEnd(out);
     }
 
+#ifdef PORT
+    return (s32)((uintptr_t)out - (uintptr_t)dst);
+#else
     return ((s32)out) - ((s32)dst);
+#endif
 }
 
 
