@@ -20,7 +20,11 @@ static void langFixupLoadedBank(char *name, void *p)
 
 // bss
 //CODE.bss:8008C640
+#ifdef PORT
+uintptr_t g_LangBanks[45];
+#else
 s32 g_LangBanks[45];
+#endif
 
 
 //CODE.bss:8008C6F4
