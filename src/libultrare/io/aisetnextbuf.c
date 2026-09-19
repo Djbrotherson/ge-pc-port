@@ -22,7 +22,11 @@ s32 osAiSetNextBuffer(void *bufPtr, u32 size)
 	if (hdwrBugFlag != 0)
 		bptr -= 0x2000;
 
+#ifdef PORT
+	if ((((uintptr_t)bufPtr + size) & 0x3fffu) == 0x2000u)
+#else
 	if ((((u32)bufPtr + size) & 0x3fff) == 0x2000)
+#endif
 		hdwrBugFlag = 1;
 	else
 		hdwrBugFlag = 0;
