@@ -1742,7 +1742,7 @@ Gfx *explosionRenderFlyingParticles(Gfx *gdl)
                 && (sp80.m[3][2] > -20000.0f))
             {
                 temp_v0_2 = dynAllocateMatrix();
-                matrix_4x4_f32_to_s32(&sp80, (Mtxf *)temp_v0_2);
+                matrix_4x4_f32_to_s32(sp80.m, temp_v0_2->m);
 
                 gSPMatrix(gdl++, osVirtualToPhysical((void*)temp_v0_2), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
                 gSPVertex(gdl++, osVirtualToPhysical((void*)g_FlyingParticlesBuffer[i].vertex_list), 4, 0)
