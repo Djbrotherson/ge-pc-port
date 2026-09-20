@@ -1,4 +1,5 @@
 name: GoldenEye AArch64 R36S GLES Build
+# CI trigger: standard-hosted AArch64 cross-validation
 
 on:
   workflow_dispatch:
