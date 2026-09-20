@@ -1043,7 +1043,7 @@ void indyGrabJpg16bit(void)
     }
 
     sprintf(buffer, "grab.%d.temp.uix", *pgrabnum);
-    indycommHostSendDump((u8*)&buffer, (u8*)g_ViBackData->framebuf, (viGetX() * viGetY() * 2));
+    indycommHostSendDump(buffer, (u8 *)g_ViBackData->framebuf, (viGetX() * viGetY() * 2));
 
     sprintf(buffer, "uix2pix grab.%d.temp.uix", *pgrabnum);
     indycommHostSendCmd((u8*)&buffer);
@@ -1085,7 +1085,7 @@ void indyGrabJpg32bit(void)
     }
 
     sprintf(buffer, "grab.%d.temp.Uix", *pgrabnum);
-    indycommHostSendDump((u8*)&buffer, (u8*)&cfb_16, (viGetX() * viGetY() * 4));
+    indycommHostSendDump(buffer, (u8 *)cfb_16, (viGetX() * viGetY() * 4));
 
     sprintf(buffer, "Uix2pix -xs%d grab.%d.temp.Uix", viGetX(), *pgrabnum);
     indycommHostSendCmd((u8*)&buffer);
@@ -1127,7 +1127,7 @@ void indyGrabRgb16bit(void)
     }
 
     sprintf(buffer, "grab.%d.temp.uix", *pgrabnum);
-    indycommHostSendDump((u8*)&buffer, (u8*)g_ViBackData->framebuf, (viGetX() * viGetY() * 2));
+    indycommHostSendDump(buffer, (u8 *)g_ViBackData->framebuf, (viGetX() * viGetY() * 2));
 
     sprintf(buffer, "uix2pix grab.%d.temp.uix", *pgrabnum);
     indycommHostSendCmd((u8*)&buffer);
@@ -1166,7 +1166,7 @@ void indyGrabRgb32bit(void)
     }
 
     sprintf(buffer, "grab.%d.temp.Uix", *pgrabnum);
-    indycommHostSendDump((u8*)&buffer, (u8*)&cfb_16, (viGetX() * viGetY() * 4));
+    indycommHostSendDump(buffer, (u8 *)cfb_16, (viGetX() * viGetY() * 4));
 
     sprintf(buffer, "Uix2pix -xs%d grab.%d.temp.Uix", viGetX(), *pgrabnum);
     indycommHostSendCmd((u8*)&buffer);
