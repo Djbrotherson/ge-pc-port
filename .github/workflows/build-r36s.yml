@@ -8,6 +8,9 @@ on:
       - main
       - r36s-native-gles
       - r36s-first-frame-noaudio
+  pull_request:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
