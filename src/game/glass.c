@@ -292,7 +292,7 @@ Gfx *glassRenderShards(Gfx *gdl)
             mtxf.m[3][1] -= g_CurrentPlayer->current_model_pos.y;
             mtxf.m[3][2] -= g_CurrentPlayer->current_model_pos.z;
 
-            matrix_4x4_f32_to_s32(&mtxf, (Mtxf *)mtx);
+            matrix_4x4_f32_to_s32(mtxf.m, mtx->m);
 
             gSPMatrix(gdl++, osVirtualToPhysical(mtx), G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
             gSPVertex(gdl++, osVirtualToPhysical(&WINDOW_PIECE(i)->v1x), 3, 0);
