@@ -289,20 +289,12 @@ void darken_vertex_in_room(Vtx * vertex, s32 room_index)
 
     // weird memory stuff going on here
 #ifdef PORT
-    vtx_index = (s32)(((uintptr_t)vertex - (uintptr_t)g_BgRoomInfo[room_index].vertices) >> 4);
-#else
-#ifdef PORT
-    vtx_index = (u32)(((uintptr_t)vertex - (uintptr_t)g_BgRoomInfo[room_index].vertices) >> 4);
-#else
-#ifdef PORT
     /* Host vertex buffers are native pointers; subtract at pointer width
-     * before reducing the element index to the table's 32-bit field. */
-    vtx_index = (u32)(((uintptr_t)vertex -
+     * before reducing the element index stored by the darkened-light table. */
+    vtx_index = (s32)(((uintptr_t)vertex -
                        (uintptr_t)g_BgRoomInfo[room_index].vertices) >> 4);
 #else
     vtx_index = ((u32)vertex - (u32)g_BgRoomInfo[room_index].vertices) >> 4;
-#endif
-#endif
 #endif
 
     darkened_light_table[cur_entry_darkened_light_table].room_index = (u16) room_index;
@@ -328,7 +320,14 @@ s32 darkened_light_table_contains_vertex(Vtx * vertex, s32 room_index)
     s32 i;
 
     // weird memory stuff going on here
+#ifdef PORT
+    /* Keep host pointer subtraction native-width. The resulting element index
+     * is intentionally reduced only after the address arithmetic is complete. */
+    vtx_index = (u32)(((uintptr_t)vertex -
+                       (uintptr_t)g_BgRoomInfo[room_index].vertices) >> 4);
+#else
     vtx_index = ((u32)vertex - (u32)g_BgRoomInfo[room_index].vertices) >> 4;
+#endif
 
     for (i = 0; i < DARKENED_LIGHT_TABLE_MAX; i++)
     {
