@@ -408,7 +408,7 @@ void amCreateAudioManager(ALSynConfig* alconf)
         g_AudioManager.cmdList[j] = (Acmd *)alHeapAlloc(alconf->heap, 1, MAX_ACMD_SIZE * sizeof(Acmd));
     }
 
-    osCreateThread(&g_AudioManager.audioThread, AUDI_THREAD_ID, &amMain, 0, (void*)setSPToEnd((u8*)(&sp_audi), sizeof(sp_audi)), AUDI_THREAD_PRIORITY);
+    osCreateThread(&g_AudioManager.audioThread, AUDI_THREAD_ID, &amMain, 0, (void*)setSPToEnd((u8 *)sp_audi, sizeof(sp_audi)), AUDI_THREAD_PRIORITY);
 }
 
 /**
