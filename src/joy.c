@@ -156,6 +156,11 @@ void joyInit(void)
 
 void joyCheckStatusThreadSafe(void)
 {
+#ifdef PORT
+    /* The host input backend does not run the N64 SI poll-disable handshake. */
+    joyCheckStatus();
+    return;
+#else
     OSMesg  msg;
 
     if (g_ContQueuesCreated)
@@ -168,6 +173,7 @@ void joyCheckStatusThreadSafe(void)
         osSendMesg(&g_ContEnablePollSendMessageQueue, &msg, OS_MESG_NOBLOCK);
         osRecvMesg(&g_ContEnablePollReceiveMessageQueue, &msg, OS_MESG_BLOCK);
     }
+#endif
 }
 
 s32 osPfsChecker(OSPfs *pfs)

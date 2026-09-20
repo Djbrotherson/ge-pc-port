@@ -938,6 +938,10 @@ u16 musicTrack1GetVolume(void)
  */
 void musicTrack1ApplySeqpVol(u16 volume)
 {
+    if (g_sndBootswitchSound)
+    {
+        return;
+    }
     u32 t1 = volume;
 
     g_musicXTrack1Volume = (u16)t1;
@@ -1002,6 +1006,10 @@ void musicTrack1FadeOut(f32 fadeTime)
  */
 void musicTrack1FadeIn(f32 fadeTime, u16 volume)
 {
+    if (g_sndBootswitchSound)
+    {
+        return;
+    }
     if (g_musicXTrack1Fade <= MUSIC_FADESTATE_UNSET)
     {
         alCSPPlay(g_musicXTrack1SeqPlayer);
@@ -1132,6 +1140,10 @@ u16 musicTrack2GetVolume(void)
  */
 void musicTrack2ApplySeqpVol(u16 volume)
 {
+    if (g_sndBootswitchSound)
+    {
+        return;
+    }
     u32 t1 = volume;
 
     g_musicXTrack2Volume = (u16)t1;
@@ -1195,6 +1207,10 @@ void musicTrack2FadeOut(f32 fadeTime)
  */
 void musicTrack2FadeIn(f32 fadeTime, u16 volume)
 {
+    if (g_sndBootswitchSound)
+    {
+        return;
+    }
     if (g_musicXTrack2Fade <= MUSIC_FADESTATE_UNSET)
     {
         alCSPPlay(g_musicXTrack2SeqPlayer);
@@ -1325,6 +1341,10 @@ u16 musicTrack3GetVolume(void)
  */
 void musicTrack3ApplySeqpVol(u16 volume)
 {
+    if (g_sndBootswitchSound)
+    {
+        return;
+    }
     u32 t1 = volume;
 
     g_musicXTrack3Volume = (u16)t1;
@@ -1388,6 +1408,10 @@ void musicTrack3FadeOut(f32 fadeTime)
  */
 void musicTrack3FadeIn(f32 fadeTime, u16 volume)
 {
+    if (g_sndBootswitchSound)
+    {
+        return;
+    }
     if (g_musicXTrack3Fade <= MUSIC_FADESTATE_UNSET)
     {
         alCSPPlay(g_musicXTrack3SeqPlayer);
@@ -1413,6 +1437,10 @@ void musicTrack3FadeIn(f32 fadeTime, u16 volume)
  */
 void musicFadeTick(void)
 {
+    if (g_sndBootswitchSound)
+    {
+        return;
+    }
     if (g_musicXTrack1Fade)
     {
         u16 t0;
