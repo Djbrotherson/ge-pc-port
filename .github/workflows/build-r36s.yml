@@ -24,11 +24,22 @@ jobs:
       - name: Checkout latest commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 1
 
       - name: Show commit
         run: git log -1 --oneline
+
+      - name: Archive exact source snapshot
+        run: |
+          git archive --format=tar.gz --output=ge-pc-port-source.tar.gz HEAD
+
+      - name: Upload exact source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: ge-pc-port-source-snapshot
+          path: ge-pc-port-source.tar.gz
+          if-no-files-found: error
 
       - name: Patch host controller status handshake
         run: |
