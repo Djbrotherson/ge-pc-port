@@ -1,5 +1,5 @@
 name: GoldenEye AArch64 R36S GLES Build
-# CI trigger: standard-hosted AArch64 cross-validation
+# CI trigger: standard-hosted AArch64 cross-validation (retrigger 2026-09-20)
 
 on:
   workflow_dispatch:
