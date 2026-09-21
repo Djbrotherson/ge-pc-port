@@ -2,25 +2,6 @@ name: R36S Compatibility Sweep
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - r36s-first-frame-noaudio
-    paths:
-      - 'src/**'
-      - 'port/**'
-      - 'include/**'
-      - 'tools/r36s_compat_audit.py'
-      - 'tools/r36s_symbolize.py'
-      - 'cmake/**'
-      - '.github/workflows/r36s-compat-sweep.yml'
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'port/**'
-      - 'include/**'
-      - 'tools/r36s_compat_audit.py'
-      - 'cmake/**'
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
