@@ -292,6 +292,7 @@ add_compile_options(
   $<$<COMPILE_LANGUAGE:C>:-Werror=pointer-to-int-cast>
   $<$<COMPILE_LANGUAGE:C>:-Werror=int-to-pointer-cast>
   $<$<COMPILE_LANGUAGE:C>:-Werror=pointer-compare>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=format>
 )
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-function>)
 

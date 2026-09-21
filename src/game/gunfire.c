@@ -6542,7 +6542,7 @@ void increment_num_deaths(void)
     {
         if (g_CurrentPlayer->deathcount == 1)
         {
-            sprintf(buffer, langGet(getStringID(LGUN, GUN_STR_DB_DIEDONCE_LF))); //died once
+            sprintf(buffer, "%s", langGet(getStringID(LGUN, GUN_STR_DB_DIEDONCE_LF))); //died once
         }
         else
         {
