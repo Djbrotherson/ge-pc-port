@@ -104,7 +104,7 @@ s32 __osLeoInterrupt()
             return 1;
 		}
 
-		blockInfo->dramAddr = (void *)((u32)blockInfo->dramAddr + blockInfo->sectorSize);
+		blockInfo->dramAddr = (void *)((uintptr_t)blockInfo->dramAddr + blockInfo->sectorSize);
 		info->sectorNum++;
 		osEPiRawStartDma(__osDiskHandle, OS_WRITE, LEO_SECTOR_BUFF, blockInfo->dramAddr, blockInfo->sectorSize);
 		
@@ -133,7 +133,7 @@ s32 __osLeoInterrupt()
 		}
 		else
 		{
-			blockInfo->dramAddr = (void *)((u32)blockInfo->dramAddr + blockInfo->sectorSize);
+			blockInfo->dramAddr = (void *)((uintptr_t)blockInfo->dramAddr + blockInfo->sectorSize);
 		}
 
 		bm_stat = IO_READ(LEO_BM_STATUS);
