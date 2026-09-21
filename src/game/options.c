@@ -1982,8 +1982,8 @@ Gfx *draw_text_mission_status(Gfx *gdl)
     s32 txtptr_2;
 #endif
     s32 sp64;
-    s32 sp60;
-    s32 sp5C;
+    s32 sp60 = 0;
+    s32 sp5C = 0;
     s32 sp58;
     struct font *pFontFile;
     struct fontchar *pFontChars;
@@ -3055,8 +3055,8 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
         char strPlus[] = "(+)\n";
         char strS[] = "(S)\n";
         char str3D[] = "(3D)\n";
-        char *ctext;
-        char *dpadtext;
+        char *ctext = NULL;
+        char *dpadtext = NULL;
         s32 buttons;
         s32 showmovesight;
         volatile unsigned int y;
@@ -4061,7 +4061,7 @@ Gfx *draw_watch_mission_briefing_page(Gfx *gdl, Mtx *param_2)
 #else
                 char objectiveBuffer[200] = "";
 #endif
-                u32 colour;
+                u32 colour = 0xa0ffa0f0;
                 s32 i;
                 s32 j;
                 char *objectiveText;
