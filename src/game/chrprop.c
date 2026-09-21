@@ -990,10 +990,12 @@ void chraiDefaultWeaponFireHandler(s32 hand)
         distscale = get_room_data_float1() * bgGetLevelVisibilityScale();
         playerpos = bondviewGetCurrentPlayersPosition();
 
+#ifndef PORT
         new_var++;
         new_var--;
 
         if (new_var == new_var);
+#endif
 
         stanResetHits();
 

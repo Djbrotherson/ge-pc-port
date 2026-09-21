@@ -639,7 +639,13 @@ void bullet_spark_render(s_bullet_spark *thing, Gfx *gdlarg, s32 zbufferMode)
         return;
     }
 
+#ifdef PORT
+    /* D_80040980 is a single zero word in C; retail relied on surrounding
+     * layout to obtain an all-zero Vtx template. Use that value explicitly. */
+    vtx = (Vtx){0};
+#else
     vtx = *((Vtx *) (&D_80040980));
+#endif
     mtx = currentPlayerGetViewToWorldMtxf();
     gdl = *((Gfx **) gdlarg);
     vertices = dynAllocateVertices(4);

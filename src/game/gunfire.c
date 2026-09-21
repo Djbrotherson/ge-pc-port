@@ -1736,7 +1736,14 @@ Gfx *set_enviro_fog_for_items_in_solo_watch_menu(Gfx *gdl, ITEM_IDS itemid, Mtxf
 #else
     ModelRenderData renderdata = *((ModelRenderData *) (&D_80035D00));
 #endif
+#ifdef PORT
+    /* The host modelInit path writes the complete widened Model object.
+     * The retail decomp used a prefix-sized stack object and adjacent frame
+     * storage; that is not a valid object layout on LP64. */
+    Model model;
+#else
     ModelHeader model;
+#endif
     u8 spb8[0x80];
     s32 padb4;
     Mtxf sp74;
@@ -1983,7 +1990,11 @@ void sub_GAME_7F06351C(struct coord3d* arg0, Mtxf* arg1, Mtxf* arg2, Mtxf* arg3,
 Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animatebuttons, WatchContButtonPositions* buttonpositions, s8* contpadnum)
 {
     ModelRenderData renderdata;
+#ifdef PORT
+    Model modelstack;
+#else
     struct ModelHeader modelstack;
+#endif
     s32 i;
     s32 j;
     s32 offset;
@@ -5214,7 +5225,15 @@ void sub_GAME_7F068508(GUNHAND handnum, f32 floor_y_pos)
         return;
     }
  
+#ifdef PORT
+    /* Retail reads three adjacent zero-valued u32 globals as one coord3d.
+     * Express the value directly instead of depending on object adjacency. */
+    rot.x = 0.0f;
+    rot.y = 0.0f;
+    rot.z = 0.0f;
+#else
     rot = *((coord3d *) (&D_80035EA4));
+#endif
     casing->floor_y_pos = floor_y_pos;
  
     if (((((weaponid == ITEM_WPPK) || (weaponid == ITEM_WPPKSIL)) || (weaponid == ITEM_TT33)) || (weaponid == ITEM_SILVERWPPK)) || (weaponid == ITEM_GOLDWPPK))
@@ -5225,7 +5244,11 @@ void sub_GAME_7F068508(GUNHAND handnum, f32 floor_y_pos)
  
         rand = ((f32) ((u32) randomGetNext())) * 2.3283064e-10f;
         casing->vel.y = ((rand * 2.5f) * 0.0625f) + 2.5f;
+#ifdef PORT
+        casing->vel.z = 0.0f;
+#else
         casing->vel.z = frac * 0.0f;
+#endif
  
         mtx4RotateVecInPlace(THROWMTX, &casing->vel);
  
@@ -5531,7 +5554,15 @@ void sub_GAME_7F068508(GUNHAND handnum, f32 floor_y_pos)
         return;
     }
  
+#ifdef PORT
+    /* Retail reads three adjacent zero-valued u32 globals as one coord3d.
+     * Express the value directly instead of depending on object adjacency. */
+    rot.x = 0.0f;
+    rot.y = 0.0f;
+    rot.z = 0.0f;
+#else
     rot = *((coord3d *) (&D_80035EA4));
+#endif
     casing->floor_y_pos = floor_y_pos;
  
     if (((((weaponid == ITEM_WPPK) || (weaponid == ITEM_WPPKSIL)) || (weaponid == ITEM_TT33)) || (weaponid == ITEM_SILVERWPPK)) || (weaponid == ITEM_GOLDWPPK))
@@ -5542,7 +5573,11 @@ void sub_GAME_7F068508(GUNHAND handnum, f32 floor_y_pos)
  
         rand = ((f32) ((u32) randomGetNext())) * 2.3283064e-10f;
         casing->vel.y = ((rand * 2.5f) * 0.0625f) + 2.5f;
+#ifdef PORT
+        casing->vel.z = 0.0f;
+#else
         casing->vel.z = frac * 0.0f;
+#endif
  
         mtx4RotateVecInPlace(THROWMTX, &casing->vel);
  
