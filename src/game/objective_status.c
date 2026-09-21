@@ -381,7 +381,7 @@ void display_objective_status_text_on_status_change(void)
             if (get_difficulty_for_objective(i) <= lvlGetSelectedDifficulty()) {
                 if (j_text_trigger != 0)
                 {
-                    sprintf(&buffer, "%s \x80%c ", langGet(getStringID(LMISC, MISC_STR_2C_OBJECTIVE)), availableindex + 0x1A);
+                    sprintf(buffer, "%s \x80%c ", langGet(getStringID(LMISC, MISC_STR_2C_OBJECTIVE)), availableindex + 0x1A);
                 }
                 else
                 {
@@ -389,20 +389,20 @@ void display_objective_status_text_on_status_change(void)
                 }
                 if (status == OBJECTIVESTATUS_COMPLETE)
                 {
-                    strcat(&buffer, langGet(getStringID(LMISC, MISC_STR_2D_COMPLETED_LF)));
+                    strcat(buffer, langGet(getStringID(LMISC, MISC_STR_2D_COMPLETED_LF)));
                 }
                 else if (status == OBJECTIVESTATUS_INCOMPLETE)
                 {
-                    strcat(&buffer, langGet(getStringID(LMISC, MISC_STR_2E_INCOMPLETE_LF)));
+                    strcat(buffer, langGet(getStringID(LMISC, MISC_STR_2E_INCOMPLETE_LF)));
                 }
                 else if (status == OBJECTIVESTATUS_FAILED)
                 {
-                    strcat(&buffer, langGet(getStringID(LMISC, MISC_STR_2F_FAILED_LF)));
+                    strcat(buffer, langGet(getStringID(LMISC, MISC_STR_2F_FAILED_LF)));
                 }
 #ifdef VERSION_US
-                hudmsgBottomShow(&buffer);
+                hudmsgBottomShow(buffer);
 #else
-                jp_hudmsgBottomShow(&buffer);
+                jp_hudmsgBottomShow(buffer);
 #endif
             }
         }
