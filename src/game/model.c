@@ -2907,7 +2907,7 @@ static ModelAnimation *modelPortResolveAnimation(ModelAnimation *anim, void *cal
     /* Original N64-layout byte offset leaked through as a pointer/token. */
     if (token < 0x10000u) {
         ModelAnimation *resolved = (ModelAnimation *)(base + (uintptr_t)token);
-        sysLogPrintf(LOG_WARNING,
+        sysLogPrintf(LOG_WARNINGING,
                      "R36S ANIM resolved raw token=0x%08x -> %p caller=%p",
                      token, (void *)resolved, caller);
         return resolved;
@@ -2920,7 +2920,7 @@ static ModelAnimation *modelPortResolveAnimation(ModelAnimation *anim, void *cal
      */
     if ((uintptr_t)token >= base && (uintptr_t)token < limit) {
         ModelAnimation *resolved = (ModelAnimation *)(uintptr_t)token;
-        sysLogPrintf(LOG_WARNING,
+        sysLogPrintf(LOG_WARNINGING,
                      "R36S ANIM zero-extended token=0x%08x -> %p caller=%p",
                      token, (void *)resolved, caller);
         return resolved;
