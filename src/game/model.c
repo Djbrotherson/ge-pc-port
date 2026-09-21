@@ -2742,8 +2742,24 @@ void modelCopyAnimForMerge(Model *model, f32 timemerge)
 }
 
 
+#ifdef PORT
+static ModelAnimation *modelPortResolveAnimation(ModelAnimation *anim, void *caller);
+#endif
+
 void modelSetAnimation2(Model *model, ModelAnimation *anim, s32 flip, f32 frame, f32 speed, f32 arg5)
 {
+#ifdef PORT
+    /*
+     * This is the real animation-pointer sink. Some game paths call this
+     * function directly and therefore bypass modelSetAnimation() and
+     * modelSetAnimationWithMerge(). Resolve/validate before poisoning
+     * model->anim; this closes the 0x90xxxxxx token crash seen on R36S.
+     */
+    anim = modelPortResolveAnimation(anim, __builtin_return_address(0));
+    if (anim == NULL) {
+        return;
+    }
+#endif
     s32 hadNoAnim = !model->anim;
     s32 padding;
     s32 type;
@@ -3098,6 +3114,19 @@ void modelSetAnimFrame(Model* model, f32 frame)
     s32 framea;
     s32 frameb;
     bool forwards;
+
+#ifdef PORT
+    /*
+     * Last-resort invariant at the dereference boundary. Model structs can be
+     * copied/merged and may carry an old 32-bit token even when no setter is
+     * involved. Never dereference model->anim until it has been normalized to
+     * a native pointer in the loaded animation blob.
+     */
+    model->anim = modelPortResolveAnimation(model->anim, __builtin_return_address(0));
+    if (model->anim == NULL) {
+        return;
+    }
+#endif
 
     framea = floorFloatToInt(frame);
 
