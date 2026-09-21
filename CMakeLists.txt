@@ -224,6 +224,14 @@ add_compile_options(
   -fno-strict-aliasing
   -funsigned-char
   -fwrapv
+  # The decomp supplies its own N64-era implementations with non-libc
+  # signatures. Do not let GCC substitute/assume host built-ins for them.
+  -fno-builtin-acos
+  -fno-builtin-asin
+  -fno-builtin-toupper
+  -fno-builtin-isdigit
+  -fno-builtin-isalpha
+  -fno-builtin-isspace
   -include "versioninfo.h"
 )
 # The decompiled game code has a class of latent fixed-size stack-buffer
