@@ -179,14 +179,36 @@ void sub_GAME_7F09BAC4(Vertex *find, Vertex *replacement) {
     var_s1 = chrpropGetActiveTail();
     while (var_s1 != NULL) {
         if (var_s1->type == 1) {
+#ifdef PORT
+            /*
+             * PROP_TYPE_OBJ records carry an ObjectRecord here, not a ChrRecord.
+             * Some activated/despawned objects can remain on the active list for
+             * a tick with model == NULL (D255). The N64 decomp's union/type pun
+             * hid that lifetime edge; on a host it becomes an unconditional
+             * NULL dereference while vtxstore repairs display-list references.
+             */
+            Model *model = var_s1->obj != NULL ? var_s1->obj->model : NULL;
+
+            if (model == NULL || model->obj == NULL) {
+                var_s1 = var_s1->prev;
+                continue;
+            }
+
+            var_v1 = model->obj;
+#else
             var_v0 = var_s1->chr;
             var_v1 = ((Model*)var_v0->chrflags)->obj;
+#endif
             var_a1 = var_v1->RootNode;
             while (var_a1 != NULL) {
                 val = var_a1->Opcode & 0xFF;
                 if (val == 0x18) {
                     temp_v0_2 = (ModelRwData_DisplayList_CollisionRecord *)
+#ifdef PORT
+                        modelGetNodeRwData(model, var_a1);
+#else
                         modelGetNodeRwData((Model*)var_v0->chrflags, var_a1);
+#endif
                     if (find == temp_v0_2->Vertices) {
                         temp_v0_2->Vertices = replacement;
                     }
