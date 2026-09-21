@@ -2,24 +2,6 @@ name: ARM64 Port Audit
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-      - r36s-first-frame-noaudio
-    paths:
-      - 'src/**'
-      - 'include/**'
-      - 'port/**'
-      - 'tools/arm64_port_audit.py'
-      - '.github/workflows/arm64-port-audit.yml'
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'include/**'
-      - 'port/**'
-      - 'tools/arm64_port_audit.py'
-      - '.github/workflows/arm64-port-audit.yml'
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
