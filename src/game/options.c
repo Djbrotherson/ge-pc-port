@@ -3055,8 +3055,8 @@ Gfx *sub_GAME_7F0A9AB8(Gfx *gdl)
         char strPlus[] = "(+)\n";
         char strS[] = "(S)\n";
         char str3D[] = "(3D)\n";
-        char *ctext = NULL;
-        char *dpadtext = NULL;
+        char *ctext = OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 12));
+        char *dpadtext = OPTIONS_TEXT(*(u16 *)((u8 *)game_control_styles + (g_CurrentPlayer->cur_player_control_type_0 * 20) + 14));
         s32 buttons;
         s32 showmovesight;
         volatile unsigned int y;
