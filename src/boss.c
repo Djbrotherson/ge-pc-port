@@ -250,12 +250,12 @@ void bossInitMainthreadData(void)
                 {
                     sprintf(portTokenBuf, "-level_%c%c -hard%c %s",
                             lvl[0], lvl[1], hard[0],
-                            memallocstringtable[k].string);
+                            (char *)memallocstringtable[k].string);
                 }
                 else
                 {
                     sprintf(portTokenBuf, "-level_%c%c %s",
-                            lvl[0], lvl[1], memallocstringtable[k].string);
+                            lvl[0], lvl[1], (char *)memallocstringtable[k].string);
                 }
 
                 tokenSetString(portTokenBuf);

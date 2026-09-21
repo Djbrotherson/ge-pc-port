@@ -2062,7 +2062,7 @@ static void gfx_sp_tri1(uint8_t vtx1_idx, uint8_t vtx2_idx, uint8_t vtx3_idx, bo
                         "[D116/vbo] rect vtx%d  x=%.4f y=%.4f  u=%.4f v=%.4f  "
                         "(raw v->u=%.1f  texw=%.0f texw2=%u  tile.uls=%d lrs=%d cms=%d)\n",
                         i, v_arr[i]->x, v_arr[i]->y, u / tex_width[t], v / tex_height[t],
-                        v_arr[i]->u, tex_width[t], tex_width2[i],
+                        v_arr[i]->u, (double)tex_width[t], tex_width2[i],
                         rdp.texture_tile[rdp.first_tile_index + tile].uls,
                         rdp.texture_tile[rdp.first_tile_index + tile].lrs,
                         rdp.texture_tile[rdp.first_tile_index + tile].cms);
