@@ -7098,7 +7098,7 @@ Gfx * constructor_menu0C_missionfailed(Gfx *DL)
     #endif
     DL = frontSetupMenuBackground(DL);
     DL = microcode_constructor(DL);
-    DL = print_current_solo_briefing_stage_name(DL, &stagename);
+    DL = print_current_solo_briefing_stage_name(DL, stagename);
 
     text = langGet(getStringID(LTITLE, TITLE_STR_98_REPORT)); //REPORT:*
     x = 0x37;
@@ -7139,7 +7139,7 @@ Gfx * constructor_menu0C_missionfailed(Gfx *DL)
     y = 0xA7;
     DL = frontPrintText(DL, &x, &y, text, ptrFontZurichBoldChars, ptrFontZurichBold, phi_v1, viGetX(), viGetY(), 0, 0);
 
-    DL = print_objectives_and_status_to_menu(DL, 0xBF, &stagename, 1);
+    DL = print_objectives_and_status_to_menu(DL, 0xBF, stagename, 1);
     DL = frontAddNextTabText(DL);
     DL = frontAddPreviousTabText(DL);
     DL = frontDrawCursor(DL);

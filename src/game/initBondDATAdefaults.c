@@ -169,7 +169,7 @@ void sets_a_bunch_of_BONDdata_values_to_default(void)
             (void *)((u8 *)ptr_animation_table + (u32)g_BondMoveAnimationSetup[i].anim_id),
             (s32)g_BondMoveAnimationSetup[i].loopframe,
             (s32)g_BondMoveAnimationSetup[i].endframe,
-            &spD0);
+            spD0);
 
         g_BondMoveAnimationSetup[i].speedMultiplier = (f32) (((f32) spD0[2] * IDO_POINT_ONE) / (g_BondMoveAnimationSetup[i].endframe - g_BondMoveAnimationSetup[i].loopframe));
     }

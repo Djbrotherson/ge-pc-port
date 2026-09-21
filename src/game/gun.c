@@ -691,16 +691,16 @@ s32 gunSample1PTransform(Weapon1PTransformKeyframe *keyframes, f32 time, Mtxf *m
     frac = time / current->duration;
     tangent = current->interpParam;
 
-    quaternion_set_rotation_around_xyzf(&current[-1].rot, &q0);
-    quaternion_set_rotation_around_xyzf(&current->rot, &q1);
-    quaternion_set_rotation_around_xyzf(&current[1].rot, &q2);
-    quaternion_set_rotation_around_xyzf(&current[2].rot, &q3);
+    quaternion_set_rotation_around_xyzf(&current[-1].rot, q0);
+    quaternion_set_rotation_around_xyzf(&current->rot, q1);
+    quaternion_set_rotation_around_xyzf(&current[1].rot, q2);
+    quaternion_set_rotation_around_xyzf(&current[2].rot, q3);
 
-    quaternion_ensure_shortest_path(&q1, &q2);
-    quaternion_ensure_shortest_path(&q2, &q3);
-    quaternion_ensure_shortest_path(&q1, &q0);
+    quaternion_ensure_shortest_path(q1, q2);
+    quaternion_ensure_shortest_path(q2, q3);
+    quaternion_ensure_shortest_path(q1, q0);
 
-    quaternion_7F05C2F0(&q0, &q1, &q2, &q3, frac, &qResult);
+    quaternion_7F05C2F0(q0, q1, q2, q3, frac, qResult);
 
     coord3dCubicSplineInterp(&current[-1].pos, &current->pos, &current[1].pos, &current[2].pos, frac, tangent, &posResult);
 
@@ -711,7 +711,7 @@ s32 gunSample1PTransform(Weapon1PTransformKeyframe *keyframes, f32 time, Mtxf *m
         qResult[1] = -qResult[1];
     }
 
-    quaternion_to_matrix(&qResult, matrix);
+    quaternion_to_matrix(qResult, matrix);
     matrix_4x4_set_position(&posResult, matrix);
 
     return 1;

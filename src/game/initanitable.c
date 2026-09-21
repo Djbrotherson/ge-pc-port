@@ -31,8 +31,8 @@ struct animation_table_data * ptr_animation_table;
 //data
 struct bondstruct_unk_animation_related D_80029D60 = {
     NULL,
-    &animations_frame_buffer, // Two pointers. One always points to the start of the buffer, the other can be modified.
-    &animations_frame_buffer
+    animations_frame_buffer, // Two pointers. One always points to the start of the buffer, the other can be modified.
+    animations_frame_buffer
 };
 
 s32 animation_table_ptrs1[] = {

@@ -6607,7 +6607,7 @@ void increment_num_suicides_display_MP(void) {
 
         currentTime = getMissiontimer();
 
-        sprintf(&buffer, &aSD_0, langGet(getStringID(LGUN, GUN_STR_DE_SUICIDECOUNT)), g_CurrentPlayer->num_suicides); // "suicide count"
+        sprintf(buffer, aSD_0, langGet(getStringID(LGUN, GUN_STR_DE_SUICIDECOUNT)), g_CurrentPlayer->num_suicides); // "suicide count"
 
 #if defined(VERSION_JP) || defined(VERSION_EU)
 		jp_hudmsgBottomShow((char *)buffer);

@@ -71,6 +71,15 @@ void alCSeqNextEvent(ALCSeq *seq,ALEvent *evt)
     u32     firstTrack = 0;
     u32     lastTicks = seq->lastDeltaTicks;
 
+#ifdef PORT
+    if (!seq->validTracks)
+    {
+        memset(evt, 0, sizeof(*evt));
+        evt->type = AL_TRACK_END;
+        return;
+    }
+#endif
+
 #ifdef _DEBUG
     /* sct 1/17/96 - Warn if we are beyond the end of sequence. */
     if (!seq->validTracks)

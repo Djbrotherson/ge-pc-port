@@ -43,21 +43,21 @@ static s32 sub_GAME_7F05AB70(s32 arg0)
     {
         mask = 7;
         shift = 3;
-        table = &table_3;
+        table = table_3;
         arg0 = arg0 - 0x7FE0;
     }
     else if (arg0 >= 0x7800)
     {
         mask = 0x1F;
         shift = 5;
-        table = &table_2;
+        table = table_2;
         arg0 = arg0 - 0x7800;
     }
     else
     {
         mask = 0x1FF;
         shift = 9;
-        table = &table_1;
+        table = table_1;
     }
 
     first = table[arg0 >> shift];

@@ -535,7 +535,7 @@ void fileValidateSaves(void)
         }
 
         // Block read 5 saves starting at address 4th byte (? bug: address must be multiple of 8 - return is -1)
-        joyGamePakLongRead(4, &saves, sizeof(save_data) * 5);
+        joyGamePakLongRead(4, saves, sizeof(save_data) * 5);
 
         for (i = SAVESLOT1; i != SAVESLOTRAMROM; i++) //only != matches
         {
