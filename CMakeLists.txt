@@ -296,11 +296,8 @@ add_compile_options(
   $<$<COMPILE_LANGUAGE:C>:-Werror=format>
   $<$<COMPILE_LANGUAGE:C>:-Werror=return-type>
   $<$<COMPILE_LANGUAGE:C>:-Werror=sequence-point>
-  # TEMP full-tree sweep: collect every remaining uninitialized warning in
-  # one AArch64 compile instead of stopping one translation unit at a time.
-  # Restore -Werror=uninitialized after the resulting batch is fixed.
-  $<$<COMPILE_LANGUAGE:C>:-Wno-error=uninitialized>
-  $<$<COMPILE_LANGUAGE:C>:-Wno-error=maybe-uninitialized>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=uninitialized>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=maybe-uninitialized>
   $<$<COMPILE_LANGUAGE:C>:-Werror=overflow>
 )
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-function>)
