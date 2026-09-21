@@ -152,6 +152,7 @@ jobs:
           PKG_CONFIG_LIBDIR: /usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
+          mkdir -p build-pc
           cmake -S . -B build-pc \
             -DCMAKE_TOOLCHAIN_FILE=cmake/toolchains/aarch64-linux.cmake \
             -DROMID=ntsc-final \
