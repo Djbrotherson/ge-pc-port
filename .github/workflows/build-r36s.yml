@@ -16,6 +16,7 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - 'Makefile'
+      - 'tools/r36s_semantic_audit.py'
       - '.github/workflows/build-r36s.yml'
   pull_request:
     branches:
@@ -87,6 +88,11 @@ jobs:
           EOF
           cc -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer /tmp/r36s_pointer_regression.c -o /tmp/r36s_pointer_regression
           ASAN_OPTIONS=detect_leaks=0 /tmp/r36s_pointer_regression
+
+      - name: Run semantic host-port gate
+        run: |
+          set -o pipefail
+          python3 tools/r36s_semantic_audit.py | tee semantic-audit.log
 
       - name: Install AArch64 cross-build dependencies
         run: |

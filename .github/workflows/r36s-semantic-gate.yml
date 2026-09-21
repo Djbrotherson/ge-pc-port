@@ -2,23 +2,6 @@ name: R36S Semantic Host-Port Gate
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - r36s-first-frame-noaudio
-    paths:
-      - 'src/**'
-      - 'include/**'
-      - 'port/**'
-      - 'tools/r36s_semantic_audit.py'
-      - '.github/workflows/r36s-semantic-gate.yml'
-  pull_request:
-    paths:
-      - 'src/**'
-      - 'include/**'
-      - 'port/**'
-      - 'tools/r36s_semantic_audit.py'
-      - '.github/workflows/r36s-semantic-gate.yml'
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
