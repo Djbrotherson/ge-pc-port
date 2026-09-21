@@ -2509,8 +2509,8 @@ Gfx *unused_draw_watch_inventory_page(Gfx *gdl, Mtx *param_2) {
     s32 sp6C;
     s32 sp64,sp68; //unused?
 
-    s32 sp60;
-    s32 sp5C;
+    s32 sp60 = 0;
+    s32 sp5C = 0;
     s32 sp58;
     s32 sp54;
     struct font *pFontFile;
