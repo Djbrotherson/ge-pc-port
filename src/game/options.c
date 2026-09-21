@@ -7,6 +7,7 @@
 #include <snd.h>
 #include <random.h>
 #include "options.h"
+#include "bondinv.h"
 #include "bondview.h"
 #include "dyn.h"
 #include "file.h"
