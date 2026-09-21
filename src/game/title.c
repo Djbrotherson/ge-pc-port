@@ -172,7 +172,15 @@ Gfx *titleRenderFolderMenuBackground(Gfx *gdl, s32 xOffset, struct FolderSelectC
     gDPSetTextureFilter(gdl++, G_TF_POINT);
     gDPPipeSync(gdl++);
 
+#ifdef PORT
+    /* Intentional 32-bit RDRAM/GBI token, carried through the pointer-typed
+     * decomp API until gDPLoadTextureBlock writes it to the display list. */
+    return titleRenderFolderMenuBackgroundLines(gdl,
+        (u8 *)(uintptr_t)OS_K0_TO_PHYSICAL(dword_CODE_bss_8006958C),
+        xOffset, topColour, bottomColour);
+#else
     return titleRenderFolderMenuBackgroundLines(gdl, OS_K0_TO_PHYSICAL(dword_CODE_bss_8006958C), xOffset, topColour, bottomColour);
+#endif
 }
 
 

@@ -291,6 +291,7 @@ add_compile_options(
   $<$<COMPILE_LANGUAGE:C>:-Werror=implicit-function-declaration>
   $<$<COMPILE_LANGUAGE:C>:-Werror=pointer-to-int-cast>
   $<$<COMPILE_LANGUAGE:C>:-Werror=int-to-pointer-cast>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=int-conversion>
   $<$<COMPILE_LANGUAGE:C>:-Werror=pointer-compare>
   $<$<COMPILE_LANGUAGE:C>:-Werror=format>
   $<$<COMPILE_LANGUAGE:C>:-Werror=return-type>

@@ -225,7 +225,7 @@ void load_object_fill_header(struct ModelFileHeader *objheader, u8 *name, u8* ds
         fflush(stderr);
     }
 #endif
-    sub_GAME_7F075A90(objheader, 0x5000000, filedata);
+    sub_GAME_7F075A90(objheader, 0x5000000, (uintptr_t)filedata);
     sub_GAME_7F0762E0(objheader, name, dst, buffer);
 }
 
