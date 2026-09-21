@@ -11,6 +11,7 @@
 #include "chrobjdata.h"
 #include "gbi_extension.h"
 #include "initunk_005520.h"
+#include "initanitable.h"
 #include "math_asinfacosf.h"
 #include "math_floor.h"
 #include "math_ceil.h"
@@ -2869,7 +2870,76 @@ void modelSetAnimation2(Model *model, ModelAnimation *anim, s32 flip, f32 frame,
 }
 
 
+#ifdef PORT
+/*
+ * A ModelAnimation passed to modelSetAnimation* must be either:
+ *   - a native pointer into the loaded animation blob, or
+ *   - an original 32-bit animation-table byte offset.
+ *
+ * Several decomp tables intentionally retain 32-bit tokens. If one leaks
+ * across a native-pointer boundary, resolve it here instead of letting a
+ * bogus pointer poison Model.anim and crash in modelSetAnimFrame.
+ *
+ * The generated animation offsets top out below 0x10000 (see
+ * assets/animationtable_data.h / initanitable.h), so this range is a strict
+ * boundary rather than a general "guess a pointer" heuristic.
+ */
+static ModelAnimation *modelPortResolveAnimation(ModelAnimation *anim, void *caller)
+{
+    const uintptr_t base = (uintptr_t)ptr_animation_table;
+    const uintptr_t limit = base + 0x10000u;
+    const uintptr_t raw = (uintptr_t)anim;
+    const u32 token = (u32)raw;
+
+    if (anim == NULL || ptr_animation_table == NULL) {
+        sysLogPrintf(LOG_ERROR,
+                     "R36S ANIM reject null/uninitialised anim=%p base=%p caller=%p",
+                     (void *)anim, (void *)ptr_animation_table, caller);
+        return NULL;
+    }
+
+    /* Normal native host pointer. */
+    if (raw >= base && raw < limit) {
+        return anim;
+    }
+
+    /* Original N64-layout byte offset leaked through as a pointer/token. */
+    if (token < 0x10000u) {
+        ModelAnimation *resolved = (ModelAnimation *)(base + (uintptr_t)token);
+        sysLogPrintf(LOG_WARN,
+                     "R36S ANIM resolved raw token=0x%08x -> %p caller=%p",
+                     token, (void *)resolved, caller);
+        return resolved;
+    }
+
+    /*
+     * A few legacy paths can cast a valid low-32-bit host pointer through s32.
+     * Zero-extension reconstructs it when the animation blob itself is in the
+     * deliberate <4 GiB game-DRAM mapping.
+     */
+    if ((uintptr_t)token >= base && (uintptr_t)token < limit) {
+        ModelAnimation *resolved = (ModelAnimation *)(uintptr_t)token;
+        sysLogPrintf(LOG_WARN,
+                     "R36S ANIM zero-extended token=0x%08x -> %p caller=%p",
+                     token, (void *)resolved, caller);
+        return resolved;
+    }
+
+    sysLogPrintf(LOG_ERROR,
+                 "R36S ANIM rejected invalid pointer=%p token=0x%08x base=%p caller=%p",
+                 (void *)anim, token, (void *)ptr_animation_table, caller);
+    return NULL;
+}
+#endif
+
+
 void modelSetAnimationWithMerge(Model *model, ModelAnimation *modelAnimation, s32 flip, f32 startframe, f32 speed, f32 timemerge, s32 domerge) {
+#ifdef PORT
+    modelAnimation = modelPortResolveAnimation(modelAnimation, __builtin_return_address(0));
+    if (modelAnimation == NULL) {
+        return;
+    }
+#endif
     if (domerge != 0) {
         modelCopyAnimForMerge(model, timemerge);
     }
@@ -2878,6 +2948,12 @@ void modelSetAnimationWithMerge(Model *model, ModelAnimation *modelAnimation, s3
 
 
 void modelSetAnimation(Model *model, ModelAnimation *modelAnimation, s32 flip, f32 startframe, f32 speed, f32 merge) {
+#ifdef PORT
+    modelAnimation = modelPortResolveAnimation(modelAnimation, __builtin_return_address(0));
+    if (modelAnimation == NULL) {
+        return;
+    }
+#endif
     modelCopyAnimForMerge(model, merge);
     modelSetAnimation2(model, modelAnimation, flip, startframe, speed, merge);
 }
