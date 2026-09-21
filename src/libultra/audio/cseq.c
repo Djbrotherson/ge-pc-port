@@ -75,7 +75,7 @@ void alCSeqNextEvent(ALCSeq *seq,ALEvent *evt)
 #ifdef PORT
     if (!seq->validTracks)
     {
-        memset(evt, 0, sizeof(*evt));
+        *evt = (ALEvent){0};
         evt->type = AL_TRACK_END;
         return;
     }
