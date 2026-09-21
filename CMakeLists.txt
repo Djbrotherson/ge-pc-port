@@ -284,6 +284,15 @@ add_compile_options(
   -Wno-error=implicit-function-declaration
 )
 add_compile_options($<$<COMPILE_LANGUAGE:C>:-Wno-pointer-sign>)
+# Host-port safety gate: these warning classes repeatedly corresponded to real
+# LP64/AArch64 bugs. Intentional N64 address tokens must cross through
+# uintptr_t explicitly so accidental narrowing cannot silently compile.
+add_compile_options(
+  $<$<COMPILE_LANGUAGE:C>:-Werror=implicit-function-declaration>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=pointer-to-int-cast>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=int-to-pointer-cast>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=pointer-compare>
+)
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-function>)
 
 # The decomp's `#define inherits struct` idiom (src/bondtypes.h) makes the base

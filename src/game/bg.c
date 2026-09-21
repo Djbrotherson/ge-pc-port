@@ -5435,7 +5435,7 @@ void bgRoomCalcBB(s32 room) // canonical name
 
     roomdata = &ptr_bgdata_room_fileposition_list[room];
 
-    if (roomdata->pPointTableBin == NULL)
+    if (roomdata->pPointTableBin == 0)
     {
 #ifdef PORT
         if ((room < dword_CODE_bss_8007B9DC) && firststaninroom[room] != NULL)

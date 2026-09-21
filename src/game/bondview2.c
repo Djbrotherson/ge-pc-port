@@ -807,8 +807,8 @@ void bondviewSetCameraMode(s32 arg0)
 
 #ifdef PORT
     if (getenv("GE_D160")) {
-        osSyncPrintf("D160: bondviewSetCameraMode(%d) stage=%d IntroSwirl=%d introAnimIdx=%d caller=%p\n",
-                     (int)arg0, (int)bossGetStageNum(), (int)g_IntroSwirl,
+        osSyncPrintf("D160: bondviewSetCameraMode(%d) stage=%d IntroSwirl=%p introAnimIdx=%d caller=%p\n",
+                     (int)arg0, (int)bossGetStageNum(), (void *)g_IntroSwirl,
                      (int)g_IntroAnimationIndex, __builtin_return_address(0));
     }
 #endif

@@ -21,7 +21,7 @@
  * libaudio.h: the bondtypes chain reaches snd.h -> <PR/libaudio.h> while
  * ultra64.h is still mid-parse.) Inert in the N64 build (no -DPORT).
  *
- * C TUs only: C++ translation units (port/fast3d/*.cpp) also reach this header
+ * C TUs only: C++ translation units under port/fast3d also reach this header
  * (SDL_stdinc.h -> <stdarg.h> -> port/shim/stdarg.h -> include/stdarg.h ->
  * <ultra64.h>), but pulling the bondtypes/bondconstants chain into C++ breaks
  * on `struct ALSoundState*` in src/bondtypes.h (C forbids nothing, C++ does:
