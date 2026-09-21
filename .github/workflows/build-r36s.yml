@@ -126,6 +126,18 @@ jobs:
             libegl1:arm64 \
             zlib1g:arm64
 
+          # SDL2's common headers include <SDL2/_real_SDL_config.h>, which is
+          # architecture-specific and normally comes from libsdl2-dev:arm64.
+          # Installing that package conflicts with native dev tooling on the
+          # hosted amd64 runner, so extract only its ARM64 header payload.
+          mkdir -p /tmp/sdl2-arm64-dev
+          cd /tmp
+          apt-get download libsdl2-dev:arm64
+          SDL2_ARM64_DEB="$(ls -1 libsdl2-dev_*_arm64.deb | head -n1)"
+          dpkg-deb -x "$SDL2_ARM64_DEB" /tmp/sdl2-arm64-dev
+          test -f /tmp/sdl2-arm64-dev/usr/include/aarch64-linux-gnu/SDL2/_real_SDL_config.h
+          cd "$GITHUB_WORKSPACE"
+
           # Runtime packages provide the real ARM64 shared objects but not the
           # unversioned linker names normally supplied by *-dev:arm64.
           sudo ln -sf libSDL2-2.0.so.0 /usr/lib/aarch64-linux-gnu/libSDL2.so
@@ -146,8 +158,8 @@ jobs:
             -DZLIB_INCLUDE_DIR=/usr/include \
             -DZLIB_LIBRARY=/usr/lib/aarch64-linux-gnu/libz.so \
             -DGL_LIBRARY=/usr/lib/aarch64-linux-gnu/libGLESv2.so \
-            -DCMAKE_C_FLAGS="-DUSE_GLES=1" \
-            -DCMAKE_CXX_FLAGS="-DUSE_GLES=1" \
+            -DCMAKE_C_FLAGS="-DUSE_GLES=1 -I/tmp/sdl2-arm64-dev/usr/include/aarch64-linux-gnu" \
+            -DCMAKE_CXX_FLAGS="-DUSE_GLES=1 -I/tmp/sdl2-arm64-dev/usr/include/aarch64-linux-gnu" \
             -DCMAKE_EXE_LINKER_FLAGS="-Wl,-Map=ge007.link.map -Wl,--cref"
 
       - name: Build ge007.aarch64
