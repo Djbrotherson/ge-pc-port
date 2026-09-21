@@ -8,6 +8,15 @@ on:
       - main
       - r36s-native-gles
       - r36s-first-frame-noaudio
+    paths:
+      - 'src/**'
+      - 'include/**'
+      - 'port/**'
+      - 'assets/**'
+      - 'cmake/**'
+      - 'CMakeLists.txt'
+      - 'Makefile'
+      - '.github/workflows/build-r36s.yml'
   pull_request:
     branches:
       - main
