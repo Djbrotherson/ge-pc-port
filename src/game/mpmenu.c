@@ -1084,7 +1084,7 @@ Gfx *mp_watch_menu_display(Gfx *gdl)
     s32 h2;
     char rankbuffer[4];
     s32 two_player_x_offset;
-    char *text;
+    char *text = (char *)ascii_MP_watch_menu_BLANK;
     s32 scores[4];
     s32 i;
     TEXTCOLORS current_colour;
