@@ -338,7 +338,7 @@ Gfx *draw_background_health_and_armor_transitioning(Gfx *gdl, Mtx *param_2);
 Gfx *draw_background_health_and_armor(Gfx *gdl, Mtx *arg1, s32 zoom_squish);
 void game_option_select_value(u32 *param_1, u32 param_2);
 void watch_adjust_volume_slider(u16* arg0);
-Gfx *sub_GAME_7F0A3B40(Gfx *gdl, s32 *arg1);
+Gfx *sub_GAME_7F0A3B40(Gfx *gdl, uintptr_t arg1);
 void update_volume_slider_verts(struct WatchVertex *verts, f32 fill_amount, s32 transition_width);
 void sub_GAME_7F0A9684(s8 contpadnum, s32 *counter, f32 *value, f32 *step);
 Gfx *display_text_buttons_dual_control(Gfx *gdl);
