@@ -31,6 +31,9 @@ typedef struct ModelGroupMtxBuildArg {
 
 // forward declarations
 void modelSetAnimFrame2WithChrStuff(struct Model *model, f32 framea, f32 frameb, f32 frame2a, f32 frame2b);
+#ifdef PORT
+static ModelAnimation *modelPortResolveAnimation(ModelAnimation *anim, void *caller);
+#endif
 
 
 
@@ -2497,6 +2500,25 @@ void subcalcmatrices(ModelRenderData *arg0, struct Model *arg1)
          * NULL secondary bitstream. Normalize that impossible state here once
          * for all node processors and render the primary animation normally.
          */
+        /*
+         * Normalize stored animation pointers before any frame decode. anim2
+         * can outlive the setter that created it because merge state is copied
+         * between models; resolve it independently from the primary pointer.
+         */
+        arg1->anim = modelPortResolveAnimation(arg1->anim, __builtin_return_address(0));
+        if (arg1->anim == NULL) {
+            return;
+        }
+
+        if (arg1->anim2 != NULL) {
+            arg1->anim2 = modelPortResolveAnimation(arg1->anim2, __builtin_return_address(0));
+            if (arg1->anim2 == NULL) {
+                arg1->unk84 = 0.0f;
+                arg1->unk64 = 0;
+                arg1->unk68 = 0;
+            }
+        }
+
         if (arg1->unk84 != 0.0f && arg1->anim2 == NULL) {
             static int warned_no_anim2 = 0;
             if (warned_no_anim2 < 8) {
@@ -2706,6 +2728,17 @@ void modelCopyAnimForMerge(Model *model, f32 timemerge)
     if (0.0f < timemerge) {
         anim = model->anim;
 
+#ifdef PORT
+        if (anim != NULL) {
+            anim = modelPortResolveAnimation(anim, __builtin_return_address(0));
+            if (anim == NULL) {
+                model->anim = NULL;
+            } else {
+                model->anim = anim;
+            }
+        }
+#endif
+
         if (anim != NULL) {
             root = model->obj->RootNode;
             opcode = root->Opcode & 0xff;
@@ -2741,10 +2774,6 @@ void modelCopyAnimForMerge(Model *model, f32 timemerge)
     model->anim2 = NULL;
 }
 
-
-#ifdef PORT
-static ModelAnimation *modelPortResolveAnimation(ModelAnimation *anim, void *caller);
-#endif
 
 void modelSetAnimation2(Model *model, ModelAnimation *anim, s32 flip, f32 frame, f32 speed, f32 arg5)
 {
