@@ -9512,7 +9512,9 @@ void sub_GAME_7F04E720(PropRecord *prop, struct ShotData *hitinfo)
     s8 g[4];
     ModelNode *hitnode;
 
+#ifndef PORT
     if (hit.hitpos.z);
+#endif
 
     if (((obj->runtime_bitflags & RUNTIMEBITFLAG_00001000) == FALSE) && (prop->flags & PROPFLAG_ONSCREEN))
     {

@@ -2519,6 +2519,9 @@ s32 interface_menu05_fileselect(void)
     {
         frontChangeMenu(MENU_LEGAL_SCREEN, TRUE);
     }
+#ifdef PORT
+    return 0;
+#endif
 }
 
 
@@ -3453,6 +3456,9 @@ Gfx *constructor_menu07_missionsel(Gfx *DL)
 
     DL = frontAddPreviousTabText(DL);
     DL = frontDrawCursor(DL);
+#ifdef PORT
+    return DL;
+#endif
 }
 
 
@@ -7492,6 +7498,9 @@ Gfx *constructor_menu0D_missioncomplete(Gfx *DL)
     DL = frontAddNextTabText(DL);
     DL = frontAddPreviousTabText(DL);
     DL = frontDrawCursor(DL);
+#ifdef PORT
+    return DL;
+#endif
 }
 
 

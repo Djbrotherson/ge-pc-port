@@ -8,6 +8,9 @@ s32 indycommInit(void) {
         indy_ready = 1;
         indycommHostinit();
     }
+#ifdef PORT
+    return 0;
+#endif
 }
 
 void indycomm_removed(void) {

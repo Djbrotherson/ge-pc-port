@@ -1567,7 +1567,12 @@ void chrlvInitActAttackWalk(ChrRecord *chr, s32 arg1)
             else
             {
                 // bug/mistake/typo.
+#ifdef PORT
+                /* Avoid undefined multiple modification of the same scalar. */
+                sp70.p[0] = 1;
+#else
                 sp70.p[0] = sp70.p[0] = 1;
+#endif
             }
         }
         else if (phi_v1 == 1)

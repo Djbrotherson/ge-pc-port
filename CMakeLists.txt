@@ -293,6 +293,9 @@ add_compile_options(
   $<$<COMPILE_LANGUAGE:C>:-Werror=int-to-pointer-cast>
   $<$<COMPILE_LANGUAGE:C>:-Werror=pointer-compare>
   $<$<COMPILE_LANGUAGE:C>:-Werror=format>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=return-type>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=sequence-point>
+  $<$<COMPILE_LANGUAGE:C>:-Werror=uninitialized>
 )
 add_compile_options($<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-function>)
 

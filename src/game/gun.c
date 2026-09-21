@@ -1163,6 +1163,9 @@ s32 currentPlayerEquipWeaponWrapper(GUNHAND hand, s32 next_weapon) {
     g_CurrentPlayer->hands[hand].weapon_current_animation = 5;
     g_CurrentPlayer->hands[hand].weapon_next_weapon = next_weapon;
     g_CurrentPlayer->hands[hand].weapon_animation_trigger = 0;
+#ifdef PORT
+    return 0;
+#endif
 }
 
 void attempt_reload_item_in_hand(GUNHAND hand) {
