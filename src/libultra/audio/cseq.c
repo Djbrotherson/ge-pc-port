@@ -21,6 +21,7 @@
 #include <libaudio.h>
 #include <os.h>
 #include <ultraerror.h>
+#include <string.h>
 #include "cseq.h"
 
 
