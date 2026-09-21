@@ -137,7 +137,14 @@ def scan_file(path:Path):
         # Direct pointer-looking variables/fields narrowed without uintptr_t.
         if host_active and "uintptr_t" not in line and "intptr_t" not in line:
             if direct_ptr_name.search(line) or member_ptr_name.search(line):
-                if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE|SegmentRom)",line):
+                # Known non-pointer/token false positives:
+                # - audi.c DMABuffer.startAddr is an N64/sample address token (s32), not a host pointer.
+                # - gunfire.c MagSize is a scalar field reached through a pointer expression.
+                known_token_or_scalar = (
+                    (path.as_posix() == "src/audi.c" and "dmaPtr->startAddr" in line)
+                    or (path.as_posix() == "src/game/gunfire.c" and "MagSize" in line)
+                )
+                if not known_token_or_scalar and not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE|SegmentRom)",line):
                     add("P0","host-pointer-variable-narrowing",path,i,raw,
                         "Pointer-looking value is directly narrowed to 32 bits; classify as native pointer vs N64 token.")
 
