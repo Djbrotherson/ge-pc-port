@@ -2,6 +2,7 @@
 #ifdef PORT /* TEMP D51 */
 #include <stdio.h>
 #include <stdlib.h>
+#include "system.h"
 #endif
 #include <memp.h>
 #include "model.h"
