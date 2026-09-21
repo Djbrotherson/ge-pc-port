@@ -928,9 +928,9 @@ void chraiDefaultWeaponFireHandler(s32 hand)
     s32 gotbghit;
     coord3d visiblehitpos;
     s32 bestroom;
-    s32 besttexture;
+    s32 besttexture = -1;
     HitThing bghit;
-    f32 negz;
+    f32 negz = 0.0f;
     coord3d besthitpos;
     s32 pad;
     StandTile *fromtile;
@@ -2362,17 +2362,22 @@ f32 chrpropScoreAutoAimTarget(PropRecord *targetprop, coord3d *aimpos, f32 *worl
         screen_left_edge[0] = floorFloat(screen_left_edge[0]);
         screen_right_edge[0] = ceilFloat(screen_right_edge[0]);
 
+        /*
+         * The score path below uses horizontal_tolerance in both auto-aim
+         * modes. Retail only assigns it inside the X-auto-aim branch, leaving
+         * the manual-crosshair path undefined on a host compiler.
+         */
+        horizontal_tolerance = (screen_right_edge[0] - screen_left_edge[0]) * 1.5f;
+
+        if (getPlayerCount() == 1)
+        {
+            horizontal_tolerance = horizontal_tolerance * difficulty;
+        }
+
         if (currentPlayerGetXAutoAimEnabledRedirect())
         {
             if (screen_left_edge[0] <= autoaim_right && autoaim_left <= screen_right_edge[0])
             {
-                horizontal_tolerance = (screen_right_edge[0] - screen_left_edge[0]) * 1.5f;
-
-                if (getPlayerCount() == 1)
-                {
-                    horizontal_tolerance = horizontal_tolerance * difficulty;
-                }
-
                 passes_horizontal_check = getPlayer_c_screenleft() + 0.5f * getPlayer_c_screenwidth() >= (screen_left_edge[0] + screen_right_edge[0]) * 0.5f - horizontal_tolerance
                     && getPlayer_c_screenleft() + 0.5f * getPlayer_c_screenwidth() <= (screen_left_edge[0] + screen_right_edge[0]) * 0.5f + horizontal_tolerance
                     && autoaim_left <= aim_screen[0]
