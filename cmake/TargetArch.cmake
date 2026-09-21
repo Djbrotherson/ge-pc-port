@@ -3,9 +3,18 @@
 
 function(target_architecture OUT_VAR)
   if(CMAKE_CROSSCOMPILING)
-    # Derive from the cross-compiler target, e.g. x86_64-w64-mingw32-gcc
+    # CMAKE_C_COMPILER_TARGET is populated reliably by Clang but is often
+    # empty for GCC cross compilers such as aarch64-linux-gnu-gcc. Prefer it
+    # when present, then fall back to the toolchain's CMAKE_SYSTEM_PROCESSOR.
     string(REGEX MATCH "^(i[3-6]86|x86_64|aarch64|arm|powerpc|wasm32)" _arch
            "${CMAKE_C_COMPILER_TARGET}")
+    if(NOT _arch)
+      string(REGEX MATCH "^(i[3-6]86|x86_64|aarch64|arm64|arm|powerpc|wasm32)" _arch
+             "${CMAKE_SYSTEM_PROCESSOR}")
+      if(_arch STREQUAL "arm64")
+        set(_arch "aarch64")
+      endif()
+    endif()
   else()
     if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
       set(_arch "x86_64")
