@@ -320,8 +320,8 @@ void audioSetNextBuffer(const s16 *buf, u32 len)
 
 PD_CONSTRUCTOR static void audioConfigInit(void)
 {
-    configRegisterInt("Audio.BufferSize", &bufferSize, 128, 4096);
-    configRegisterInt("Audio.QueueLimit", &queueLimit, 512, 8192);
+    configRegisterInt("Audio.BufferSize", &bufferSize, 0, 1 * 1024 * 1024);
+    configRegisterInt("Audio.QueueLimit", &queueLimit, 0, 1 * 1024 * 1024);
     configRegisterInt("Audio.MasterVolume", &masterVolume, 0, 100);
     configRegisterInt("Audio.Mute", &mute, 0, 1);
 }
