@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import re, sys
+import ast, re, sys
 from pathlib import Path
 
 ROOTS=("src","include","port")
@@ -254,8 +254,90 @@ def scan_file(path:Path):
                 add("P1","fixed-n64-typed-reserve",path,i,raw,
                     "Typed graphics object is near a fixed byte reserve; verify sizeof/stride on LP64.")
 
+def check_propdef_stride_contract():
+    """Cross-check offline propDef expansion against the runtime stream walk.
+
+    A mismatch here means the converter emits one record width while
+    sizepropdef() advances by another: every following polymorphic setup record
+    is then decoded at the wrong address.
+    """
+    converter=Path("tools_pc/d88_propdefs.py")
+    constants=Path("src/bondconstants.h")
+    runtime=Path("src/game/loadobjectmodel.c")
+    if not (converter.exists() and constants.exists() and runtime.exists()):
+        return
+
+    try:
+        tree=ast.parse(converter.read_text(errors="replace"))
+        pc_bytes=None
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                if any(isinstance(t, ast.Name) and t.id=="PROPDEF_PC_BYTES" for t in node.targets):
+                    pc_bytes=ast.literal_eval(node.value)
+                    break
+        if not isinstance(pc_bytes, dict):
+            raise ValueError("PROPDEF_PC_BYTES not found")
+
+        ctext=constants.read_text(errors="replace")
+        m=re.search(r"typedef\s+enum\s+PROPDEF_TYPE\s*\{(.*?)\}\s*PROPDEF_TYPE\s*;", ctext, re.S)
+        if not m:
+            raise ValueError("PROPDEF_TYPE enum not found")
+        enum_map={}
+        value=-1
+        for raw in m.group(1).split(","):
+            item=re.sub(r"/\*.*?\*/|//.*", "", raw, flags=re.S).strip()
+            if not item:
+                continue
+            if "=" in item:
+                name,rhs=(x.strip() for x in item.split("=",1))
+                value=int(rhs,0)
+            else:
+                name=item
+                value+=1
+            if name.startswith("PROPDEF_"):
+                enum_map[name]=value
+
+        rtext=runtime.read_text(errors="replace")
+        fm=re.search(r"s32\s+sizepropdef\s*\([^)]*\)\s*\{(.*?)(?=\n}\s*\n)", rtext, re.S)
+        if not fm:
+            raise ValueError("sizepropdef() not found")
+        pm=re.search(r"#ifdef\s+PORT(.*?)#endif", fm.group(1), re.S)
+        if not pm:
+            raise ValueError("PORT sizepropdef switch not found")
+
+        runtime_bytes={}
+        pending=[]
+        for raw in pm.group(1).splitlines():
+            line=re.sub(r"/\*.*?\*/|//.*", "", raw).strip()
+            cm=re.match(r"case\s+(PROPDEF_[A-Za-z0-9_]+)\s*:", line)
+            if cm:
+                pending.append(cm.group(1))
+            rm=re.search(r"\breturn\s+(\d+)\s*;", line)
+            if rm and pending:
+                nbytes=int(rm.group(1))*4
+                for name in pending:
+                    if name in enum_map:
+                        runtime_bytes[enum_map[name]]=nbytes
+                pending=[]
+
+        for ptype, emitted in sorted(pc_bytes.items()):
+            walked=runtime_bytes.get(ptype)
+            if walked is None:
+                add("P0","propdef-stride-contract",runtime,1,
+                    f"type {ptype}: runtime stride missing",
+                    "Offline converter emits this propDef type but PORT sizepropdef() has no matching stride.")
+            elif walked != emitted:
+                add("P0","propdef-stride-contract",runtime,1,
+                    f"type {ptype}: converter={emitted} runtime={walked}",
+                    "Offline propDef byte size and runtime walk stride disagree; following records will desynchronise.")
+    except Exception as exc:
+        add("P0","propdef-stride-audit-error",runtime,1,str(exc),
+            "Could not prove converter/runtime propDef stride agreement.")
+
+
 def main():
     for f in iter_files(): scan_file(f)
+    check_propdef_stride_contract()
     findings.sort(key=lambda x:(0 if x[0]=="P0" else 1,x[2],x[3],x[1]))
     out=Path("semantic-audit-out"); out.mkdir(exist_ok=True)
     with (out/"semantic-findings.tsv").open("w") as fp:
