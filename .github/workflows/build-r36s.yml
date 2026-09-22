@@ -85,6 +85,9 @@ jobs:
       - name: Validate N64 port profile
         run: python3 tools/n64_port.py doctor
 
+      - name: Test reusable N64 port library
+        run: python3 tools/n64_port.py selftest
+
       - name: Run semantic host-port gate
         run: |
           set -o pipefail
