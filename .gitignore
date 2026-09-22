@@ -1,4 +1,4 @@
-#Git and VS files
+# Editor / IDE state
 .*~
 __pycache__/
 .vscode/
@@ -68,29 +68,22 @@ build/*
 build-*/*
 notes/*
 
-# Local working / planning notes — rolling drafts, not published, not tracked.
-# docs/HANDOFF.md and docs/BACKLOG.md are the long-standing pair (also in
-# .git/info/exclude); docs/dev/notes/ is the drop for everything else
-# (roadmaps, session plans, scratch triage).
+# Local working notes
 docs/HANDOFF.md
 docs/BACKLOG.md
 docs/dev/notes/
 
-# PC port (see CMakeLists.txt / port/)
+# Host-port build/runtime artifacts
 build-pc/
 tools_pc/*.exe
 data/
-# release bundles built by tools_pc/bundle-win.sh (repo root only; the
-# packaging template lives in tools_pc/dist/ and IS tracked)
+# Generated release bundles
 /dist/
 ge007.ini
 !build/test.c
 !notes/StyleGuide.md
 #tools
-# Original SGI IRIX 5.3 IDO toolchain (proprietary SGI binaries) and the SGI
-# image viewer are NOT distributed with this repo. They are only needed to
-# build the N64 ROM or to regenerate tools/ido5.3_recomp; the PC port does not
-# use them. See docs/SetupGuide.md "Recompile IDO" for how to obtain them.
+# Local proprietary/toolchain binaries are never committed
 tools/irix/
 tools/SGIImageViewer.exe
 tools/extractor/*.o
@@ -144,9 +137,8 @@ ppm/
 screenshots/
 # tools_pc/perf.ps1 output (raw ETW traces + CSV analysis, regenerable)
 perf_captures/
-# local Mupen64 Plus checkout (N64 reference footage); binaries, do not commit
+# Local emulator/reference checkouts
 tools_pc/mupen64/
-# local N64 emulator checkout (D205 A/B reference)
 mupen64/
 
 # PC port run/scratch logs
@@ -154,21 +146,21 @@ run_*.log
 d6*.log
 ge007.crash.log
 
-# agent scratch space + audio probe artifacts (regenerable dumps/traces)
+# Local scratch/probe artifacts
 scratchpad/
-# local research/backlog working docs (TCRF cut-content cross-reference etc.)
+# Local research/backlog files
 backlog/
-# montage work artifact: the tiled contact sheet behind docs/img/shots/ and
-# the preview video (regenerable from the same session recordings)
+# Generated media/audio diagnostics
 docs/img/shots/CONTACT-SHEET.jpg
 /audiodump.raw
 /audiotrace.log
 /mixertrace.log
 
-# Claude Code local state / agent worktrees
-.claude/
+# Local agent/worktree state
+.agents/
+.worktrees/
 
-# saved reference webpage assets (keep the .htm, not the sidecar cruft)
+# Saved reference webpage sidecar assets
 docs/reference/*_files/
 nohup.out
 
