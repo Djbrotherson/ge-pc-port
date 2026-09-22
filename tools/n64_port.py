@@ -37,8 +37,35 @@ def doctor(profile_path: Path, profile: dict) -> int:
             failures.append(f"missing source root: {rel}")
 
     abi = profile.get("abi_contract")
-    if abi and not repo_path(abi).is_file():
-        failures.append(f"missing ABI contract: {abi}")
+    if abi:
+        abi_path = repo_path(abi)
+        if not abi_path.is_file():
+            failures.append(f"missing ABI contract: {abi}")
+        else:
+            try:
+                abi_doc = json.loads(abi_path.read_text())
+                if abi_doc.get("schema_version") != 1:
+                    failures.append(
+                        f"ABI contract {abi}: unsupported schema_version "
+                        f"{abi_doc.get('schema_version')!r}"
+                    )
+                if abi_doc.get("project") != profile["project"]:
+                    failures.append(
+                        f"ABI contract project {abi_doc.get('project')!r} "
+                        f"does not match profile project {profile['project']!r}"
+                    )
+                host_bits = abi_doc.get("host_pointer_bits")
+                declared_bits = {
+                    target.get("pointer_bits")
+                    for target in profile.get("targets", [])
+                    if target.get("pointer_bits") is not None
+                }
+                if host_bits and declared_bits and host_bits not in declared_bits:
+                    failures.append(
+                        f"ABI host_pointer_bits={host_bits} not represented by target pointer_bits={sorted(declared_bits)}"
+                    )
+            except Exception as exc:
+                failures.append(f"invalid ABI contract {abi}: {exc}")
 
     for group in ("binary_adapters", "verification"):
         entries = profile.get(group, {}) or {}
