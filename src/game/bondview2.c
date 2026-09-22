@@ -862,7 +862,7 @@ void bondviewSetCameraMode(s32 arg0)
             solo_char_load();
 
             // HACK: ptr_animation_table->data regalloc is backwards
-            sp38 = (struct ModelAnimation *)((u8 *)ptr_animation_table + (u32)stage_intro_anim_table[g_IntroAnimationIndex].anonymous_0);
+            sp38 = (struct ModelAnimation *)ANIM_TABLE_OFFSET_PTR(stage_intro_anim_table[g_IntroAnimationIndex].anonymous_0);
             sp78 = stage_intro_anim_table[g_IntroAnimationIndex].anonymous_2;
             ftemp_1 = stage_intro_anim_table[g_IntroAnimationIndex].anonymous_1;
             ftemp_3 = stage_intro_anim_table[g_IntroAnimationIndex].anonymous_3;
@@ -4421,7 +4421,7 @@ void bondviewMoveAnimationTick(f32 speed, f32 speedforwards, f32 speedsideways)
             // HACK: ptr_animation_table dereference addition is backwards.
             // this should be:
             // ptr_animation_table->data[g_bondviewBondDeathAnimations[((u32) randomGetNext() % (u32) g_bondviewBondDeathAnimationsCount)]]
-            bheadStartDeathAnimation((struct ModelAnimation *)((u8 *)ptr_animation_table + (u32)g_bondviewBondDeathAnimations[((u32) randomGetNext() % (u32) g_bondviewBondDeathAnimationsCount)]), randomGetNext() & 1, 0.0f, 1.0f);
+            bheadStartDeathAnimation((struct ModelAnimation *)ANIM_TABLE_OFFSET_PTR(g_bondviewBondDeathAnimations[((u32) randomGetNext() % (u32) g_bondviewBondDeathAnimationsCount)]), randomGetNext() & 1, 0.0f, 1.0f);
             g_CurrentPlayer->startnewbonddie = FALSE;
         }
 
@@ -10741,7 +10741,7 @@ join_768:
                 startframe = (0.0f <= frame) ? (frame) : (0.0f);
 #ifdef PORT
                 modelSetAnimation(ppointers[index]->bodyModel,
-                                  (ModelAnimation *)((u8 *)ptr_animation_table + (u32)anim),
+                                  (ModelAnimation *)ANIM_TABLE_OFFSET_PTR(anim),
                                   0, startframe, angle, 16.0f);
 #else
                 modelSetAnimation(ppointers[index]->bodyModel, (ModelAnimation *) anim, 0, startframe, angle, 16.0f);
