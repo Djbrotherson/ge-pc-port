@@ -16,7 +16,7 @@ on:
       - 'tools/n64_port_audit.py'
       - 'tools/port_audit_engine.py'
       - 'tools/n64_portlib/**'
-      - 'tools/port_profiles/**'
+      - 'tools/integration_profiles/**'
       - 'portkit/**'
       - '.github/workflows/r36s-semantic-gate.yml'
 concurrency:
