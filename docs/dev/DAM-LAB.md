@@ -193,7 +193,7 @@ Port Control now treats GoldenEye's original runtime options and cheats as first
 - Original audio controls: GoldenEye music and SFX volumes, alongside host master volume and latency controls.
 - Graphics presets: N64, Crisp, Enhanced and R36S, plus the full manual renderer surface.
 - Audio latency presets: Low Latency, Balanced and Safe.
-- Original cheat page: Invincibility, All Guns, Infinite Ammo, Invisibility, DK Mode, Tiny Bond, Paintball, Turbo, Line Mode, Enemy Rockets, Max Ammo and Disable All.
+- Original cheat page: Invincibility, All Guns, Infinite Ammo, Invisibility, DK Mode, Tiny Bond, Paintball, Turbo, Line Mode and Enemy Rockets, plus one-shot Max Ammo, Extra Weapons, Golden Gun, Laser, Magnum, 10x Health, dual Rocket Launchers, dual Grenade Launchers, dual RCP90s and Disable All.
 - R36S capability reporting is explicit: MSAA remains forced off on the handheld direct-framebuffer GLES path rather than presenting a setting that silently does nothing.
 
 The rule is that a visible control must either drive an existing GoldenEye setting, a verified host/fast3d capability, or clearly state when the target forces a value. Experimental renderer paths that are known to corrupt GoldenEye visuals remain hidden.
