@@ -74,7 +74,7 @@ void fileWriteSmallSave(smallSave *save)
     if (fileGamePakProbe())
     {
         fileGenerateCRC(&save->unk[0], &save->unk[24], save);
-        joyGamePakLongWrite(0, save, sizeof(smallSave));
+        joyGamePakLongWrite(0, (u8 *)save, sizeof(smallSave));
     }
 }
 
@@ -94,7 +94,7 @@ void fileWriteSave(save_data *save)
             SAVELOG("fileWriteSave slot=%d block=%d size=%d bitflags=%02x crc=%08x,%08x\n",
                     slot, (int)((((u32)(slot * 0x60)) >> 3) + 4), (int)sizeof(save_data),
                     save->completion_bitflags, save->chksum1, save->chksum2);
-            joyGamePakLongWrite((((u32)((save - &saves[SAVESLOT1]) * 0x60) >> 3) + 4), save, sizeof(save_data)); // 0x60 = sizeof(save_data) be sure to manually update if save changes
+            joyGamePakLongWrite((((u32)((save - &saves[SAVESLOT1]) * 0x60) >> 3) + 4), (u8 *)save, sizeof(save_data)); // 0x60 = sizeof(save_data) be sure to manually update if save changes
         }
         else
         {
@@ -509,7 +509,7 @@ void fileValidateSaves(void)
         checksumOK = TRUE;
 
         // block read 32 bytes
-        joyGamePakLongRead(0, &joyChecksum, sizeof(smallSave));
+        joyGamePakLongRead(0, (u8 *)&joyChecksum, sizeof(smallSave));
 
         // if customised file dont assume crc is ok
         if (joyChecksum.unk[0] != SAVEFLAGS_SET(FOLDER3, SAVESLOT1, BOND_CONNERY, FALSE))
@@ -519,7 +519,7 @@ void fileValidateSaves(void)
 
         fileGenerateCRC(&joyChecksum.unk[0], &joyChecksum.unk[24], &crc); //do checksum on 24 bytes of save data
 
-        temp = &joyChecksum;
+        temp = (s32 *)&joyChecksum;
 
         if ((crc[0] != temp[0]) || (crc[1] != temp[1]))
         {
@@ -535,7 +535,7 @@ void fileValidateSaves(void)
         }
 
         // Block read 5 saves starting at address 4th byte (? bug: address must be multiple of 8 - return is -1)
-        joyGamePakLongRead(4, saves, sizeof(save_data) * 5);
+        joyGamePakLongRead(4, (u8 *)saves, sizeof(save_data) * 5);
 
         for (i = SAVESLOT1; i != SAVESLOTRAMROM; i++) //only != matches
         {

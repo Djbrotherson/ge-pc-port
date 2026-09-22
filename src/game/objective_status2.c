@@ -56,7 +56,7 @@ void sub_GAME_7F057D88(f32* arg0, f32* arg1, f32 arg2)
 }
 
 
-void sub_GAME_7F057DF8(struct Mtxf *arg0, struct Mtxf *arg1, s32 count)
+void sub_GAME_7F057DF8(Mtxf *arg0, Mtxf *arg1, s32 count)
 {
     s32 i;
 
@@ -66,7 +66,7 @@ void sub_GAME_7F057DF8(struct Mtxf *arg0, struct Mtxf *arg1, s32 count)
 }
 
 
-void sub_GAME_7F057E58(f32* arg0, f32* arg1, struct Mtxf* arg2, struct Mtxf* arg3, s32 arg4)
+void sub_GAME_7F057E58(f32* arg0, f32* arg1, Mtxf* arg2, Mtxf* arg3, s32 arg4)
 {
     sub_GAME_7F057D88(arg0, arg1, (f32) arg4);
     sub_GAME_7F057DF8(arg2, arg3, arg4);

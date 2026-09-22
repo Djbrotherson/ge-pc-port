@@ -245,7 +245,7 @@ struct anim_entry
     s32 unk10;
 };
 
-void expand_ani_table_entries(s32** arg0)
+void expand_ani_table_entries(s32 *arg0)
 {
     /* D33: iterate as 4-byte entries. As s32 ** the loop advanced 8
      * bytes/iter on x86-64, rebasing only even-indexed entries. */
@@ -319,6 +319,6 @@ void alloc_load_expand_ani_table(void)
      * big-endian; convert per field before expand reads/writes them as LE. */
     romdataFixupAnimationData((u8 *)ptr_animation_table, (u32)animsDataSegmentSize,
                               animation_table_ptrs1, animation_table_ptrs2);
-    expand_ani_table_entries((s32*)&animation_table_ptrs1);
-    expand_ani_table_entries((s32*)&animation_table_ptrs2);
+    expand_ani_table_entries(animation_table_ptrs1);
+    expand_ani_table_entries(animation_table_ptrs2);
 }
