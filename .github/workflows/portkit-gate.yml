@@ -19,6 +19,10 @@ on:
       - 'tools_pc/d69_emit.py'
       - 'tools_pc/d88_emit.py'
       - 'tools_pc/d88_propdefs.py'
+      - 'tools_pc/dist/prepare-assets/**'
+      - 'portmaster/**'
+      - 'docs/R36S-BUILD.md'
+      - 'CMakeLists.txt'
       - '.github/workflows/portkit-gate.yml'
   pull_request:
     branches:

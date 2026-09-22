@@ -76,6 +76,28 @@ def doctor(profile_path: Path, profile: dict) -> int:
             if not isinstance(rel, str) or not repo_path(rel).exists():
                 failures.append(f"missing {group}.{name}: {rel}")
 
+    packaging = profile.get("packaging_contract")
+    if packaging:
+        if not isinstance(packaging, dict):
+            failures.append("packaging_contract must be an object")
+        else:
+            schema = packaging.get("sidecar_schema")
+            launcher = packaging.get("launcher")
+            converter = packaging.get("converter_source")
+            if not isinstance(schema, str) or not schema:
+                failures.append("packaging_contract.sidecar_schema must be a non-empty string")
+            for field, rel in (("launcher", launcher), ("converter_source", converter)):
+                if not isinstance(rel, str) or not repo_path(rel).is_file():
+                    failures.append(f"missing packaging_contract.{field}: {rel}")
+            if isinstance(schema, str) and schema:
+                for field, rel in (("launcher", launcher), ("converter_source", converter)):
+                    if isinstance(rel, str) and repo_path(rel).is_file():
+                        text = repo_path(rel).read_text(errors="replace")
+                        if schema not in text:
+                            failures.append(
+                                f"packaging_contract.{field} does not declare sidecar schema {schema!r}: {rel}"
+                            )
+
     targets = profile.get("targets", [])
     if not targets:
         notices.append("no targets declared")

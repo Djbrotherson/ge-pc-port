@@ -29,5 +29,10 @@
     "target_workflow": ".github/workflows/build-r36s.yml"
   },
   "contract_suite": "goldeneye",
-  "abi_contract": "tools/integration_profiles/goldeneye_abi.json"
+  "abi_contract": "tools/integration_profiles/goldeneye_abi.json",
+  "packaging_contract": {
+    "sidecar_schema": "arm-ge-sidecar-v1",
+    "launcher": "portmaster/GoldenEye 007.sh",
+    "converter_source": "tools_pc/dist/prepare-assets/prepare-assets.py"
+  }
 }
