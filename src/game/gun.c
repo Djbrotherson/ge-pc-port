@@ -691,10 +691,10 @@ s32 gunSample1PTransform(Weapon1PTransformKeyframe *keyframes, f32 time, Mtxf *m
     frac = time / current->duration;
     tangent = current->interpParam;
 
-    quaternion_set_rotation_around_xyzf(&current[-1].rot, q0);
-    quaternion_set_rotation_around_xyzf(&current->rot, q1);
-    quaternion_set_rotation_around_xyzf(&current[1].rot, q2);
-    quaternion_set_rotation_around_xyzf(&current[2].rot, q3);
+    quaternion_set_rotation_around_xyzf(current[-1].rot.f, q0);
+    quaternion_set_rotation_around_xyzf(current->rot.f, q1);
+    quaternion_set_rotation_around_xyzf(current[1].rot.f, q2);
+    quaternion_set_rotation_around_xyzf(current[2].rot.f, q3);
 
     quaternion_ensure_shortest_path(q1, q2);
     quaternion_ensure_shortest_path(q2, q3);
@@ -711,7 +711,7 @@ s32 gunSample1PTransform(Weapon1PTransformKeyframe *keyframes, f32 time, Mtxf *m
         qResult[1] = -qResult[1];
     }
 
-    quaternion_to_matrix(qResult, matrix);
+    quaternion_to_matrix(qResult, matrix->m);
     matrix_4x4_set_position(&posResult, matrix);
 
     return 1;
@@ -1801,7 +1801,7 @@ void generate_player_thrown_grenade(s32 hand)
 
     sub_GAME_7F057C14(&throw_speed_vec, &spFC);
     bullet_path_from_screen_center(&sp94, &base_speed_vec, hand);
-    mtx4RotateVecInPlace(currentPlayerGetViewToWorldMtxf(), (f32*)&base_speed_vec);
+    mtx4RotateVecInPlace(currentPlayerGetViewToWorldMtxf(), &base_speed_vec);
 
     throw_speed_vec.f[0] = (base_speed_vec.f[0] * base_velocity);
     throw_speed_vec.f[1] = (base_speed_vec.f[1] * base_velocity) + 5.0f;
@@ -1888,7 +1888,7 @@ void generate_player_thrown_knife(s32 hand)
 
     sub_GAME_7F057C14(&throw_speed_vec, &spFC);
     bullet_path_from_screen_center(&sp94, &base_speed_vec, hand);
-    mtx4RotateVecInPlace(currentPlayerGetViewToWorldMtxf(), (f32*)&base_speed_vec);
+    mtx4RotateVecInPlace(currentPlayerGetViewToWorldMtxf(), &base_speed_vec);
 
     throw_speed_vec.f[0] = (base_speed_vec.f[0] * base_velocity);
     throw_speed_vec.f[1] = (base_speed_vec.f[1] * base_velocity) + 5.0f;
@@ -1987,7 +1987,7 @@ void generate_player_thrown_object(s32 hand)
 
     sub_GAME_7F057C14(&throw_speed_vec, &unk_mtxf);
     bullet_path_from_screen_center(&sp94, &base_speed_vec, hand);
-    mtx4RotateVecInPlace(currentPlayerGetViewToWorldMtxf(), (f32*)&base_speed_vec);
+    mtx4RotateVecInPlace(currentPlayerGetViewToWorldMtxf(), &base_speed_vec);
 
     throw_speed_vec.f[0] = (base_speed_vec.f[0] * base_velocity);
     throw_speed_vec.f[1] = (base_speed_vec.f[1] * base_velocity) + 5.0f;

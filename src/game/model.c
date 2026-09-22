@@ -1524,13 +1524,13 @@ void sub_GAME_7F06DB5C(ModelRenderData *arg0, Model *arg1, ModelNode *arg2, quat
                    : arg0->basemtx;
 
         if (sp9C != 0) {
-            quaternion_to_transform_matrix(&spA0->Origin, arg3, &sp58);
+            quaternion_to_transform_matrix(spA0->Origin.f, arg3, sp58.m);
             matrix_4x4_multiply_homogeneous(sp9C, &sp58, m0);
             if (g_ModelJointPositionedFunc != NULL) {
                 g_ModelJointPositionedFunc(sp54, m0);
             }
         } else {
-            quaternion_to_transform_matrix(&spA0->Origin, arg3, m0);
+            quaternion_to_transform_matrix(spA0->Origin.f, arg3, m0->m);
         }
     }
 #else
@@ -1542,24 +1542,24 @@ void sub_GAME_7F06DB5C(ModelRenderData *arg0, Model *arg1, ModelNode *arg2, quat
     }
 
     if (sp9C != 0) {
-        quaternion_to_transform_matrix(&spA0->Origin, arg3, &sp58);
+        quaternion_to_transform_matrix(spA0->Origin.f, arg3, sp58.m);
         sp1C = (s32)&sp48[sp54];
         matrix_4x4_multiply_homogeneous(sp9C, &sp58, (Mtxf *)sp1C);
         if (g_ModelJointPositionedFunc != NULL) {
             ((void (*)(s32, s32, s32)) g_ModelJointPositionedFunc)(sp54, sp1C, sp1C);
         }
     } else {
-        quaternion_to_transform_matrix(&spA0->Origin, arg3, (Mtxf *)&sp48[sp54]);
+        quaternion_to_transform_matrix(spA0->Origin.f, arg3, ((Mtxf *)&sp48[sp54])->m);
     }
 #endif
 
     if (spA4 & 0x100) {
         quaternion_7F05BC68(arg3, 0.5f, sp2C);
         if (sp9C != 0) {
-            quaternion_to_transform_matrix(&spA0->Origin, sp2C, &sp58);
+            quaternion_to_transform_matrix(spA0->Origin.f, sp2C, sp58.m);
             matrix_4x4_multiply_homogeneous(sp9C, &sp58, (Mtxf *)&sp48[sp50]);
         } else {
-            quaternion_to_transform_matrix(&spA0->Origin, sp2C, (Mtxf *)&sp48[sp50]);
+            quaternion_to_transform_matrix(spA0->Origin.f, sp2C, ((Mtxf *)&sp48[sp50])->m);
         }
     }
 
@@ -1742,8 +1742,8 @@ void process_02_position(ModelRenderData *arg0, Model *model, ModelNode *node)
             sub_GAME_7F06D160(&rot3, &rot4, model->unk5c);
         }
 
-        quaternion_set_rotation_around_xyzf(&rot1, q1);
-        quaternion_set_rotation_around_xyzf(&rot3, q2);
+        quaternion_set_rotation_around_xyzf(rot1.f, q1);
+        quaternion_set_rotation_around_xyzf(rot3.f, q2);
         quaternion_ensure_shortest_path(q1, q2);
         quaternion_slerp(q1, q2, model->unk84, result);
         sub_GAME_7F06DB5C(arg0, model, node, result);
@@ -2162,7 +2162,7 @@ void modelUpdateReorderRelations(Model *model, ModelNode *node)
         sp38.x = rodata->BSP.Vector.f[0];
         sp38.y = rodata->BSP.Vector.f[1];
         sp38.z = rodata->BSP.Vector.f[2];
-        mtx4RotateVecInPlace(mtx, sp38.f);
+        mtx4RotateVecInPlace(mtx, &sp38);
     }
     else if (rodata->BSP.reserved == 2)
     {

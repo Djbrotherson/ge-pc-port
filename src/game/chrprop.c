@@ -2339,23 +2339,23 @@ f32 chrpropScoreAutoAimTarget(PropRecord *targetprop, coord3d *aimpos, f32 *worl
 
     score = -2.0f;
 
-    transform3Dto2DCoords(aimpos, (coord3d*)aim_screen);
+    transform3Dto2DCoords(aimpos, (coord2d *)aim_screen);
     testpos.x = world_xbounds[0];
     testpos.y = aimpos->y;
     testpos.z = aimpos->z;
-    transform3Dto2DCoords(&testpos, (coord3d*)screen_left_edge);
+    transform3Dto2DCoords(&testpos, (coord2d *)screen_left_edge);
     testpos.x = world_xbounds[1];
     testpos.y = aimpos->y;
     testpos.z = aimpos->z;
-    transform3Dto2DCoords(&testpos, (coord3d*)screen_right_edge);
+    transform3Dto2DCoords(&testpos, (coord2d *)screen_right_edge);
     testpos.x = aimpos->x;
     testpos.y = world_ybounds[1];
     testpos.z = aimpos->z;
-    transform3Dto2DCoords(&testpos, (coord3d*)screen_top_edge);
+    transform3Dto2DCoords(&testpos, (coord2d *)screen_top_edge);
     testpos.x = aimpos->x;
     testpos.y = world_ybounds[0];
     testpos.z = aimpos->z;
-    transform3Dto2DCoords(&testpos, (coord3d*)screen_bottom_edge);
+    transform3Dto2DCoords(&testpos, (coord2d *)screen_bottom_edge);
 
     if (screen_bottom_edge[1] >= autoaim_top && autoaim_bottom >= screen_top_edge[1])
     {

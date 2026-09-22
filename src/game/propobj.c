@@ -498,7 +498,7 @@ struct ModelRoData_BoundingBoxRecord* chrobjGetBboxFromObjectRecord(ObjectRecord
 }
 
 
-void set_color_shading_from_tile(PropRecord *prop, u8 col[4])
+void set_color_shading_from_tile(PropRecord *prop, rgba_u8 *col)
 {
     s32 tmp;
     s32 min;
@@ -506,43 +506,44 @@ void set_color_shading_from_tile(PropRecord *prop, u8 col[4])
     s32 max;
     s32 tmp2;
     s32 range;
+    u8 *channels = (u8 *)col;
 
-    copy_tile_RGB_as_24bit(prop->stan, prop->pos.x, prop->pos.z, col);
+    copy_tile_RGB_as_24bit(prop->stan, prop->pos.x, prop->pos.z, channels);
 
-    tmp = (col[0] * 79 + col[1] * 156 + col[2] * 21) >> 8;
-    col[3] = (255 - tmp) * 0.75f;
+    tmp = (channels[0] * 79 + channels[1] * 156 + channels[2] * 21) >> 8;
+    channels[3] = (255 - tmp) * 0.75f;
 
     max = 0;
     min = 0;
 	med = 0;
 
-	if (col[1] > col[0]) {
+	if (channels[1] > channels[0]) {
 		max = 1;
 	} else {
 		min = 1;
 	}
 
-	if (col[2] > col[max]) {
+	if (channels[2] > channels[max]) {
 		med = max;
 		max = 2;
-	} else if (col[2] > col[min]) {
+	} else if (channels[2] > channels[min]) {
 		med = 2;
 	} else {
 		med = min;
 		min = 2;
 	}
 
-	if (col[max] > 0) {
-		tmp2 = col[med] * (col[max] - col[min]) / col[max];
-		range = col[max] - col[min];
-		col[min] = 0;
-		col[med] = tmp2;
-		col[max] = range;
+	if (channels[max] > 0) {
+		tmp2 = channels[med] * (channels[max] - channels[min]) / channels[max];
+		range = channels[max] - channels[min];
+		channels[min] = 0;
+		channels[med] = tmp2;
+		channels[max] = range;
 	}
 
-    col[0] >>= 1;
-    col[1] >>= 1;
-    col[2] >>= 1;
+    channels[0] >>= 1;
+    channels[1] >>= 1;
+    channels[2] >>= 1;
 }
 
 
@@ -1512,7 +1513,7 @@ bool projectileFindCollidingProp(PropRecord *ignoreProp, coord3d *worldRayStart,
     sp7c.y = sp98.y;
     sp7c.z = sp98.z;
 
-    mtx4RotateVecInPlace(camGetWorldToScreenMtxf(), sp7c.f);
+    mtx4RotateVecInPlace(camGetWorldToScreenMtxf(), &sp7c);
 
     spa8 = dist;
 
@@ -2203,7 +2204,7 @@ void objSettle(ObjectRecord *obj, coord3d *arg1)
 
     matrix_4x4_get_rotation_around_xyz(&obj->mtx, &angles);
     matrix_4x4_set_rotation_around_xyz(&angles, &rotmtx);
-    quaternion_set_rotation_around_xyzf((f32 *)&angles, projectile->unk68);
+    quaternion_set_rotation_around_xyzf(angles.f, projectile->unk68);
 
     matrix_4x4_set_rotation_inverse(&rotmtx, &aimmtx);
     matrix_4x4_multiply(&aimmtx, &obj->mtx, &scalemtx);
@@ -2268,7 +2269,7 @@ void objSettle(ObjectRecord *obj, coord3d *arg1)
     aimmtx.m[3][3] = 1.0f;
 
     matrix_4x4_get_rotation_around_xyz(&aimmtx, &angles);
-    quaternion_set_rotation_around_xyzf((f32 *)&angles, projectile->unk78);
+    quaternion_set_rotation_around_xyzf(angles.f, projectile->unk78);
     quaternion_ensure_shortest_path(projectile->unk68, projectile->unk78);
 
     projectile->unk60 = 0.0f;
@@ -3215,7 +3216,7 @@ void sub_GAME_7F043838(coord3d *arg0, Mtxf *arg1)
     sp24.y = sp120;
     sp24.z = sp11c;
 
-    mtx4RotateVecInPlace(&spb0, sp24.f);
+    mtx4RotateVecInPlace(&spb0, &sp24);
 
     spf0 = atan2f(sp24.x, sp24.y);
 
@@ -7973,7 +7974,7 @@ void objBounce(ObjectRecord *obj, coord3d *arg1)
         rot.z = (RANDOMFRAC() * M_TAU_F * 0.015625f) - 0.049087387f;
 #endif
 
-        matrix_4x4_set_rotation_around_xyz((f32*)&rot, &projectile->mtx);
+        matrix_4x4_set_rotation_around_xyz(&rot, &projectile->mtx);
 
         projectile->flags |= PROJECTILEFLAG_AIRBORNE;
 
@@ -7981,7 +7982,7 @@ void objBounce(ObjectRecord *obj, coord3d *arg1)
         dir.y = arg1->y;
         dir.z = arg1->z;
 
-        mtx4RotateVecInPlace(currentPlayerGetViewToWorldMtxf(), (f32*)&dir);
+        mtx4RotateVecInPlace(currentPlayerGetViewToWorldMtxf(), &dir);
 
         projectile->speed.x += 3.3333333f * dir.x;
         projectile->speed.z += 3.3333333f * dir.z;
@@ -8104,7 +8105,7 @@ s32 objDrop(PropRecord *prop)
             rot.z = (RANDOMFRAC() * M_TAU_F * 0.0078125f) - 0.024543693f;
 #endif
 
-            matrix_4x4_set_rotation_around_xyz(rot.f, &projectile->mtx);
+            matrix_4x4_set_rotation_around_xyz(&rot, &projectile->mtx);
         }
         else if (projectile->droptype == DROPTYPE_THROWGRENADE && parent->type == PROP_TYPE_CHR)
         {
@@ -8127,7 +8128,7 @@ s32 objDrop(PropRecord *prop)
             rot.z = (RANDOMFRAC() * M_TAU_F * 0.0078125f) - 0.024543693f;
 #endif
 
-            matrix_4x4_set_rotation_around_xyz(rot.f, &projectile->mtx);
+            matrix_4x4_set_rotation_around_xyz(&rot, &projectile->mtx);
             projectile->flags |= 0x40;
 
         }
@@ -8153,7 +8154,7 @@ s32 objDrop(PropRecord *prop)
             rot.z = (RANDOMFRAC() * M_TAU_F * 0.03125f) - 0.09817477f;
 #endif
 
-            matrix_4x4_set_rotation_around_xyz(rot.f, &projectile->mtx);
+            matrix_4x4_set_rotation_around_xyz(&rot, &projectile->mtx);
         }
         else
         {
@@ -8285,7 +8286,7 @@ void objFall(ObjectRecord *obj, s32 playernum)
 #endif
             }
 
-            matrix_4x4_set_rotation_around_xyz(rot.f, &projectile->mtx);
+            matrix_4x4_set_rotation_around_xyz(&rot, &projectile->mtx);
 
             projectile->flags |= PROJECTILEFLAG_AIRBORNE;
 

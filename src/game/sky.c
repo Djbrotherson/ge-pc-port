@@ -52,7 +52,7 @@ void skyGetWorldPosFromScreenPos(f32 offset_x, f32 offset_y, coord3d* out) {
     screen_top = getPlayer_c_screentop();
     coords.y = fogGetCurrentEnvironmentp()->WaterConcavity + (offset_y + screen_top);
     transformAndNormalizeByLength2Dto3D(&coords, out, 100.0f);
-    mtx4RotateVecInPlace(player_mtxf, out->f);
+    mtx4RotateVecInPlace(player_mtxf, out);
 }
 
 /*
