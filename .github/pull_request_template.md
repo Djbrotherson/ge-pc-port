@@ -1,37 +1,51 @@
-<!--
-Read CONTRIBUTING.md first. This is a faithfulness-focused port; the ground
-rules there are non-negotiable.
--->
+## Summary
 
-## What this changes
+What changed and what problem does it solve?
 
-<!-- One or two sentences. Link the issue it closes: "Closes #123". -->
+## Semantic class
 
-## Why
+For portability/runtime changes, classify the change:
 
-<!-- The reasoning, not just the diff. What was wrong / missing? -->
+- [ ] native host pointer / LP64
+- [ ] N64 address/token semantics
+- [ ] serialized/binary layout
+- [ ] endian conversion
+- [ ] graphics/GLES
+- [ ] audio/input/platform runtime
+- [ ] Portkit/tooling
+- [ ] documentation/CI/maintenance
+- [ ] other
 
-## Scope check
+## Scope
 
-- [ ] No changes under `src/` or `include/` — **or** the only changes are the
-      narrow `#ifdef PORT` ABI exception (CONTRIBUTING.md rule 2), and each is
-      documented in `docs/porting-notes.md` / `docs/dev/findings.md`.
-- [ ] `Makefile`, `tools/`, `rsp/`, `ld/` untouched (N64 build).
-- [ ] If `CMakeLists.txt` `REGION_DEFS` changed, it still matches the N64
-      `Makefile` per-region macro set exactly.
+- [ ] The whole relevant failure class was searched, not only one crash site.
+- [ ] Project-specific knowledge remains outside generic Portkit code where practical.
+- [ ] Existing source/license notices were preserved.
+- [ ] No ROM or extracted proprietary game assets are included.
+
+## Invariant
+
+What prevents this class from regressing?
+
+- [ ] semantic-audit rule
+- [ ] compile-time assertion
+- [ ] ABI/profile contract
+- [ ] unit/selftest
+- [ ] converter/runtime cross-check
+- [ ] lifecycle invariant
+- [ ] not applicable; explain below
 
 ## Verification
 
-<!-- What you actually ran. Delete lines that don't apply. -->
+Run the cheapest applicable tiers first:
 
-- [ ] `./build-pc.sh ntsc-final` — clean configure + link
-- [ ] Crash-free run of at least one level (`-level_09`)
-- [ ] Single-frame `GE_PCDUMP` diff against the committed golden — no
-      unexpected change
-- [ ] pal-final / jpn-final also configured
+- [ ] `python3 tools/n64_port.py doctor`
+- [ ] `python3 tools/n64_port.py selftest`
+- [ ] `python3 tools/n64_port.py audit`
+- [ ] host-specific regression test
+- [ ] AArch64 proof build
+- [ ] R36S real-device test
 
-Platform tested: <!-- e.g. Windows 10 / MSYS2 MINGW64 -->
+## Notes
 
-## Notes for the reviewer
-
-<!-- Anything uncertain, follow-ups, or areas that need a closer look. -->
+Risks, unresolved questions, or follow-up work.
