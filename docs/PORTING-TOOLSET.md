@@ -42,6 +42,26 @@ These rules are mandatory for agent work on this branch.
 11. **Evidence hierarchy.** Compile-time proof > semantic gate > host test > target build > real-device test. Each layer should eliminate failures before the next.
 12. **Every retained tool has an owner and purpose.** Investigation scripts graduate into living verification/conversion tools or are archived.
 
+## 2.1 Implemented tool interface
+
+The reusable layer now has a stable top-level command:
+
+```sh
+python3 tools/n64_port.py doctor
+python3 tools/n64_port.py audit
+python3 tools/n64_port.py show-profile
+```
+
+Current configuration is split into:
+
+- `tools/port_profiles/goldeneye.json` — project roots, target(s), adapters and verification entry points.
+- `tools/port_profiles/goldeneye_abi.json` — machine-readable ABI/layout contract.
+- `tools/port_profiles/template.json` — generic starting point for another decomp/recomp.
+- `tools/n64_port_audit.py` — profile-aware semantic runner.
+- `tools/r36s_semantic_audit.py` — detector engine plus the selected GoldenEye contract suite.
+
+CI calls the unified CLI, validates the profile first, then runs the semantic/ABI gate. GoldenEye-specific binary checks are selected by `contract_suite`; a profile with an empty suite receives only generic semantic scanning.
+
 ## 3. Current reusable layers
 
 ### Semantic audit
@@ -258,11 +278,11 @@ A device test that merely rediscovers a static ABI mismatch is a workflow failur
 
 Priority order:
 
-1. Generalize the semantic audit name/configuration without losing current coverage.
-2. Add a machine-readable ABI manifest and generate converter stride checks from it.
-3. Extract shared relocation/endian/record-walk helpers from d43/d69/d88.
-4. Add converter synthetic fixtures that do not require copyrighted ROM data.
-5. Consolidate `verify.sh` + semantic gate + layout probes into one command.
+1. **Implemented:** unified `n64_port.py` CLI plus profile-driven generic semantic scanning.
+2. **Implemented (first pass):** machine-readable ABI manifest drives model/STAN/setup converter stride checks.
+3. **Next:** extract shared relocation/endian/record-walk helpers from d43/d69/d88.
+4. **Next:** expand converter synthetic fixtures that do not require copyrighted ROM data.
+5. **Active:** consolidate `verify.sh` + semantic gate + layout probes behind the unified CLI.
 6. Define `targets/r36s-aarch64-gles` as a target profile.
 7. Split GoldenEye-specific adapters from generic core.
 8. Add widescreen/FOV and texture replacement as generic renderer extension points.
