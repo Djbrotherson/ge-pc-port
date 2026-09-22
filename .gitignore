@@ -170,3 +170,8 @@ gdb-hang.txt
 # frozen asset converter (built by CI via PyInstaller; local freezes land here)
 tools_pc/dist/prepare-assets/ge007-convert*
 build-pyinst/
+
+# Generated native binaries and ROM-derived documentation media
+/ge007.aarch64
+/docs/img/
+/docs/media/
