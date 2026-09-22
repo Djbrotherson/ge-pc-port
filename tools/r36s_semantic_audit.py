@@ -186,9 +186,13 @@ def scan_file(path:Path):
         # A logical-not is 0/1 before a following bitwise AND. This exact
         # pattern caused controller-state checks to fail for controller bits
         # above bit 0.
-        if re.search(r"!\s*\([^\n;]+\)\s*(?<!&)\&(?!&)", line):
+        simple_value = r"[A-Za-z_]\w*(?:(?:->|\.)[A-Za-z_]\w*)*"
+        if re.search(
+            r"!\s*\(\s*" + simple_value + r"\s*\)\s*(?<!&)\&(?!&)",
+            line,
+        ):
             add("P0","logical-not-bitmask",path,i,raw,
-                "Logical-not result is bitwise-ANDed; likely intended !(flags & MASK).")
+                "Logical-not of a value is bitwise-ANDed separately; likely intended !(flags & MASK).")
 
         # GoldenEye's Indy transport carries 32-bit wire tokens. On LP64 a
         # response must never be written through a host pointer object: that
