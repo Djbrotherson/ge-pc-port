@@ -90,12 +90,12 @@ OBJ_PC_BYTES = 144
 #   40 AircraftRecord     ailist(id)@w32, [u16|s16]@w33, path*@w43, Sound*@w44
 #   NB w32 (ailist) is a pointer-width slot holding an INT id read by
 #   prop.c before overwrite -> OBJ_ID_WORDS, not ptr_word_set (D123).
-#   45 TankRecord         collision*@w32 (rest scalar; struct locs unconfirmed)
+#   45 TankRecord         collision@w32 stays a 32-bit inline collision-data word
 OBJ_TAIL_DESC = {
     47: (frozenset(),             frozenset()),
     39: (frozenset((41, 43)),     frozenset((33,))),
     40: (frozenset((43, 44)),     frozenset((33,))),
-    45: (frozenset((32,)),        frozenset()),
+    45: (frozenset(),             frozenset()),
     # 13 AutogunRecord: unkC4*@w49 unkC8*@w50 beam*@w51 (is_active@w52 unkD4@w53)
     13: (frozenset((49, 50, 51)), frozenset()),
     # 20 MultiAmmoCrateRecord: slots[13] of [u16 modelnum][u16 quantity]
@@ -149,7 +149,7 @@ PROPDEF_PC_BYTES = {
     39: 208,  # VehichleRecord (D122: 144 prefix + widened tail)
     40: 208,  # AircraftRecord (D122)
     44: 40,   # SafeObjectRecord (D132: 3x union{ptr;s32} Index1@8 Index2@16 Index3@24 next*@32)
-    45: 248,  # TankRecord (D122: 144 prefix + 23-word scalar tail + collision*)
+    45: 224,  # TankRecord: collision slot stays a 32-bit inline word on PORT
     46: 28,   # CutsceneRecord
     47: 168,  # TintedGlassRecord
     48: 4,    # END

@@ -99,7 +99,7 @@
     ]
   },
   "graphics": {
-    "gfx_bytes": 8,
+    "gfx_bytes": 16,
     "mtx_bytes": 64,
     "vtx_bytes": 16,
     "vertex_bytes": 16
@@ -238,7 +238,7 @@
     {
       "path": "include/PR/gbi.h",
       "type": "Gfx",
-      "bytes": 8
+      "bytes": 16
     },
     {
       "path": "include/PR/gbi.h",
