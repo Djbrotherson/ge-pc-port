@@ -1152,7 +1152,7 @@ f32 sub_GAME_7F06D3F4(s32 jointnum, s32 flip, ModelSkeleton *skeleton, ModelAnim
                 "[D193B] joint=%d flip=%d base=%d frame=%d tmp=(%d,%d,%d) "
                 "angle=%u anim=%p bd=%08x bs=%08x njoints=%d\n",
                 (int)jointnum, (int)flip, (int)base, (int)frame,
-                (int)tmp[0], (int)tmp[1], (int)tmp[2], (unsigned)angle,
+                (int)tmp.x, (int)tmp.y, (int)tmp.z, (unsigned)angle,
                 (void *)anim, (unsigned)anim->bitDescriptors,
                 (unsigned)anim->bitStream, (int)skeleton->numjoints);
         }
