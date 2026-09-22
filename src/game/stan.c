@@ -30,6 +30,13 @@ struct StanPrefixRecord {
     StandTile *ptr_firstroom;    // read as offset 4, hence the struct
 };
 
+#ifdef PORT
+_Static_assert(offsetof(struct StanPrefixRecord, ptr_firstroom) == 0x08,
+               "STAN converter expects ptr_firstroom at host offset 8");
+_Static_assert(sizeof(struct StanPrefixRecord) == 0x10,
+               "STAN host prefix must remain 16 bytes");
+#endif
+
 struct StanPrefixRecord *stan_prefix;
 s32 dword_CODE_bss_8007B124;
 
