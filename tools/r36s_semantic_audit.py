@@ -432,6 +432,31 @@ def check_ai_command_layout_contract():
                 add("P0","ai-bytecode-size-contract",header,1,
                     f"{name}: struct={actual} encoded={encoded}",
                     "AI command struct size disagrees with encoded command length; interpreter offsets will desynchronise.")
+
+        interp=Path("src/game/chrai.c")
+        if interp.exists():
+            itext=interp.read_text(errors="replace")
+            dispatch={}
+            for m in re.finditer(
+                r"case\s+AI_([A-Za-z0-9_]+)\s*:\s*"
+                r"(?:/\*.*?\*/\s*)?"
+                r"return\s+sizeof\(\s*Ai([A-Za-z0-9_]+)Record\s*\)\s*;",
+                itext,re.S,
+            ):
+                dispatch[m.group(1)]=m.group(2)
+            if len(dispatch) != len(lengths):
+                add("P0","ai-bytecode-dispatch-coverage",interp,1,
+                    f"dispatch={len(dispatch)} generated={len(lengths)}",
+                    "chraiitemsize() must cover every fixed-size generated AI command exactly once.")
+            for name in sorted(lengths):
+                mapped=dispatch.get(name)
+                if mapped is None:
+                    add("P0","ai-bytecode-dispatch-missing",interp,1,name,
+                        "Generated AI command is missing from chraiitemsize() fixed-size dispatch.")
+                elif mapped != name:
+                    add("P0","ai-bytecode-dispatch-record",interp,1,
+                        f"{name}: maps to Ai{mapped}Record",
+                        "AI command dispatch returns sizeof() for a different record type.")
     except Exception as exc:
         add("P0","ai-bytecode-audit-error",header,1,str(exc),
             "Could not prove generated AI bytecode record/length agreement.")
