@@ -53,6 +53,11 @@ project(ge007 C CXX ASM)
 # contracts before merging back to main.
 add_compile_definitions(DAM_ONLY_LAB=1)
 
+# Private demo hardening. This is deliberately source-scoped below so toggling
+# it after the normal AArch64 proof only recompiles the three files containing
+# Dam-lab research breadcrumbs rather than invalidating the whole build cache.
+option(DAM_SHOWCASE "Build a stripped Dam-only showcase profile" OFF)
+
 include(TargetArch)
 include(FindPkgConfig)
 
@@ -607,6 +612,14 @@ set(SRC
 # Target
 # ----------------------------------------------------------------------------
 set(BIN_NAME "ge007${BIN_REGION}.${TARGET_ARCH}")
+if(DAM_SHOWCASE)
+  set_source_files_properties(
+    "${CMAKE_SOURCE_DIR}/port/src/damlab.c"
+    "${CMAKE_SOURCE_DIR}/port/src/optionsoverlay.c"
+    "${CMAKE_SOURCE_DIR}/src/game/file.c"
+    PROPERTIES COMPILE_DEFINITIONS "DAM_SHOWCASE=1"
+  )
+endif()
 add_executable(ge007 ${SRC})
 target_link_libraries(ge007 ${LIBS})
 set_target_properties(ge007 PROPERTIES OUTPUT_NAME "${BIN_NAME}")
