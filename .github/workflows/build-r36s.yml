@@ -85,7 +85,7 @@ jobs:
       - name: Run semantic host-port gate
         run: |
           set -o pipefail
-          python3 tools/n64_port_audit.py | tee semantic-audit.log
+          python3 tools/n64_port.py audit | tee semantic-audit.log
 
       - name: Install AArch64 cross-build dependencies
         run: |
