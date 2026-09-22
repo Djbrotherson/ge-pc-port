@@ -34,7 +34,10 @@ enum {
 };
 
 void damLabInit(void);
-void damLabGameplayTick(void);
+void damLabGameplayTick(int stage, int camera_mode, int room,
+                        float pos_x, float pos_y, float pos_z,
+                        float cam_x, float cam_y, float cam_z,
+                        float stan_height, uintptr_t stan);
 void damLabRecordSpawn(int spawn_index, float x, float y, float z,
                        float lx, float ly, float lz, uintptr_t stan);
 void damLabHostSample(float fps);

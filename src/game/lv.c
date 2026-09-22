@@ -830,7 +830,22 @@ Gfx *lvlPortalDebug7F0BDF10(Gfx *gdl)
 Gfx* lvlRender(Gfx* DL)
 {
 #if defined(DAM_ONLY_LAB)
-    damLabGameplayTick();
+    if (g_CurrentPlayer) {
+        PropRecord *labProp = g_CurrentPlayer->prop;
+        StandTile *labStan = labProp ? labProp->stan : g_CurrentPlayer->field_488.current_tile_ptr;
+        damLabGameplayTick(
+            bossGetStageNum(),
+            g_CurrentPlayer->cameramode,
+            labStan ? labStan->room : -1,
+            labProp ? labProp->pos.f[0] : g_CurrentPlayer->field_488.pos.f[0],
+            labProp ? labProp->pos.f[1] : g_CurrentPlayer->field_488.pos.f[1],
+            labProp ? labProp->pos.f[2] : g_CurrentPlayer->field_488.pos.f[2],
+            g_CurrentPlayer->pos.f[0],
+            g_CurrentPlayer->pos.f[1],
+            g_CurrentPlayer->pos.f[2],
+            g_CurrentPlayer->stanHeight,
+            (uintptr_t)labStan);
+    }
 #endif
     gSPSegment(DL++, SPSEGMENT_PHYSICAL, NULL);
     gSPSegment(DL++, SPSEGMENT_UNKNOWN, osVirtualToPhysical(ptr_font_DL));

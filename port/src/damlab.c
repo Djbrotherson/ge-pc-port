@@ -2,17 +2,12 @@
 
 #if defined(DAM_ONLY_LAB)
 
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 
-#include <bondconstants.h>
-#include "game/player.h"
-#include "game/bondview.h"
-#include "boss.h"
 
 static DamLabSnapshot g_dam;
 static FILE *g_log;
@@ -23,6 +18,16 @@ static int g_last_camera = -9999;
 static float g_last_x, g_last_y, g_last_z;
 static int g_have_last_pos;
 static uint64_t g_game_ticks;
+
+static float damAbs(float x)
+{
+    return x < 0.0f ? -x : x;
+}
+
+static int damFinite(float x)
+{
+    return x == x && x < 3.4e38f && x > -3.4e38f;
+}
 
 static double damNow(void)
 {
@@ -124,7 +129,7 @@ void damLabInit(void)
             "DAMLAB_BEGIN oracle_stage=%d oracle_spawn=33 "
             "oracle_pos=4719.000,-18.000,3949.000 "
             "oracle_look=-1.000000,0.000000,-0.000643 oracle_plink=p6g1\n",
-            (int)LEVELID_DAM);
+            9);
         fflush(g_log);
     }
     g_last_host_time = damNow();
@@ -139,12 +144,12 @@ void damLabRecordSpawn(int spawn_index, float x, float y, float z,
     g_dam.stan = stan;
 
     if (spawn_index != 33 ||
-        fabsf(x - 4719.0f) > 0.01f ||
-        fabsf(y - (-18.0f)) > 0.01f ||
-        fabsf(z - 3949.0f) > 0.01f ||
-        fabsf(lx - (-1.0f)) > 0.01f ||
-        fabsf(ly) > 0.01f ||
-        fabsf(lz - (-0.000643f)) > 0.01f) {
+        damAbs(x - 4719.0f) > 0.01f ||
+        damAbs(y - (-18.0f)) > 0.01f ||
+        damAbs(z - 3949.0f) > 0.01f ||
+        damAbs(lx - (-1.0f)) > 0.01f ||
+        damAbs(ly) > 0.01f ||
+        damAbs(lz - (-0.000643f)) > 0.01f) {
         g_dam.anomaly_flags |= DAMLAB_ANOM_SPAWN;
     }
     if (!stan)
@@ -154,67 +159,56 @@ void damLabRecordSpawn(int spawn_index, float x, float y, float z,
     damLog("SPAWN");
 }
 
-void damLabGameplayTick(void)
+void damLabGameplayTick(int stage, int camera_mode, int room,
+                        float pos_x, float pos_y, float pos_z,
+                        float cam_x, float cam_y, float cam_z,
+                        float stan_height, uintptr_t stan)
 {
     g_game_ticks++;
-    if (!g_CurrentPlayer)
-        return;
-
     unsigned old_flags = g_dam.anomaly_flags;
-    g_dam.stage = bossGetStageNum();
-    g_dam.camera_mode = g_CurrentPlayer->cameramode;
-    g_dam.cam_x = g_CurrentPlayer->pos.f[0];
-    g_dam.cam_y = g_CurrentPlayer->pos.f[1];
-    g_dam.cam_z = g_CurrentPlayer->pos.f[2];
-    g_dam.stan_height = g_CurrentPlayer->stanHeight;
 
-    if (g_CurrentPlayer->prop) {
-        g_dam.pos_x = g_CurrentPlayer->prop->pos.f[0];
-        g_dam.pos_y = g_CurrentPlayer->prop->pos.f[1];
-        g_dam.pos_z = g_CurrentPlayer->prop->pos.f[2];
-        g_dam.stan = (uintptr_t)g_CurrentPlayer->prop->stan;
-        g_dam.room = g_CurrentPlayer->prop->stan ? g_CurrentPlayer->prop->stan->room : -1;
-    } else {
-        g_dam.pos_x = g_CurrentPlayer->field_488.pos.f[0];
-        g_dam.pos_y = g_CurrentPlayer->field_488.pos.f[1];
-        g_dam.pos_z = g_CurrentPlayer->field_488.pos.f[2];
-        g_dam.stan = (uintptr_t)g_CurrentPlayer->field_488.current_tile_ptr;
-        g_dam.room = g_CurrentPlayer->field_488.current_tile_ptr ? g_CurrentPlayer->field_488.current_tile_ptr->room : -1;
-    }
+    g_dam.stage = stage;
+    g_dam.camera_mode = camera_mode;
+    g_dam.room = room;
+    g_dam.pos_x = pos_x;
+    g_dam.pos_y = pos_y;
+    g_dam.pos_z = pos_z;
+    g_dam.cam_x = cam_x;
+    g_dam.cam_y = cam_y;
+    g_dam.cam_z = cam_z;
+    g_dam.stan_height = stan_height;
+    g_dam.stan = stan;
 
-    if (!isfinite(g_dam.pos_x) || !isfinite(g_dam.pos_y) || !isfinite(g_dam.pos_z))
+    if (!damFinite(pos_x) || !damFinite(pos_y) || !damFinite(pos_z))
         g_dam.anomaly_flags |= DAMLAB_ANOM_POS_NAN;
-    if (!g_dam.stan)
+    if (!stan)
         g_dam.anomaly_flags |= DAMLAB_ANOM_STAN_NULL;
-    if (g_dam.room < 0 || g_dam.room >= 139)
+    if (room < 0 || room >= 139)
         g_dam.anomaly_flags |= DAMLAB_ANOM_ROOM;
 
     int event = 0;
     if (g_have_last_pos) {
-        float dx = g_dam.pos_x - g_last_x;
-        float dy = g_dam.pos_y - g_last_y;
-        float dz = g_dam.pos_z - g_last_z;
+        float dx = pos_x - g_last_x;
+        float dy = pos_y - g_last_y;
+        float dz = pos_z - g_last_z;
         if (dx*dx + dy*dy + dz*dz > 250000.0f) {
             g_dam.anomaly_flags |= DAMLAB_ANOM_POS_JUMP;
             event = 1;
         }
     }
-    if (g_dam.room != g_last_room || g_dam.camera_mode != g_last_camera)
+    if (room != g_last_room || camera_mode != g_last_camera)
         event = 1;
     if (g_dam.anomaly_flags != old_flags)
         event = 1;
 
-    g_last_x = g_dam.pos_x; g_last_y = g_dam.pos_y; g_last_z = g_dam.pos_z;
-    g_last_room = g_dam.room;
-    g_last_camera = g_dam.camera_mode;
+    g_last_x = pos_x; g_last_y = pos_y; g_last_z = pos_z;
+    g_last_room = room;
+    g_last_camera = camera_mode;
     g_have_last_pos = 1;
 
-    /* 60 Hz NTSC lab: periodic snapshot once per second, plus all meaningful
-     * topology/camera/anomaly transitions. */
     if ((g_game_ticks % 60u) == 0u || event) {
         g_dam.sample_seq++;
         damLog(event ? "EVENT" : "TICK");
-        /* Persistent flags remain in the snapshot; don't spam every frame. */
         g_dam.anomaly_flags &= ~(DAMLAB_ANOM_POS_JUMP);
     }
 }
@@ -268,7 +262,8 @@ void damLabShutdown(void)
 #else
 
 void damLabInit(void) {}
-void damLabGameplayTick(void) {}
+void damLabGameplayTick(int a,int b,int r,float x,float y,float z,float cx,float cy,float cz,float sh,uintptr_t s)
+{ (void)a;(void)b;(void)r;(void)x;(void)y;(void)z;(void)cx;(void)cy;(void)cz;(void)sh;(void)s; }
 void damLabRecordSpawn(int i,float x,float y,float z,float lx,float ly,float lz,uintptr_t s)
 { (void)i;(void)x;(void)y;(void)z;(void)lx;(void)ly;(void)lz;(void)s; }
 void damLabHostSample(float fps) { (void)fps; }
