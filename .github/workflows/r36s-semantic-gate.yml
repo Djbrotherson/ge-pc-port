@@ -12,6 +12,7 @@ on:
       - 'tools_pc/d43_emit.py'
       - 'tools_pc/d69_emit.py'
       - 'tools_pc/d88_propdefs.py'
+      - 'tools/n64_port_audit.py'
       - 'tools/r36s_semantic_audit.py'
       - '.github/workflows/r36s-semantic-gate.yml'
 concurrency:
@@ -29,7 +30,7 @@ jobs:
       - name: Run semantic host-port gate
         run: |
           set -o pipefail
-          python3 tools/r36s_semantic_audit.py | tee semantic-audit.log
+          python3 tools/n64_port_audit.py | tee semantic-audit.log
 
       - name: Publish report
         if: always()
