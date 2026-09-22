@@ -126,11 +126,6 @@ static void gfx_sdl_init(const struct GfxWindowInitSettings *set) {
 
     int posX = set->x;
     int posY = set->y;
-    int display_in_use = SDL_GetWindowDisplayIndex(wnd);
-    if (display_in_use < 0) { // Fallback to default if out of bounds
-        posX = SDL_WINDOWPOS_UNDEFINED;
-        posY = SDL_WINDOWPOS_UNDEFINED;
-    }
 
     if (set->centered) {
         SDL_DisplayMode mode = {};
@@ -243,6 +238,22 @@ static void gfx_sdl_init(const struct GfxWindowInitSettings *set) {
 
 static void gfx_sdl_close(void) {
     is_running = false;
+
+    if (ctx) {
+        SDL_GL_MakeCurrent(NULL, NULL);
+        SDL_GL_DeleteContext(ctx);
+        ctx = NULL;
+    }
+    if (wnd) {
+        SDL_DestroyWindow(wnd);
+        wnd = NULL;
+    }
+    if (SDL_WasInit(SDL_INIT_VIDEO)) {
+        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    }
+
+    fullscreen_state = false;
+    maximized_state = false;
 }
 
 static void gfx_sdl_set_fullscreen_changed_callback(void (*on_fullscreen_changed)(bool is_now_fullscreen)) {

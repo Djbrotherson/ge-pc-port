@@ -1102,6 +1102,45 @@ static void gfx_opengl_init(void) {
     framebuffers.resize(1); // for the default screen buffer
 }
 
+static void gfx_opengl_shutdown(void) {
+    glUseProgram(0);
+    gfx_opengl_clear_shaders();
+
+    if (opengl_vbo) {
+        glDeleteBuffers(1, &opengl_vbo);
+        opengl_vbo = 0;
+    }
+    if (opengl_vao) {
+        glDeleteVertexArrays(1, &opengl_vao);
+        opengl_vao = 0;
+    }
+
+    for (size_t i = 1; i < framebuffers.size(); ++i) {
+        Framebuffer& fb = framebuffers[i];
+        if (fb.clrbuf) {
+            glDeleteTextures(1, &fb.clrbuf);
+            fb.clrbuf = 0;
+        }
+        if (fb.clrbuf_msaa) {
+            glDeleteRenderbuffers(1, &fb.clrbuf_msaa);
+            fb.clrbuf_msaa = 0;
+        }
+        if (fb.rbo) {
+            glDeleteRenderbuffers(1, &fb.rbo);
+            fb.rbo = 0;
+        }
+        if (fb.fbo) {
+            glDeleteFramebuffers(1, &fb.fbo);
+            fb.fbo = 0;
+        }
+    }
+
+    framebuffers.clear();
+    current_framebuffer = 0;
+    frame_count = 0;
+    current_noise_scale = 1.0f;
+}
+
 static void gfx_opengl_on_resize(void) {
 }
 
@@ -1429,6 +1468,7 @@ struct GfxRenderingAPI gfx_opengl_api = {
     gfx_opengl_set_use_alpha,
     gfx_opengl_draw_triangles,
     gfx_opengl_init,
+    gfx_opengl_shutdown,
     gfx_opengl_on_resize,
     gfx_opengl_start_frame,
     gfx_opengl_end_frame,

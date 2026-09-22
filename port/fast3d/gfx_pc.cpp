@@ -3303,10 +3303,47 @@ extern "C" void gfx_init(const GfxInitSettings *settings) {
 }
 
 extern "C" void gfx_destroy(void) {
-    // TODO: should also destroy rapi and wapi, and any other resources acquired in fast3d
+    if (!gfx_rapi || !gfx_wapi) {
+        return;
+    }
 
-    // Texture cache and loaded textures store references to Resources which need to be unreferenced.
+    /* Release cached GL texture names while the context is still current.
+     * gfx_texture_cache_clear() moves all live IDs into free_texture_ids. */
     gfx_texture_cache_clear();
+    for (uint32_t texture_id : gfx_texture_cache.free_texture_ids) {
+        if (texture_id && gfx_rapi->delete_texture) {
+            gfx_rapi->delete_texture(texture_id);
+        }
+    }
+    gfx_texture_cache.free_texture_ids.clear();
+
+    if (rendering_state.shader_program) {
+        gfx_rapi->unload_shader(rendering_state.shader_program);
+        rendering_state.shader_program = nullptr;
+    }
+    if (gfx_rapi->clear_shaders) {
+        gfx_rapi->clear_shaders();
+    }
+    color_combiner_pool.clear();
+    prev_combiner = color_combiner_pool.end();
+
+    if (tex_upload_buffer) {
+        free(tex_upload_buffer);
+        tex_upload_buffer = nullptr;
+    }
+
+    framebuffers.clear();
+    active_fb = framebuffers.end();
+
+    if (gfx_rapi->shutdown) {
+        gfx_rapi->shutdown();
+    }
+    if (gfx_wapi->close) {
+        gfx_wapi->close();
+    }
+
+    gfx_rapi = nullptr;
+    gfx_wapi = nullptr;
 }
 
 extern "C" struct GfxRenderingAPI* gfx_get_current_rendering_api(void) {

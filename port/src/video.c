@@ -400,9 +400,9 @@ int videoInit(void)
 
     /* MSAA: snap the requested sample count down to a supported power of two. */
 #if defined(__aarch64__) && defined(USE_GLES)
-    /* R36S bring-up: render directly to the window framebuffer. This removes
-     * the offscreen-MSAA/resolve path from the first-pixel equation entirely.
-     * Once direct rendering is proven, MSAA can be re-enabled independently. */
+    /* R36S target policy: use the direct window framebuffer. The handheld
+     * baseline does not depend on multisample FBO/resolve support, which varies
+     * across its Mesa/EGL stacks; expose one deterministic GLES3 path. */
     if (cfgMSAA != 1) {
         sysLogPrintf(LOG_NOTE, "R36S video diagnostic: forcing MSAA 1 (configured %d)", cfgMSAA);
     }
@@ -501,6 +501,9 @@ int videoInit(void)
 void videoDestroy(void)
 {
     if (initDone) {
+        /* GL resources must be deleted before the SDL context/window. */
+        gfx_sdl_make_context_current();
+        gfx_pre_swap_hook = NULL;
         gfx_destroy();
         initDone = 0;
     }
@@ -810,6 +813,15 @@ void videoSubmitCommands(Gfx *cmds)
 static void videoPreSwapCapture(void)
 {
 #if defined(__aarch64__)
+    /* R36S presentation instrumentation is opt-in. It deliberately modifies
+     * framebuffer 0 and performs synchronous readback, so it must never run
+     * during normal gameplay. Set GE_VIDEO_DIAG=1 for bring-up diagnostics. */
+    static int videoDiag = -1;
+    if (videoDiag < 0) {
+        const char *env = getenv("GE_VIDEO_DIAG");
+        videoDiag = (env && *env && strcmp(env, "0") != 0) ? 1 : 0;
+    }
+    if (videoDiag) {
     /* R36S physical-presentation proof. Draw directly into framebuffer 0
      * immediately before SDL_GL_SwapWindow, using only scissored clears.
      * This bypasses GoldenEye display lists, shaders, textures and fonts. */
@@ -881,6 +893,7 @@ static void videoPreSwapCapture(void)
             frames, (int)fbo, vp[0], vp[1], vp[2], vp[3],
             total_nonblack, maxrgb, (unsigned)readFmt, (unsigned)readType,
             (unsigned)glGetError());
+    }
     }
 #endif
 
