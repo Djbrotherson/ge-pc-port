@@ -22,6 +22,14 @@ investigation artifacts.
 | `d88_propdefs.py` | The `propDefs` polymorphic-record stream N64→PC converter used by `d88_emit.py` (D88.4). |
 | `d69_emit.py` / `d88_emit.py` / `d43_emit.py` | Run all three (+ `d88_propdefs`) to rebuild `data/` sidecars from the ROM. |
 
+## Generic port-tool entry points
+
+| Tool | Role |
+|---|---|
+| `../tools/n64_port_audit.py` | Target-neutral semantic/ABI audit entry point. New automation should call this path. |
+| `../tools/r36s_semantic_audit.py` | Current detector implementation and backward-compatible historical entry point. Being progressively generalized behind `n64_port_audit.py`. |
+| `../docs/PORTING-TOOLSET.md` | Architecture, speedrun rules, validation tiers, and roadmap for extracting the GoldenEye work into a reusable N64 porting toolkit. |
+
 ## Living — verification & release
 
 | Script | Role |
