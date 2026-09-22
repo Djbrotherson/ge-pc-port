@@ -5,6 +5,7 @@ our R36S/AArch64 port and reusable N64 porting toolchain.
 
 ## Start here
 
+- [R36S-BUILD.md](R36S-BUILD.md) — current AArch64/GLES target build and verification path.
 - [PORTING-TOOLSET.md](PORTING-TOOLSET.md) — reusable toolchain architecture,
   profiles, ABI contracts, validation tiers and roadmap.
 - [porting-notes.md](porting-notes.md) — recurring N64→host semantic failure
