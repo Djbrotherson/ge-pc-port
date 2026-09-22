@@ -103,6 +103,7 @@ def main() -> int:
     )
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("doctor", help="validate profile, adapters, contracts and targets")
+    sub.add_parser("selftest", help="run ROM-free reusable tool-library tests")
     sub.add_parser("audit", help="run semantic + project contract audit")
     sub.add_parser("show-profile", help="print the resolved profile")
 
@@ -119,6 +120,20 @@ def main() -> int:
 
     if args.command == "doctor":
         return doctor(profile_path, profile)
+    if args.command == "selftest":
+        return subprocess.call(
+            [
+                sys.executable,
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                str(ROOT / "tools" / "n64_portlib"),
+                "-p",
+                "test_*.py",
+            ],
+            cwd=ROOT,
+        )
     if args.command == "audit":
         return audit(profile_path)
     if args.command == "show-profile":
