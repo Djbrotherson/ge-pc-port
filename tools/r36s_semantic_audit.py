@@ -369,6 +369,74 @@ def scan_file(path:Path):
                 add("P1","fixed-n64-typed-reserve",path,i,raw,
                     "Typed graphics object is near a fixed byte reserve; verify sizeof/stride on LP64.")
 
+def check_ai_command_layout_contract():
+    """Prove generated AI bytecode structs match their encoded byte lengths."""
+    header=Path("src/aicommands2.h")
+    if not header.exists():
+        return
+    try:
+        text=header.read_text(errors="replace")
+        if "#pragma pack(1)" not in text:
+            add("P0","ai-bytecode-pack-contract",header,1,"#pragma pack(1) missing",
+                "AI command records are serialized bytecode and must remain byte-packed.")
+            return
+
+        lengths={}
+        for m in re.finditer(
+            r"^#define\s+AI_([A-Za-z0-9_]+)_LENGTH\s+\(AICMDSIZE([^)]*)\)",
+            text,re.M,
+        ):
+            n=1
+            for sign,num in re.findall(r"([+-])\s*(\d+)",m.group(2)):
+                n += int(num) if sign=="+" else -int(num)
+            lengths[m.group(1)]=n
+
+        widths={"u8":1,"s8":1,"u16":2,"s16":2,"u32":4,"s32":4,"f32":4}
+        records={}
+        struct_re=re.compile(
+            r"typedef\s+struct\s+Ai([A-Za-z0-9_]+)Record\s*\{(.*?)\}"
+            r"\s*Ai\1Record\s*;",
+            re.S,
+        )
+        field_re=re.compile(
+            r"^(u8|s8|u16|s16|u32|s32|f32)\s+[A-Za-z_]\w*"
+            r"(?:\[(\d+)\])?\s*;$"
+        )
+        for m in struct_re.finditer(text):
+            size=0
+            ok=True
+            body=re.sub(r"/\*.*?\*/"," ",m.group(2),flags=re.S)
+            for raw in body.splitlines():
+                line=re.sub(r"//.*","",raw).strip()
+                if not line:
+                    continue
+                fm=field_re.match(line)
+                if not fm:
+                    ok=False
+                    break
+                size += widths[fm.group(1)] * (int(fm.group(2)) if fm.group(2) else 1)
+            if ok:
+                records[m.group(1)]=size
+
+        if len(lengths) != len(records):
+            add("P0","ai-bytecode-record-coverage",header,1,
+                f"lengths={len(lengths)} records={len(records)}",
+                "Generated AI length macros and bytecode record structs must have one-to-one coverage.")
+
+        for name,encoded in sorted(lengths.items()):
+            actual=records.get(name)
+            if actual is None:
+                add("P0","ai-bytecode-record-missing",header,1,name,
+                    "AI length macro has no parseable matching packed record struct.")
+            elif actual != encoded:
+                add("P0","ai-bytecode-size-contract",header,1,
+                    f"{name}: struct={actual} encoded={encoded}",
+                    "AI command struct size disagrees with encoded command length; interpreter offsets will desynchronise.")
+    except Exception as exc:
+        add("P0","ai-bytecode-audit-error",header,1,str(exc),
+            "Could not prove generated AI bytecode record/length agreement.")
+
+
 def check_propdef_stride_contract():
     """Cross-check offline propDef expansion against the runtime stream walk.
 
@@ -490,6 +558,7 @@ def main():
     collect_pointer_member_names()
     for f in iter_files(): scan_file(f)
     check_propdef_stride_contract()
+    check_ai_command_layout_contract()
     findings.sort(key=lambda x:(0 if x[0]=="P0" else 1,x[2],x[3],x[1]))
     out=Path("semantic-audit-out"); out.mkdir(exist_ok=True)
     with (out/"semantic-findings.tsv").open("w") as fp:
