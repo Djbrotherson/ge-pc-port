@@ -489,6 +489,8 @@ static void overlayInit(void)
     }
 }
 
+static CHEAT_ID cheatIdForKey(const char *key);
+
 static double rowGet(const struct Row *r)
 {
     if (strcmp(r->key, "__ScreenMode") == 0) return (double)cur_player_get_screen_setting();
@@ -580,6 +582,134 @@ static void rowSet(struct Row *r, double v)
         set_screen_ratio((u32)lround(v));
         return;
     }
+
+    /* Native GoldenEye options: direct calls into the game's own settings. */
+    if (strcmp(r->key, "__AutoAim") == 0) {
+        cur_player_set_autoaim((u32)(v != 0.0)); return;
+    }
+    if (strcmp(r->key, "__AimControl") == 0) {
+        if (v < 0) v = 0; if (v > 1) v = 1;
+        cur_player_set_aim_control((u32)lround(v)); return;
+    }
+    if (strcmp(r->key, "__SightOnscreen") == 0) {
+        cur_player_set_sight_onscreen_control((u32)(v != 0.0)); return;
+    }
+    if (strcmp(r->key, "__LookAhead") == 0) {
+        cur_player_set_lookahead((u32)(v != 0.0)); return;
+    }
+    if (strcmp(r->key, "__AmmoOnscreen") == 0) {
+        cur_player_set_ammo_onscreen_setting((u32)(v != 0.0)); return;
+    }
+    if (strcmp(r->key, "__LookInvert") == 0) {
+        set_cur_player_look_vertical_inverted((u32)(v != 0.0)); return;
+    }
+    if (strcmp(r->key, "__MusicVolume") == 0) {
+        if (v < 0) v = 0; if (v > 100) v = 100;
+        set_mTrack2Vol((u16)lround(v * 32767.0 / 100.0));
+        return;
+    }
+    if (strcmp(r->key, "__SfxVolume") == 0) {
+        if (v < 0) v = 0; if (v > 100) v = 100;
+        sub_GAME_7F0A91A0((u16)lround(v * 32767.0 / 100.0));
+        return;
+    }
+
+    /* Original GoldenEye cheat machinery. */
+    if (strcmp(r->key, "__CheatMaxAmmo") == 0) {
+        cheatButtonTurnOnCheatForPlayers(CHEAT_MAXAMMO);
+        return;
+    }
+    if (strcmp(r->key, "__CheatClearAll") == 0) {
+        cheatDisableAllCheats();
+        {
+            const CHEAT_ID extra[] = { CHEAT_INVINCIBILITY, CHEAT_ALLGUNS,
+                CHEAT_DK_MODE, CHEAT_TINY_BOND, CHEAT_ENEMY_ROCKETS };
+            for (unsigned i = 0; i < sizeof(extra) / sizeof(extra[0]); ++i) {
+                if (cheatIsActive(extra[i])) cheatButtonHandleCheatsTurnedOff(extra[i]);
+            }
+        }
+        return;
+    }
+    {
+        CHEAT_ID cid = cheatIdForKey(r->key);
+        if (cid != CHEAT_UNUSED) {
+            int want = v != 0.0;
+            int have = cheatIsActive(cid) ? 1 : 0;
+            if (want != have) {
+                if (want) cheatButtonTurnOnCheatForPlayers(cid);
+                else cheatButtonHandleCheatsTurnedOff(cid);
+            }
+            return;
+        }
+    }
+
+    /* Presets only write normal settings through rowSet, so all existing
+     * clamping/live-apply behavior stays centralized. */
+    if (strcmp(r->key, "__GraphicsPreset") == 0) {
+        int p = (int)lround(v);
+        if (p < 0) p = 0; if (p > 4) p = 4;
+        s_graphicsPreset = p;
+        if (p != 0) {
+            struct Row *x;
+            s_presetDepth++;
+#define PRESET_SET(k,val) do { x=rowByKey(k); if (x && x->found) rowSet(x,(val)); } while(0)
+            if (p == 1) {
+                PRESET_SET("Video.TextureFilter", 0);
+                PRESET_SET("Video.MipmapFilter", 1);
+                PRESET_SET("Video.Anisotropy", 1);
+                PRESET_SET("Video.FovScale", 100);
+                PRESET_SET("Video.DrawDistanceAutoFov", 0);
+                PRESET_SET("Video.DrawDistance", 100);
+                PRESET_SET("Video.LodDistanceAutoFov", 0);
+                PRESET_SET("Video.LodDistance", 100);
+            } else if (p == 2) {
+                PRESET_SET("Video.TextureFilter", 0);
+                PRESET_SET("Video.MipmapFilter", 0);
+                PRESET_SET("Video.Anisotropy", 1);
+                PRESET_SET("Video.FovScale", 100);
+                PRESET_SET("Video.DrawDistanceAutoFov", 0);
+                PRESET_SET("Video.DrawDistance", 150);
+                PRESET_SET("Video.LodDistanceAutoFov", 0);
+                PRESET_SET("Video.LodDistance", 150);
+            } else if (p == 3) {
+                PRESET_SET("Video.TextureFilter", 2);
+                PRESET_SET("Video.MipmapFilter", 2);
+                PRESET_SET("Video.Anisotropy", 8);
+                PRESET_SET("Video.FovScale", 115);
+                PRESET_SET("Video.DrawDistanceAutoFov", 1);
+                PRESET_SET("Video.LodDistanceAutoFov", 0);
+                PRESET_SET("Video.LodDistance", 200);
+            } else if (p == 4) {
+                PRESET_SET("Video.TextureFilter", 1);
+                PRESET_SET("Video.MipmapFilter", 2);
+                PRESET_SET("Video.Anisotropy", 2);
+                PRESET_SET("Video.FovScale", 100);
+                PRESET_SET("Video.DrawDistanceAutoFov", 0);
+                PRESET_SET("Video.DrawDistance", 125);
+                PRESET_SET("Video.LodDistanceAutoFov", 0);
+                PRESET_SET("Video.LodDistance", 100);
+            }
+#undef PRESET_SET
+            s_presetDepth--;
+        }
+        return;
+    }
+    if (strcmp(r->key, "__AudioPreset") == 0) {
+        int p = (int)lround(v);
+        if (p < 0) p = 0; if (p > 3) p = 3;
+        s_audioPreset = p;
+        if (p != 0) {
+            struct Row *q = rowByKey("Audio.QueueLimit");
+            struct Row *b = rowByKey("Audio.BufferSize");
+            s_presetDepth++;
+            if (p == 1) { if (q&&q->found) rowSet(q,1536); if (b&&b->found) rowSet(b,256); }
+            if (p == 2) { if (q&&q->found) rowSet(q,2880); if (b&&b->found) rowSet(b,512); }
+            if (p == 3) { if (q&&q->found) rowSet(q,4096); if (b&&b->found) rowSet(b,1024); }
+            s_presetDepth--;
+        }
+        return;
+    }
+
     if (lo != hi) {
         if (v < lo) v = lo;
         if (v > hi) v = hi;
