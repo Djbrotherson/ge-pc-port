@@ -26,6 +26,7 @@ DESKTOP_GL={
 
 findings=[]
 POINTER_MEMBER_NAMES=set()
+AMBIGUOUS_MEMBER_NAMES=set()
 
 def add(sev,kind,path,line,code,why):
     findings.append((sev,kind,str(path),line,code.strip()[:300],why))
@@ -39,28 +40,51 @@ def iter_files():
                 yield f
 
 def collect_pointer_member_names():
-    """Harvest pointer field names from project headers before scanning uses.
+    """Harvest pointer-only field names from project headers before scanning uses.
 
-    This catches casts of ordinary fields such as obj->model / node->Data that
-    name-based ptr/addr heuristics miss. It is intentionally P1 at use sites
-    because field names can be reused by unrelated scalar structs.
+    A bare member name is only useful type evidence when that name is not also
+    used by an ordinary scalar field elsewhere.  Decomp headers reuse names
+    like type/state/count/width heavily; treating those globally as pointer
+    evidence creates hundreds of false P1s and obscures the real LP64 frontier.
     """
-    global POINTER_MEMBER_NAMES
-    decl=re.compile(
+    global POINTER_MEMBER_NAMES, AMBIGUOUS_MEMBER_NAMES
+
+    ptr_decl=re.compile(
         r"\b(?:struct\s+\w+|union\s+\w+|[A-Za-z_]\w*)"
         r"(?:\s+const)?\s*\*+\s*([A-Za-z_]\w*)"
         r"(?:\s*\[[^\]]*\])?\s*(?:;|,)"
     )
-    names=set()
+    # Deliberately broad scalar-member harvesting.  We only use it to remove
+    # ambiguous names from name-only pointer inference; dedicated pointer
+    # syntax/rules still catch true hazards.
+    scalar_decl=re.compile(
+        r"^[ \t]*(?:const\s+)?(?:struct\s+\w+|union\s+\w+|enum\s+\w+|"
+        r"[A-Za-z_]\w*(?:\s+[A-Za-z_]\w*)*)\s+"
+        r"([A-Za-z_]\w*)\s*(?:\[[^\]]*\])?\s*(?::\s*\d+)?\s*(?:;|,)",
+        re.M,
+    )
+
+    pointer_names=set()
+    scalar_names=set()
     for f in iter_files():
         if f.suffix not in {".h",".hpp"}:
             continue
         text=f.read_text(errors="replace")
         text=re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
         text=re.sub(r"//.*", " ", text)
-        for m in decl.finditer(text):
-            names.add(m.group(1))
-    POINTER_MEMBER_NAMES=names
+        for m in ptr_decl.finditer(text):
+            pointer_names.add(m.group(1))
+        for m in scalar_decl.finditer(text):
+            # Pointer declarations can also superficially resemble the broad
+            # scalar grammar around typedef/macros; reject declarations whose
+            # prefix contains '*'.
+            line_start=text.rfind("\n",0,m.start())+1
+            prefix=text[line_start:m.end()]
+            if "*" not in prefix:
+                scalar_names.add(m.group(1))
+
+    AMBIGUOUS_MEMBER_NAMES=pointer_names & scalar_names
+    POINTER_MEMBER_NAMES=pointer_names - AMBIGUOUS_MEMBER_NAMES
 
 
 def _strip_comments(line:str, in_block:bool):
