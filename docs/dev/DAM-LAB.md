@@ -197,3 +197,9 @@ Port Control now treats GoldenEye's original runtime options and cheats as first
 - R36S capability reporting is explicit: MSAA remains forced off on the handheld direct-framebuffer GLES path rather than presenting a setting that silently does nothing.
 
 The rule is that a visible control must either drive an existing GoldenEye setting, a verified host/fast3d capability, or clearly state when the target forces a value. Experimental renderer paths that are known to corrupt GoldenEye visuals remain hidden.
+
+### Live keyboard rebinding
+
+The Input page now exposes the existing config-backed keyboard binds directly. Select a `Bind ...` row and press Enter/A to enter capture mode; release the initiating key, then press the replacement keyboard key. Escape cancels. The existing input bind parser is rebuilt immediately and the config is saved, so no restart or INI editing is required.
+
+Mouse fire/aim buttons and gamepad mappings remain intentionally separate from these keyboard binds. Arbitrary gamepad remapping is not presented until its trigger-axis/button semantics have a dedicated binding model rather than a misleading keyboard-style string field.
