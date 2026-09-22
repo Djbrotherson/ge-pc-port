@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import ast, importlib.util, re, sys
+import ast, importlib.util, os, re, sys
 from pathlib import Path
 
-ROOTS=("src","include","port")
+ROOTS=tuple(
+    p for p in os.environ.get("N64_PORT_AUDIT_ROOTS", os.pathsep.join(("src","include","port"))).split(os.pathsep)
+    if p
+)
+EXCLUDE_PARTS=set(
+    p for p in os.environ.get("N64_PORT_AUDIT_EXCLUDES", "third_party").split(os.pathsep)
+    if p
+)
+PROJECT_NAME=os.environ.get("N64_PORT_AUDIT_PROJECT", "goldeneye-r36s")
 EXTS={".c",".h",".cc",".cpp",".cxx",".hpp"}
 DESKTOP_GL={
  "glPolygonMode","glDrawBuffer","glGetTexImage","glTexImage1D","glTexSubImage1D",
@@ -22,7 +30,7 @@ def iter_files():
         p=Path(root)
         if not p.exists(): continue
         for f in p.rglob("*"):
-            if f.is_file() and f.suffix in EXTS and "third_party" not in f.parts:
+            if f.is_file() and f.suffix in EXTS and not (set(f.parts) & EXCLUDE_PARTS):
                 yield f
 
 def collect_pointer_member_names():
@@ -781,7 +789,7 @@ def main():
     p0=[x for x in findings if x[0]=="P0"]
     p1=[x for x in findings if x[0]=="P1"]
     with (out/"semantic-report.md").open("w") as fp:
-        fp.write("# R36S semantic host-port audit\n\n")
+        fp.write(f"# N64 semantic host-port audit — {PROJECT_NAME}\n\n")
         fp.write(f"- P0 known-bad semantic patterns: **{len(p0)}**\n")
         fp.write(f"- P1 manual ABI/layout reviews: **{len(p1)}**\n\n")
         for sev,kind,path,line,code,why in findings:
