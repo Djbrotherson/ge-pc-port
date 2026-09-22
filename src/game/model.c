@@ -534,7 +534,7 @@ union ModelRwData* modelGetNodeRwData(Model *Objinst, ModelNode *root)
         root = root->Parent;
         if ((root->Opcode & 0xFF) == MODELNODE_OPCODE_HEAD)
         {
-            ModelRwData_HeadPlaceholderRecord *tmp = modelGetNodeRwData(Objinst, root);
+            ModelRwData_HeadPlaceholderRecord *tmp = (ModelRwData_HeadPlaceholderRecord *)modelGetNodeRwData(Objinst, root);
 #ifdef PORT
             data = (u32 *)tmp->RwDatas;
 #else
@@ -580,7 +580,7 @@ void getpartoffset(Model *objinst, ModelNode *part, coord3d *offset) //#MATCH - 
     {
         case MODELNODE_OPCODE_HEADER:
         {
-            struct modeldata_root *root = modelGetNodeRwData(objinst, part);
+            struct modeldata_root *root = (struct modeldata_root *)modelGetNodeRwData(objinst, part);
             offset->x                   = root->pos.x;
             offset->y                   = root->pos.y;
             offset->z                   = root->pos.z;
@@ -642,7 +642,7 @@ void setpartoffset(Model *model, ModelNode *node, coord3d *pos)
     {
         case MODELNODE_OPCODE_HEADER:
             {
-                ModelRwData_HeaderRecord *rwdata = modelGetNodeRwData(model, node);
+                ModelRwData_HeaderRecord *rwdata = (ModelRwData_HeaderRecord *)modelGetNodeRwData(model, node);
                 coord3d diff[1];
 
                 diff[0].x = pos->x - rwdata->pos.x;
@@ -810,7 +810,7 @@ void setsubroty(Model *model, f32 angle)
     node = model->obj->RootNode;
     if ((node->Opcode & 0xff) == MODELNODE_OPCODE_HEADER)
     {
-        ModelRwData_HeaderRecord *rwdata = modelGetNodeRwData(model, node);
+        ModelRwData_HeaderRecord *rwdata = (ModelRwData_HeaderRecord *)modelGetNodeRwData(model, node);
         f32 diff = angle - rwdata->unk14;
 
         if (diff < 0) { diff += M_TAU_F; }
@@ -2028,7 +2028,7 @@ void modelUpdateDistanceRelations(Model* model, ModelNode* node)
 void modelApplyDistanceRelations(Model* model, ModelNode* node)
 {
     ModelRoData_LODRecord *rodata = &node->Data->LOD;
-    ModelRwData_LODRecord *rwdata = modelGetNodeRwData(model, node);
+    ModelRwData_LODRecord *rwdata = (ModelRwData_LODRecord *)modelGetNodeRwData(model, node);
 
     if (rwdata->visible)
     {
@@ -2044,7 +2044,7 @@ void modelApplyDistanceRelations(Model* model, ModelNode* node)
 void modelApplyToggleRelations(Model* model, ModelNode* node)
 {
     ModelRoData_SwitchRecord *rodata = &node->Data->Switch;
-    ModelRwData_SwitchRecord *rwdata = modelGetNodeRwData(model, node);
+    ModelRwData_SwitchRecord *rwdata = (ModelRwData_SwitchRecord *)modelGetNodeRwData(model, node);
 
     if (rwdata->visible)
     {
@@ -2059,7 +2059,7 @@ void modelApplyToggleRelations(Model* model, ModelNode* node)
 
 void modelApplyHeadRelations(Model* model, ModelNode* bodynode)
 {
-    struct ModelRwData_HeadPlaceholderRecord *rwdata = modelGetNodeRwData(model, bodynode);
+    struct ModelRwData_HeadPlaceholderRecord *rwdata = (struct ModelRwData_HeadPlaceholderRecord *)modelGetNodeRwData(model, bodynode);
 
     if (rwdata->ModelFileHeader)
     {
@@ -2820,7 +2820,7 @@ void modelSetAnimation2(Model *model, ModelAnimation *anim, s32 flip, f32 frame,
 
     if (type == MODELNODE_OPCODE_HEADER) {
         ModelRoData_HeaderRecord *rodata = &model->obj->RootNode->Data->Header;
-        ModelRwData_HeaderRecord *rwdata = modelGetNodeRwData(model, model->obj->RootNode);
+        ModelRwData_HeaderRecord *rwdata = (ModelRwData_HeaderRecord *)modelGetNodeRwData(model, model->obj->RootNode);
         f32 temp_f14;
         f32 sinAngle;
         f32 scale;
@@ -6711,7 +6711,7 @@ void animInit(struct Model *objinst, struct ModelFileHeader *header, u32 *data)
 // PD: model00023108
 void modelAttachPart(Model *pmodel, ModelFileHeader *pmodeldef, ModelNode *pnode, ModelFileHeader *cmodeldef)
 {
-    ModelRwData_HeadPlaceholderRecord *rwdata = modelGetNodeRwData(pmodel, pnode);
+    ModelRwData_HeadPlaceholderRecord *rwdata = (ModelRwData_HeadPlaceholderRecord *)modelGetNodeRwData(pmodel, pnode);
     ModelNode *node;
 
     rwdata->ModelFileHeader = cmodeldef;

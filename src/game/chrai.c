@@ -769,7 +769,7 @@ s32 chraiGoToLabel(AIRecord *AIList, s32 Offset, u8 LabelNum)
             return 0;
         }
 
-        Offset += chraiitemsize(AIList, Offset);
+        Offset += chraiitemsize((u8 *)AIList, Offset);
     }
 }
 
@@ -2415,7 +2415,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                 case AI_DoorOpen:
                 {
                     AiDoorOpenRecord *ai  = (AiDoorOpenRecord *)(AiListp + Offset);
-                    DoorRecord       *obj = objFindByTagId(ai->OBJECT_TAG);
+                    DoorRecord       *obj = (DoorRecord *)objFindByTagId(ai->OBJECT_TAG);
                     if (obj && obj->prop && obj->prop->type == PROP_TYPE_DOOR)
                     {
                         // DoorRecord *door = (DoorRecord *)obj;
@@ -2427,7 +2427,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                 case AI_DoorClose:
                 {
                     AiDoorCloseRecord *ai  = (AiDoorCloseRecord *)(AiListp + Offset);
-                    DoorRecord        *obj = objFindByTagId(ai->OBJECT_TAG);
+                    DoorRecord        *obj = (DoorRecord *)objFindByTagId(ai->OBJECT_TAG);
                     if (obj && obj->prop && obj->prop->type == PROP_TYPE_DOOR)
                     {
                         // DoorRecord *door = (DoorRecord *)obj;
@@ -3323,7 +3323,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                     }
         #endif
     #endif
-                    Offset += chraiitemsize(AiListp, Offset);
+                    Offset += chraiitemsize((u8 *)AiListp, Offset);
                     break;
                 }
                 case AI_MyTimerStart:
@@ -4005,7 +4005,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                         int TagIndex = tagGetCommandIndex(tag); // get index
                         if (TagIndex >= 0)
                         {
-                            CutsceneRecord *cdef = setupGetPtrToCommandByIndex(tag->OffsetToObj + TagIndex); // get obj
+                            CutsceneRecord *cdef = (CutsceneRecord *)setupGetPtrToCommandByIndex(tag->OffsetToObj + TagIndex); // get obj
 
     #ifdef ENABLE_LOG
                             /*".\\ported\\chrai.c", 0xc2b, "Assertion failed: cdef->type==PROPDEF_CAMERAPOS") */
@@ -4197,7 +4197,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                 case AI_DoorOpenInstant:
                 {
                     AiDoorOpenInstantRecord *ai   = (AiDoorOpenInstantRecord *)(AiListp + Offset);
-                    DoorRecord              *door = objFindByTagId(ai->OBJECT_TAG);
+                    DoorRecord              *door = (DoorRecord *)objFindByTagId(ai->OBJECT_TAG);
                     if (door && door->prop)
                     {
                         // DoorRecord *door   = (DoorRecord *)obj;
@@ -4544,7 +4544,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                      * Outcome:crash
                      */
                     {
-                        Offset += chraiitemsize(AiListp, Offset);
+                        Offset += chraiitemsize((u8 *)AiListp, Offset);
                     }
             } // switch
         } // for
