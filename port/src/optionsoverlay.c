@@ -606,6 +606,11 @@ static void rowAdjust(struct Row *r, int dir)
         rowSet(r, (v != 0.0) ? 0.0 : 1.0);
         break;
     case ROW_MSAA: {
+#if defined(__aarch64__) && defined(USE_GLES)
+        /* R36S target keeps the direct framebuffer path deterministic; its
+         * Mesa/EGL stacks vary in multisample resolve support. */
+        break;
+#else
         int idx = 0;
         for (int i = 0; i < 4; i++) {
             if (kMsaaSeq[i] == (int)lround(v)) idx = i;
@@ -615,6 +620,7 @@ static void rowAdjust(struct Row *r, int dir)
         idx = (idx + dir + 4) % 4;
         rowSet(r, (double)kMsaaSeq[idx]);
         break;
+#endif
     }
     case ROW_ENUM: {
         double lo = rowLo(r), hi = rowHi(r);
@@ -884,8 +890,12 @@ static void valueText(const struct Row *r, char *out, int n)
         }
     }
     if (r->kind == ROW_MSAA) {
+#if defined(__aarch64__) && defined(USE_GLES)
+        snprintf(out, n, "R36S OFF");
+#else
         if ((int)lround(v) <= 1) snprintf(out, n, "OFF");
         else                     snprintf(out, n, "%dx", (int)lround(v));
+#endif
         return;
     }
     if (strcmp(r->key, "__MusicVolume") == 0 || strcmp(r->key, "__SfxVolume") == 0) {
