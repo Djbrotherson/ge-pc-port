@@ -2,6 +2,7 @@
 #include <math.h>
 #ifdef PORT
 #include <stdlib.h>
+extern void reset_texture_state(void);
 #endif
 #include <os_extension.h>
 #include <PR/libaudio.h>
@@ -407,6 +408,13 @@ void lvlStageLoad(s32 stage)
 #endif
     R36S_LV_BREADCRUMB("lv:texReset");
     texReset();
+#ifdef PORT
+    /* Host renderer caches survive ordinary mission teardown. Reset them at
+     * the same lifecycle boundary as the game's texture state so a death /
+     * restart cannot reuse decoded textures, palettes, or shaders keyed by
+     * recycled stage-arena addresses (D235). */
+    reset_texture_state();
+#endif
     R36S_LV_BREADCRUMB("lv:post-texReset");
     R36S_LV_BREADCRUMB("lv:load_font_tables");
     load_font_tables();
