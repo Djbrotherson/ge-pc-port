@@ -5936,7 +5936,7 @@ s32 chrlvUpdateAimendsideback(ChrRecord *self, struct weapon_firing_animation_ta
             seen_bond_flag = 1;
         }
 
-        if (attack_type & TARGET_BOND > 0)
+        if ((attack_type & TARGET_BOND) > 0)
         {
             ducking_height = bondviewGetPlayerDuckingHeightRelated(g_CurrentPlayer);
             if ((self->chrflags & CHRSTART_FORCENOBLOOD) != 0)
