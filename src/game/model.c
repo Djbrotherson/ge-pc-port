@@ -6301,8 +6301,15 @@ void modelPromoteNodeOffsetsToPointers(ModelNode *node, u32 vma, uintptr_t filer
 
             case MODELNODE_OPCODE_OP17:
                 {
-                    ModelRoData_GroupRecord* rodata = &node->Data->Group;
-                    PROMOTE(rodata->ChildGroup);
+                    /* Opcode 17 owns a ModelRoData_Op17Record. Its
+                     * file-relative othernode reference is widened by the
+                     * PC sidecar converter and must be promoted here just
+                     * like every other model-record pointer. Treating this
+                     * record as GroupRecord promoted bytes from the position
+                     * vector instead and left othernode as a seg-5 token. */
+                    ModelRoData_Op17Record *rodata =
+                        (ModelRoData_Op17Record *)node->Data;
+                    PROMOTE(rodata->othernode);
                     break;
                 }
 

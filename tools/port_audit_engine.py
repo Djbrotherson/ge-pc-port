@@ -691,6 +691,27 @@ def check_model_sidecar_layout_contract():
             add("P0","model-sidecar-rodata-strides",converter,1,
                 f"PC_REC={pc_rec}",
                 "Model sidecar converter native rodata sizes drifted from the compile-time ABI contract in bondtypes.h.")
+
+        # Pointer-bearing records need both an offline widened slot and a
+        # matching runtime promotion. Opcode 17 historically had the former
+        # missing, then exposed that the runtime was promoting Group.ChildGroup
+        # instead of Op17.othernode. Keep the end-to-end boundary locked.
+        runtime=Path("src/game/model.c")
+        rtext=runtime.read_text(errors="replace")
+        op17=re.search(
+            r"case\s+MODELNODE_OPCODE_OP17\s*:(.*?)(?=\n\s*case\s+MODELNODE_OPCODE_|\n\s*default\s*:)",
+            rtext,re.S,
+        )
+        if not op17:
+            add("P0","model-op17-runtime-contract",runtime,1,
+                "MODELNODE_OPCODE_OP17 case missing",
+                "Opcode 17 sidecar records contain an othernode reference that must be promoted at load time.")
+        else:
+            body=op17.group(1)
+            if "ModelRoData_Op17Record" not in body or "PROMOTE(rodata->othernode)" not in body:
+                add("P0","model-op17-runtime-contract",runtime,1,
+                    body.strip()[:300],
+                    "Opcode 17 runtime promotion must resolve ModelRoData_Op17Record.othernode, matching d43_emit.py.")
     except Exception as exc:
         add("P0","model-sidecar-audit-error",converter,1,str(exc),
             "Could not prove model sidecar converter/native ABI agreement.")

@@ -73,6 +73,7 @@
       "12": 48,
       "13": 48,
       "15": 28,
+      "17": 40,
       "18": 16,
       "21": 20,
       "22": 32,
@@ -209,6 +210,11 @@
       "path": "src/bondtypes.h",
       "type": "ModelRoData_InterlinkageRecord",
       "bytes": 28
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_Op17Record",
+      "bytes": 40
     },
     {
       "path": "src/bondtypes.h",
