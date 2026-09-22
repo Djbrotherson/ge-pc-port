@@ -3,6 +3,11 @@ title: Internals
 description: Architecture behind the PC port; the software RSP-emulation approach, GoldenEye-vs-Perfect-Dark engine differences, and the phased development plan.
 ---
 
+> **Legacy inherited reference.** This document predates our R36S/AArch64
+> branch and is retained only for technical/historical context. It does not
+> describe our current authorship, release status, validation, or project
+> narrative. Start with the repository README and `docs/README.md`.
+
 ## GoldenEye 007 PC Port: architecture & plan
 
 > This began as the pre-implementation research note and is kept as the
