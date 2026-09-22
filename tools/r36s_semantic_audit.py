@@ -170,6 +170,37 @@ def scan_file(path:Path):
                 add("P0","port-32bit-address-math",path,i,raw,
                     "PORT path performs address arithmetic after direct 32-bit pointer narrowing.")
 
+        # Bitmask/comparison precedence is a real host/runtime hazard.
+        # Expressions such as `flags & MASK > 0` parse as
+        # `flags & (MASK > 0)`, while `avail & MASK == 0` can become a
+        # constant-zero mask. Require the intended mask operation explicitly.
+        if re.search(r"\b(?:if|while)\s*\([^\n;]*(?:&|\|)[^\n;]*(?:==|!=|>|<)", line):
+            explicit_mask_compare = re.search(
+                r"\(\s*[^()\n;]+(?:&|\|)[^()\n;]+\)\s*(?:==|!=|>|<)",
+                line
+            )
+            if not explicit_mask_compare:
+                add("P0","bitmask-comparison-precedence",path,i,raw,
+                    "Bitwise mask mixed with comparison without explicit grouping; verify (flags & MASK) comparison semantics.")
+
+        # A logical-not is 0/1 before a following bitwise AND. This exact
+        # pattern caused controller-state checks to fail for controller bits
+        # above bit 0.
+        if re.search(r"!\s*\([^\n;]+\)\s*&", line):
+            add("P0","logical-not-bitmask",path,i,raw,
+                "Logical-not result is bitwise-ANDed; likely intended !(flags & MASK).")
+
+        # GoldenEye's Indy transport carries 32-bit wire tokens. On LP64 a
+        # response must never be written through a host pointer object: that
+        # overwrites only half of an 8-byte pointer and leaves garbage high
+        # bits. Keep this exact regression class visible.
+        if path.as_posix() == "src/game/indy_comms.c":
+            window="\n".join(raw_lines[max(0,i-8):min(len(raw_lines),i+8)])
+            m=re.search(r"u8\s*\*\s*([A-Za-z_]\w*)", window)
+            if m and re.search(r"indycmdAck\w*\s*\(\s*&\s*"+re.escape(m.group(1))+r"\b", window):
+                add("P0","wire-token-written-through-host-pointer",path,i,raw,
+                    "Indy response is a 32-bit wire token; receive into u32 then convert through uintptr_t.")
+
         # Desktop-only GL calls must not compile in a USE_GLES-positive branch.
         gles_state=next((v for k,v in reversed(pp) if k=="USE_GLES"),None)
         for fn in DESKTOP_GL:
