@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import ast, importlib.util, os, re, sys
+import ast, importlib.util, json, os, re, sys
 from pathlib import Path
 
 ROOTS=tuple(
@@ -13,6 +13,10 @@ EXCLUDE_PARTS=set(
 )
 PROJECT_NAME=os.environ.get("N64_PORT_AUDIT_PROJECT", "goldeneye-r36s")
 CONTRACT_SUITE=os.environ.get("N64_PORT_AUDIT_CONTRACT_SUITE", "goldeneye")
+ABI_CONTRACT_PATH=os.environ.get("N64_PORT_AUDIT_ABI_CONTRACT", "")
+ABI_CONTRACT={}
+if ABI_CONTRACT_PATH:
+    ABI_CONTRACT=json.loads(Path(ABI_CONTRACT_PATH).read_text())
 EXTS={".c",".h",".cc",".cpp",".cxx",".hpp"}
 DESKTOP_GL={
  "glPolygonMode","glDrawBuffer","glGetTexImage","glTexImage1D","glTexSubImage1D",
@@ -546,16 +550,13 @@ def check_stage_setup_layout_contract():
         return
     try:
         text=converter.read_text(errors="replace")
+        spec=ABI_CONTRACT.get("stage_setup", {})
         expected={
-            "pads":(44,56),
-            "boundpads":(68,80),
-            "waypointgroups":(12,24),
-            "pathwaypoints":(16,24),
-            "patrolpaths":(8,16),
-            "ailists":(8,16),
-            "padnames":(4,8),
-            "boundpadnames":(4,8),
+            name:tuple(pair)
+            for name,pair in spec.get("growth_tables", {}).items()
         }
+        if not expected:
+            raise ValueError("stage_setup.growth_tables missing from ABI contract")
         found={}
         for name,oldsz,newsz in re.findall(
             r"\(\s*\"([A-Za-z0-9_]+)\"\s*,[^\n]*?,\s*(\d+)\s*,\s*(\d+)\s*\)",
@@ -568,10 +569,13 @@ def check_stage_setup_layout_contract():
                 f"found={found}",
                 "d88 setup-table growth sizes drifted from the compile-time ABI contract in bondtypes.h.")
         m=re.search(r"cum\s*=\s*(0x[0-9A-Fa-f]+|\d+)\s*#\s*header grows",text)
-        if not m or int(m.group(1),0) != 0x28:
+        expected_growth=int(spec.get("header_host_bytes",0))-int(spec.get("header_n64_bytes",0))
+        if expected_growth <= 0:
+            raise ValueError("invalid stage_setup header sizes in ABI contract")
+        if not m or int(m.group(1),0) != expected_growth:
             add("P0","stage-setup-header-growth",converter,1,
                 m.group(0) if m else "missing header growth seed",
-                "d88 stage header growth must account for 40-byte N64 to 80-byte host stagesetup.")
+                f"d88 stage header growth must match ABI contract delta {expected_growth} bytes.")
     except Exception as exc:
         add("P0","stage-setup-audit-error",converter,1,str(exc),
             "Could not prove d88 stage setup table/native ABI agreement.")
@@ -593,14 +597,15 @@ def check_model_sidecar_layout_contract():
                         pc_node=ast.literal_eval(node.value)
                     elif isinstance(t, ast.Name) and t.id=="PC_REC":
                         pc_rec=ast.literal_eval(node.value)
-        expected_rec={
-            1:24, 2:40, 3:40, 4:40, 8:24, 9:48, 10:28, 12:48,
-            13:48, 15:28, 18:16, 21:20, 22:32, 23:2, 24:64,
-        }
-        if pc_node != 48:
+        spec=ABI_CONTRACT.get("model_sidecar", {})
+        expected_node=int(spec.get("model_node_host_bytes",0))
+        expected_rec={int(k):int(v) for k,v in spec.get("rodata_host_bytes",{}).items()}
+        if expected_node <= 0 or not expected_rec:
+            raise ValueError("model_sidecar contract missing from ABI manifest")
+        if pc_node != expected_node:
             add("P0","model-sidecar-node-stride",converter,1,
                 f"PC_NODE={pc_node}",
-                "Model sidecar converter must emit 48-byte native ModelNode records.")
+                f"Model sidecar converter must emit {expected_node}-byte native ModelNode records.")
         if pc_rec != expected_rec:
             add("P0","model-sidecar-rodata-strides",converter,1,
                 f"PC_REC={pc_rec}",
@@ -645,10 +650,13 @@ def check_stan_layout_contract():
                 f"runtime={vals} converter={conv_sizes}",
                 "STAN converter and runtime tile-size tables disagree; navigation tile walks will desynchronise.")
 
-        expected=[0x20,0x20,0x20,0x20,0x28,0x30,0x38,0x40,0x48,0x50,0x58,0]
+        spec=ABI_CONTRACT.get("stan", {})
+        expected=[int(x) for x in spec.get("tile_sizes_by_point_count",[])]
+        if not expected:
+            raise ValueError("stan.tile_sizes_by_point_count missing from ABI contract")
         if conv_sizes != expected:
             add("P0","stan-tilesize-shape",converter,1,str(conv_sizes),
-                "STAN point-count stride table no longer matches the verified 8-byte header + 8-byte point layout.")
+                "STAN point-count stride table no longer matches the ABI manifest.")
     except Exception as exc:
         add("P0","stan-layout-audit-error",runtime,1,str(exc),
             "Could not prove STAN converter/runtime tile-size agreement.")
