@@ -1123,14 +1123,14 @@ u16 sub_GAME_7F06D2E4(s32 jointnum, s32 flip, ModelSkeleton *skeleton, ModelAnim
 
 f32 sub_GAME_7F06D3F4(s32 jointnum, s32 flip, ModelSkeleton *skeleton, ModelAnimation *anim, s32 frame, coord3d *pos)
 {
-    s16 tmp[3];
+    coord16 tmp;
     u16 angle;
 
-    angle = sub_GAME_7F06D2E4(jointnum, flip, skeleton, anim, frame, tmp);
+    angle = sub_GAME_7F06D2E4(jointnum, flip, skeleton, anim, frame, &tmp);
 
-    pos->x = (f32)tmp[0];
-    pos->y = (f32)tmp[1];
-    pos->z = (f32)tmp[2];
+    pos->x = (f32)tmp.x;
+    pos->y = (f32)tmp.y;
+    pos->z = (f32)tmp.z;
 
 #ifdef PORT
     /* GE_D193B=1 (D193): raw root-motion decode trace. Rate-limited. Logs the

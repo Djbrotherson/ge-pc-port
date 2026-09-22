@@ -2562,8 +2562,9 @@ extern u8 _imagesSegmentRomStart;
  * z = texture is compressed with zlib
  * l = number of levels of detail within the texture
  */
-void texLoad(s32 *updateword, struct texpool *pool)
+void texLoad(void *record, struct texpool *pool)
 {
+    u32 *updateword = (u32 *)record;
     u8 compbuffer[4000];
     u8 *compptr;
     s32 sp14a8;

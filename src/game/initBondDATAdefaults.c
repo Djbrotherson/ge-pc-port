@@ -53,8 +53,7 @@ void sub_GAME_7F0062C0(void *anim, s32 arg1, s32 arg2, s32 *arg3);
 */
 void sub_GAME_7F0062C0(void *anim, s32 arg1, s32 arg2, s32 *arg3)
 {
-    // todo: is this a struct? see: sub_GAME_7F06D2E4
-    s16 sp40[6];
+    coord16 decoded;
 
     arg3[0] = 0;
     arg3[1] = 0;
@@ -62,10 +61,10 @@ void sub_GAME_7F0062C0(void *anim, s32 arg1, s32 arg2, s32 *arg3)
 
     for (; arg1<arg2; arg1++)
     {
-        sub_GAME_7F06D2E4(0, 0, &skeleton_guard, anim, arg1, &sp40[2]);
-        arg3[0] += sp40[2];
-        arg3[1] += sp40[3];
-        arg3[2] += sp40[4];
+        sub_GAME_7F06D2E4(0, 0, &skeleton_guard, anim, arg1, &decoded);
+        arg3[0] += decoded.x;
+        arg3[1] += decoded.y;
+        arg3[2] += decoded.z;
     }
 }
 
