@@ -16,7 +16,6 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - 'Makefile'
-      - 'tools/r36s_semantic_audit.py'
       - '.github/workflows/build-r36s.yml'
   pull_request:
     branches:

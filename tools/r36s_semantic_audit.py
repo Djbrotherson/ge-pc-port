@@ -227,18 +227,17 @@ def main():
         for sev,kind,path,line,code,why in findings:
             fp.write(f"{sev}\t{kind}\t{path}\t{line}\t{why}\t{code.replace(chr(9),' ')}\n")
     p0=[x for x in findings if x[0]=="P0"]
+    p1=[x for x in findings if x[0]=="P1"]
     with (out/"semantic-report.md").open("w") as fp:
         fp.write("# R36S semantic host-port audit\n\n")
         fp.write(f"- P0 known-bad semantic patterns: **{len(p0)}**\n")
-        fp.write(f"- P1 manual ABI/layout reviews: **{len(findings)-len(p0)}**\n\n")
+        fp.write(f"- P1 manual ABI/layout reviews: **{len(p1)}**\n\n")
         for sev,kind,path,line,code,why in findings:
-            fp.write(f"- **{sev} {kind}** \`{path}:{line}\` — {why}\n  - \`{code.replace(chr(96),chr(39))}\`\n")
-    print(f"semantic audit: P0={len(p0)} P1={len(findings)-len(p0)} total={len(findings)}")
-    if p0:
-        for x in p0[:100]:
-            print(f"{x[0]} {x[1]} {x[2]}:{x[3]}: {x[4]}")
-        return 2
-    return 0
+            fp.write(f"- **{sev} {kind}** `{path}:{line}` — {why}\n  - `{code.replace(chr(96),chr(39))}`\n")
+    print(f"semantic audit: P0={len(p0)} P1={len(p1)} total={len(findings)}")
+    for x in findings:
+        print(f"{x[0]} {x[1]} {x[2]}:{x[3]}: {x[4]} :: {x[5]}")
+    return 2 if p0 else 0
 
 if __name__=="__main__":
     raise SystemExit(main())
