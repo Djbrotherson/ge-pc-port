@@ -6,14 +6,38 @@
     "header_n64_bytes": 40,
     "header_host_bytes": 80,
     "growth_tables": {
-      "pads": [44, 56],
-      "boundpads": [68, 80],
-      "waypointgroups": [12, 24],
-      "pathwaypoints": [16, 24],
-      "patrolpaths": [8, 16],
-      "ailists": [8, 16],
-      "padnames": [4, 8],
-      "boundpadnames": [4, 8]
+      "pads": [
+        44,
+        56
+      ],
+      "boundpads": [
+        68,
+        80
+      ],
+      "waypointgroups": [
+        12,
+        24
+      ],
+      "pathwaypoints": [
+        16,
+        24
+      ],
+      "patrolpaths": [
+        8,
+        16
+      ],
+      "ailists": [
+        8,
+        16
+      ],
+      "padnames": [
+        4,
+        8
+      ],
+      "boundpadnames": [
+        4,
+        8
+      ]
     }
   },
   "model_sidecar": {
@@ -39,7 +63,20 @@
   "stan": {
     "tile_point_bytes": 8,
     "tile_header_bytes": 8,
-    "tile_sizes_by_point_count": [32, 32, 32, 32, 40, 48, 56, 64, 72, 80, 88, 0]
+    "tile_sizes_by_point_count": [
+      32,
+      32,
+      32,
+      32,
+      40,
+      48,
+      56,
+      64,
+      72,
+      80,
+      88,
+      0
+    ]
   },
   "graphics": {
     "gfx_bytes": 8,
@@ -51,5 +88,172 @@
     "command_word_bytes": 4,
     "command_words": 3,
     "command_bytes": 12
-  }
+  },
+  "size_asserts": [
+    {
+      "path": "src/bondtypes.h",
+      "type": "Vertex",
+      "bytes": 16
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelNode",
+      "bytes": 48
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "StandTilePoint",
+      "bytes": 8
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "stagesetup",
+      "bytes": 80
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "waypoint",
+      "bytes": 24
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "waygroup",
+      "bytes": 24
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "PathRecord",
+      "bytes": 16
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "AIListRecord",
+      "bytes": 16
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "PadRecord",
+      "bytes": 56
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "BoundPadRecord",
+      "bytes": 80
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "pname",
+      "bytes": 8
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_HeaderRecord",
+      "bytes": 24
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_GroupRecord",
+      "bytes": 40
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_DisplayListRecord",
+      "bytes": 40
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_LODRecord",
+      "bytes": 24
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_BSPRecord",
+      "bytes": 48
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_BoundingBoxRecord",
+      "bytes": 28
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_GunfireRecord",
+      "bytes": 48
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_ShadowRecord",
+      "bytes": 48
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_InterlinkageRecord",
+      "bytes": 28
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_SwitchRecord",
+      "bytes": 16
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_GroupSimpleRecord",
+      "bytes": 20
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_DisplayListPrimaryRecord",
+      "bytes": 32
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_HeadPlaceholderRecord",
+      "bytes": 2
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "ModelRoData_DisplayList_CollisionRecord",
+      "bytes": 64
+    },
+    {
+      "path": "include/PR/gbi.h",
+      "type": "Gfx",
+      "bytes": 8
+    },
+    {
+      "path": "include/PR/gbi.h",
+      "type": "Mtx",
+      "bytes": 64
+    },
+    {
+      "path": "include/PR/gbi.h",
+      "type": "Vtx",
+      "bytes": 16
+    },
+    {
+      "path": "src/game/bg.h",
+      "type": "bg_room_data",
+      "bytes": 24
+    },
+    {
+      "path": "src/game/bg.h",
+      "type": "bg_portal_entry",
+      "bytes": 16
+    },
+    {
+      "path": "src/game/bg.h",
+      "type": "bg_portal_data_entry",
+      "bytes": 16
+    },
+    {
+      "path": "src/game/propobj.c",
+      "type": "struct tvcmd",
+      "bytes": 12
+    },
+    {
+      "path": "src/game/stan.c",
+      "type": "struct StanPrefixRecord",
+      "bytes": 16
+    }
+  ]
 }
