@@ -4066,6 +4066,7 @@ struct SetupIntroCredits
  * size change is data corruption, not a harmless host-layout difference.
  */
 GE_LAYOUT_ASSERT(sizeof(Vertex) == 0x10, "Vertex must remain the 16-byte N64/gSPVertex stride");
+GE_LAYOUT_ASSERT(sizeof(ModelNode) == 0x30, "ModelNode host sidecar stride");
 GE_LAYOUT_ASSERT(sizeof(StandTilePoint) == 0x08, "StandTilePoint serialized stride");
 GE_LAYOUT_ASSERT(offsetof(StandTile, room) == 0x03, "StandTile.room host offset");
 GE_LAYOUT_ASSERT(offsetof(StandTile, mid) == 0x04, "StandTile.mid host offset");
