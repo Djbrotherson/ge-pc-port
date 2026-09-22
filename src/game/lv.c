@@ -1,3 +1,6 @@
+#ifdef DAM_ONLY_LAB
+#include "damlab.h"
+#endif
 #include <ultra64.h>
 #include <math.h>
 #ifdef PORT
@@ -826,6 +829,9 @@ Gfx *lvlPortalDebug7F0BDF10(Gfx *gdl)
 
 Gfx* lvlRender(Gfx* DL)
 {
+#if defined(DAM_ONLY_LAB)
+    damLabGameplayTick();
+#endif
     gSPSegment(DL++, SPSEGMENT_PHYSICAL, NULL);
     gSPSegment(DL++, SPSEGMENT_UNKNOWN, osVirtualToPhysical(ptr_font_DL));
 

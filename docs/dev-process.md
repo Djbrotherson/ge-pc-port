@@ -155,3 +155,26 @@ Current runtime evidence/backlog:
 - `docs/dev/findings.md`.
 
 Closed investigations belong in git history, not the working tree.
+
+
+## Dam lab exception
+
+The `dam-only-lab` branch deliberately narrows Tier 3 to one instrumented
+mission. It is allowed to carry forced-stage logic and high-signal telemetry
+that would be inappropriate on `main`.
+
+The lab still follows the normal development rule:
+
+```
+observe Dam
+-> identify semantic divergence
+-> census the whole class
+-> batch fix
+-> encode reusable invariant
+-> prove cheaply
+-> run Dam once
+-> graduate generic fix to main/Portkit
+```
+
+Do not merge Dam-specific probes merely because they helped diagnose a bug.
+Promote the underlying rule, not the temporary instrumentation.

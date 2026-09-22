@@ -1,10 +1,21 @@
-# ARM-GE
+# ARM-GE — Dam Behavioral Lab
+
+> **Branch: `dam-only-lab`**
+>
+> This is a temporary, instrumented Dam-only research branch. The release and
+> canonical integration line remains `main`. This branch intentionally forces
+> Dam, adds runtime telemetry, and may contain diagnostic code that must not be
+> treated as release behavior.
 
 ARM-GE is the active GoldenEye 007 ARM64/GLES port for R36S/PortMaster and the
 reference integration for **N64 Portkit**, the reusable portability toolchain
 developed in this repository.
 
-The port proves the runtime. Portkit captures the reusable method.
+The purpose of this branch is to understand one mission deeply enough to expose
+the remaining gameplay-semantic failures, then turn each generalizable result
+into reusable Portkit machinery.
+
+See **[docs/dev/DAM-LAB.md](docs/dev/DAM-LAB.md)** before testing this branch.
 
 > No ROM, extracted game assets, or proprietary game data are distributed.
 > A legally obtained GoldenEye 007 NTSC-U ROM is required for local use.
@@ -21,6 +32,28 @@ The port proves the runtime. Portkit captures the reusable method.
 | ROM | GoldenEye 007 NTSC-U |
 | ROM path | `data/ge007.ntsc-final.z64` |
 | ROM SHA-1 | `abe01e4aeb033b6c0836819f549c791b26cfde83` |
+
+## Dam lab state
+
+The infrastructure inherited from `main` is treated as the certified baseline:
+
+- Core AArch64 / LP64 host semantics: **100%**
+- GLES / render / input / runtime integration: **100%**
+- Stage / setup / model semantic conversion: **100%**
+
+This branch does **not** assume that those structural closures imply correct
+game behavior. Dam currently loads but the player spawn/world state is wrong.
+The active task is therefore behavioral validation of the complete
+setup -> pad -> STAN -> room -> collision -> player/camera chain.
+
+The lab adds:
+
+- forced Dam / Agent baseline,
+- a decompiled-source spawn oracle,
+- a persistent hardware HUD,
+- structured `damlab.log` telemetry,
+- event logging for room/camera/STAN/position anomalies,
+- a one-run evidence workflow intended to support batch fixes.
 
 ## Current state
 

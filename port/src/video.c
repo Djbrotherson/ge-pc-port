@@ -27,6 +27,7 @@
 #include "system.h"
 #include "config.h"
 #include "video.h"
+#include "damlab.h"
 #include "input.h"
 #include "optionsoverlay.h"
 #include "../include/crash.h"
@@ -492,6 +493,9 @@ int videoInit(void)
     gfx_pre_swap_hook = videoPreSwapCapture;
 
     initDone = 1;
+#if defined(DAM_ONLY_LAB)
+    damLabInit();
+#endif
     sysLogPrintf(LOG_INFO, "video: %dx%d window (native %dx%d)",
                  (int)gfx_current_dimensions.width, (int)gfx_current_dimensions.height,
                  GE_NATIVE_W, GE_NATIVE_H);
@@ -501,6 +505,9 @@ int videoInit(void)
 void videoDestroy(void)
 {
     if (initDone) {
+#if defined(DAM_ONLY_LAB)
+        damLabShutdown();
+#endif
         /* GL resources must be deleted before the SDL context/window. */
         gfx_sdl_make_context_current();
         gfx_pre_swap_hook = NULL;
@@ -562,12 +569,14 @@ static const unsigned char *crashGlyph(char c)
     static const unsigned char A[7] = {14,17,17,31,17,17,17};
     static const unsigned char B[7] = {30,17,17,30,17,17,30};
     static const unsigned char C[7] = {15,16,16,16,16,16,15};
+    static const unsigned char D[7] = {30,17,17,17,17,17,30};
     static const unsigned char E[7] = {31,16,16,30,16,16,31};
     static const unsigned char F[7] = {31,16,16,30,16,16,16};
     static const unsigned char G[7] = {15,16,16,23,17,17,15};
     static const unsigned char H[7] = {17,17,17,31,17,17,17};
     static const unsigned char I[7] = {14,4,4,4,4,4,14};
     static const unsigned char L[7] = {16,16,16,16,16,16,31};
+    static const unsigned char M[7] = {17,27,21,21,17,17,17};
     static const unsigned char N[7] = {17,25,21,19,17,17,17};
     static const unsigned char O[7] = {14,17,17,17,17,17,14};
     static const unsigned char P[7] = {30,17,17,30,16,16,16};
@@ -576,6 +585,7 @@ static const unsigned char *crashGlyph(char c)
     static const unsigned char T[7] = {31,4,4,4,4,4,4};
     static const unsigned char U[7] = {17,17,17,17,17,17,14};
     static const unsigned char X[7] = {17,17,10,4,10,17,17};
+    static const unsigned char Y[7] = {17,17,10,4,4,4,4};
     static const unsigned char dash[7] = {0,0,0,31,0,0,0};
     static const unsigned char colon[7] = {0,4,4,0,4,4,0};
 
@@ -584,11 +594,11 @@ static const unsigned char *crashGlyph(char c)
     case '3': return g3; case '4': return g4; case '5': return g5;
     case '6': return g6; case '7': return g7; case '8': return g8;
     case '9': return g9; case 'A': return A; case 'B': return B;
-    case 'C': return C; case 'E': return E; case 'F': return F;
+    case 'C': return C; case 'D': return D; case 'E': return E; case 'F': return F;
     case 'G': return G; case 'H': return H; case 'I': return I;
-    case 'L': return L; case 'N': return N; case 'O': return O;
+    case 'L': return L; case 'M': return M; case 'N': return N; case 'O': return O;
     case 'P': return P; case 'R': return R; case 'S': return S;
-    case 'T': return T; case 'U': return U; case 'X': return X;
+    case 'T': return T; case 'U': return U; case 'X': return X; case 'Y': return Y;
     case '-': return dash; case ':': return colon;
     default: return blank;
     }
@@ -897,6 +907,33 @@ static void videoPreSwapCapture(void)
     }
 #endif
 
+#if defined(DAM_ONLY_LAB) && defined(__aarch64__)
+    /* DAMLAB HUD: deliberately simple framebuffer text so the diagnostic
+     * remains visible even if the game UI/render state is part of the bug. */
+    {
+        GLint prevFbo = 0;
+        GLint prevVp[4] = {0, 0, 640, 480};
+        char hud[256];
+        const int w = (int)gfx_current_dimensions.width;
+        const int h = (int)gfx_current_dimensions.height;
+
+        damLabFormatOverlay(hud, sizeof(hud));
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFbo);
+        glGetIntegerv(GL_VIEWPORT, prevVp);
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, w, h);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_BLEND);
+        glEnable(GL_SCISSOR_TEST);
+        glClearColor(0.02f, 0.02f, 0.02f, 1.0f);
+        crashDrawRect(4, 4, 300, 108, h);
+        crashDrawText(10, 10, 2, h, hud);
+        glDisable(GL_SCISSOR_TEST);
+        glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFbo);
+        glViewport(prevVp[0], prevVp[1], prevVp[2], prevVp[3]);
+    }
+#endif
+
     /* GE_PCDUMP="first-last" / "first-last:step" -> ./ppm/frame_NNNNNN.ppm.
      * Also honours [Debug] FrameDump in ge007.ini (env var wins). */
     const char *pcdump = configGetFrameDump();
@@ -953,6 +990,9 @@ void videoEndFrame(void)
         vidAvgFPS = (float)(fpsNumFrames / (now - fpsWindowStart));
         fpsNumFrames = 0;
         fpsWindowStart = now;
+#if defined(DAM_ONLY_LAB)
+        damLabHostSample(vidAvgFPS);
+#endif
     }
 }
 

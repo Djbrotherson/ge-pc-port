@@ -18,6 +18,9 @@
 #include "game/player.h"
 #include "game/ramromreplay.h"
 #include "game/stan.h"
+#ifdef DAM_ONLY_LAB
+#include "damlab.h"
+#endif
 
 
 /**
@@ -231,6 +234,17 @@ void bondviewLoadSetupIntroSection(void)
                                 spawnIndex = 0;
                             }
                             g_Startpad[startpadcount++] = &g_CurrentSetup.pads[spawnIndex];
+#if defined(DAM_ONLY_LAB)
+                            damLabRecordSpawn(
+                                spawnIndex,
+                                g_CurrentSetup.pads[spawnIndex].pos.f[0],
+                                g_CurrentSetup.pads[spawnIndex].pos.f[1],
+                                g_CurrentSetup.pads[spawnIndex].pos.f[2],
+                                g_CurrentSetup.pads[spawnIndex].look.f[0],
+                                g_CurrentSetup.pads[spawnIndex].look.f[1],
+                                g_CurrentSetup.pads[spawnIndex].look.f[2],
+                                (uintptr_t)g_CurrentSetup.pads[spawnIndex].stan);
+#endif
                         }
 #else
                         g_Startpad[startpadcount] = &g_CurrentSetup.pads[spawnIndex];

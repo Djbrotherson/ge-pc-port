@@ -48,6 +48,11 @@ endif()
 # (port/src/romassets_<region>.s, see scripts/gen_romassets.py).
 project(ge007 C CXX ASM)
 
+# dam-only-lab branch: deterministic single-stage behavioral research target.
+# Every reusable finding discovered here should graduate to the normal Portkit
+# contracts before merging back to main.
+add_compile_definitions(DAM_ONLY_LAB=1)
+
 include(TargetArch)
 include(FindPkgConfig)
 

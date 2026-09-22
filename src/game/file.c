@@ -121,6 +121,12 @@ void set_selected_difficulty(DIFFICULTY difficulty)
 
 void set_solo_and_ptr_briefing(LEVELID stage)
 {
+#ifdef DAM_ONLY_LAB
+    if (stage != LEVELID_DAM)
+        osSyncPrintf("DAMLAB force-stage requested=%d forced=%d\n", (int)stage, (int)LEVELID_DAM);
+    stage = LEVELID_DAM;
+    selected_difficulty = DIFFICULTY_AGENT;
+#endif
     gamemode = GAMEMODE_SOLO;
     selected_stage = stage;
     briefingpage = pull_and_display_text_for_folder_a0(stage);

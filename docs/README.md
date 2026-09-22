@@ -4,6 +4,8 @@ Current documentation only.
 
 ## Start here
 
+- [dev/DAM-LAB.md](dev/DAM-LAB.md) — **dam-only-lab branch mission, oracle, telemetry and graduation rules.**
+
 - [../portkit/README.md](../portkit/README.md) — Portkit product surface.
 - [../portkit/ARCHITECTURE.md](../portkit/ARCHITECTURE.md) — reusable architecture.
 - [R36S-BUILD.md](R36S-BUILD.md) — current AArch64/GLES target build.
