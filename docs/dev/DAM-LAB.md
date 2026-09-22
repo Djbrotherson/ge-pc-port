@@ -98,11 +98,13 @@ five capability pages:
 - **Audio** — mute, master volume, queue limit and device buffer controls plus a
   live queue-depth gauge.
 - **Input** — mouse/pad/aim sensitivity, response, smoothing, deadzone,
-  inversion and menu/hip-fire tuning.
-- **Game** — gameplay/access toggles already owned by the host config layer.
-- **System** — input logging plus read-only Dam runtime telemetry: CPU, FPS,
+  inversion, 1:1 menu-pointer mode and menu/hip-fire tuning.
+- **Game** — screen-shake intensity, skip-intro, hit-flash and unlock controls
+  already owned by the host config layer.
+- **System** — independent toggles for the FPS-only counter and the CPU/FPS/RAM
+  Dam HUD, plus input logging and read-only runtime telemetry: CPU, FPS,
   process/system memory, audio queue depth, stage, room, STAN state, position
-  and anomaly flags.
+  and anomaly flags. Hiding the Dam HUD does not stop `damlab.log` collection.
 
 The System and Audio diagnostics intentionally read existing runtime state only;
 they do not alter GoldenEye gameplay state. This makes the overlay usable as a
