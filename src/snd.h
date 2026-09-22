@@ -125,6 +125,20 @@ typedef struct ALSoundState_s {
 
 } ALSoundState;
 
+#ifdef PORT
+#if defined(__cplusplus)
+static_assert(__builtin_offsetof(ALLink, next) == 0, "ALLink.next must remain the first field");
+static_assert(__builtin_offsetof(ALSoundState, link) == 0, "ALSoundState.link must remain at offset zero for owner-slot compatibility");
+static_assert(__builtin_offsetof(ALSoundState, link) + __builtin_offsetof(ALLink, next) == 0,
+              "sndPlaySfxToSlot depends on ALSoundState.link.next aliasing the owner slot");
+#else
+_Static_assert(__builtin_offsetof(ALLink, next) == 0, "ALLink.next must remain the first field");
+_Static_assert(__builtin_offsetof(ALSoundState, link) == 0, "ALSoundState.link must remain at offset zero for owner-slot compatibility");
+_Static_assert(__builtin_offsetof(ALSoundState, link) + __builtin_offsetof(ALLink, next) == 0,
+               "sndPlaySfxToSlot depends on ALSoundState.link.next aliasing the owner slot");
+#endif
+#endif
+
 /**
  * This is a guess struct, used by music setup function call into snd.
  * The method call makes it seem like this should be ALSndpConfig,

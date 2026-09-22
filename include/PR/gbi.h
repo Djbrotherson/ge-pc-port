@@ -1762,6 +1762,22 @@ typedef union {
 	long long int	force_structure_alignment;
 } Gfx;
 
+#ifdef PORT
+#if defined(__cplusplus)
+static_assert(sizeof(Gfx) == 0x08, "Gfx must remain the 8-byte N64 display-list command size");
+static_assert(sizeof(Mtx) == 0x40, "Mtx must remain the 64-byte matrix payload size");
+#ifndef GBI_FLOATS
+static_assert(sizeof(Vtx) == 0x10, "Vtx must remain the 16-byte N64 vertex stride");
+#endif
+#else
+_Static_assert(sizeof(Gfx) == 0x08, "Gfx must remain the 8-byte N64 display-list command size");
+_Static_assert(sizeof(Mtx) == 0x40, "Mtx must remain the 64-byte matrix payload size");
+#ifndef GBI_FLOATS
+_Static_assert(sizeof(Vtx) == 0x10, "Vtx must remain the 16-byte N64 vertex stride");
+#endif
+#endif
+#endif
+
 /*
  * Macros to assemble the graphics display list
  */
