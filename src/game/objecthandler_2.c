@@ -239,7 +239,7 @@ void fileLoad(struct ModelFileHeader *header,char *name)
 }
 
 
-void load_object_into_memory_unused_maybe(struct ModelFileHeader *header,int *recallstring,int *targetloc,int sizeleft)
+void load_object_into_memory_unused_maybe(struct ModelFileHeader *header, u8 *recallstring, u8 *targetloc, int sizeleft)
 {
    load_object_fill_header(header,recallstring,targetloc,sizeleft,0);
    return;

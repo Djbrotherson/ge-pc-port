@@ -6049,7 +6049,7 @@ s32 chrlvUpdateAimendsideback(ChrRecord *self, struct weapon_firing_animation_ta
                 if (weapon_prop_model->obj->Switches[0])
                 {
                     temp_a0 = modelFindNodeMtx(weapon_prop_model, weapon_prop_model->obj->Switches[0], 0);
-                    spB8 = weapon_prop_model->obj->Switches[0]->Data;
+                    spB8 = weapon_prop_model->obj->Switches[0]->Data->GroupSimple.Origin.f;
                     sub_GAME_7F058E78(temp_a0, &spBC);
 
                     matrix_4x4_multiply_homogeneous_in_place(currentPlayerGetMatrix10EC(), &spBC);
@@ -6544,7 +6544,7 @@ s32 sub_GAME_7F02D630(ChrRecord *self, GUNHAND hand, coord3d *arg2)
             if (weapon_prop_model->obj->Switches[0])
             {
                 temp_a0 = modelFindNodeMtx(weapon_prop_model, weapon_prop_model->obj->Switches[0], 0);
-                spB8 = weapon_prop_model->obj->Switches[0]->Data;
+                spB8 = weapon_prop_model->obj->Switches[0]->Data->GroupSimple.Origin.f;
 
                 arg2->f[0] = spB8[0];
                 arg2->f[1] = spB8[1];

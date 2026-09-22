@@ -161,7 +161,7 @@ extern Vtx D_800363F8;
 extern coord3d D_80036408;
 
 void fileLoad(ModelFileHeader *header,char *name);
-void load_object_into_memory_unused_maybe(ModelFileHeader *header,int *recallstring,int *targetloc,int sizeleft);
+void load_object_into_memory_unused_maybe(ModelFileHeader *header, u8 *recallstring, u8 *targetloc, int sizeleft);
 
 // tentative signature
 PropRecord *chrGiveWeapon(ChrRecord *self, s32 PropID, ITEM_IDS ItemID, s32 flags);

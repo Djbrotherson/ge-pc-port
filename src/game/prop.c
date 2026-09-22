@@ -693,7 +693,7 @@ void setupCctv(s32 arg0, CCTVRecord *arg1, s32 cmdindex)
 
 void setupAutogun(s32 stageID, AutogunRecord *autogun, s32 cmdindex)
 {
-    s8 *beam;
+    struct beam *beam;
 
     domakedefaultobj(stageID, (ObjectRecord *) autogun, cmdindex);
 
@@ -728,7 +728,7 @@ void setupAutogun(s32 stageID, AutogunRecord *autogun, s32 cmdindex)
 
     beam          = mempAllocBytesInBank(0x30U, MEMPOOL_STAGE);
     autogun->beam = beam;
-    *beam = -1;
+    beam->age = -1;
 
     autogun->is_active = FALSE;
     autogun->unkD4 = 0.0f;
@@ -749,7 +749,7 @@ void setupAutogun(s32 stageID, AutogunRecord *autogun, s32 cmdindex)
         }
         else
         {
-            pad = &g_CurrentSetup.boundpads[getBoundPadNum(autogun->padID)];
+            pad = (PadRecord *)&g_CurrentSetup.boundpads[getBoundPadNum(autogun->padID)];
         }
 
         prop = autogun->prop;
