@@ -4082,6 +4082,14 @@ GE_LAYOUT_ASSERT(sizeof(ModelRoData_DisplayListPrimaryRecord) == 32, "model op22
 GE_LAYOUT_ASSERT(sizeof(ModelRoData_HeadPlaceholderRecord) == 2, "model op23 host rodata size");
 GE_LAYOUT_ASSERT(sizeof(ModelRoData_DisplayList_CollisionRecord) == 64, "model op24 host rodata size");
 GE_LAYOUT_ASSERT(sizeof(StandTilePoint) == 0x08, "StandTilePoint serialized stride");
+GE_LAYOUT_ASSERT(sizeof(stagesetup) == 80, "stagesetup host header size");
+GE_LAYOUT_ASSERT(sizeof(waypoint) == 24, "waypoint host setup-table stride");
+GE_LAYOUT_ASSERT(sizeof(waygroup) == 24, "waygroup host setup-table stride");
+GE_LAYOUT_ASSERT(sizeof(PathRecord) == 16, "PathRecord host setup-table stride");
+GE_LAYOUT_ASSERT(sizeof(AIListRecord) == 16, "AIListRecord host setup-table stride");
+GE_LAYOUT_ASSERT(sizeof(PadRecord) == 56, "PadRecord host setup-table stride");
+GE_LAYOUT_ASSERT(sizeof(BoundPadRecord) == 80, "BoundPadRecord host setup-table stride");
+GE_LAYOUT_ASSERT(sizeof(pname) == 8, "pname host setup-table stride");
 GE_LAYOUT_ASSERT(offsetof(StandTile, room) == 0x03, "StandTile.room host offset");
 GE_LAYOUT_ASSERT(offsetof(StandTile, mid) == 0x04, "StandTile.mid host offset");
 GE_LAYOUT_ASSERT(offsetof(StandTile, tail) == 0x06, "StandTile.tail host offset");
