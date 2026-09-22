@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Target-neutral entry point for N64 decomp/recomp host-port semantic checks.
 
-The detector implementation still lives in r36s_semantic_audit.py for
+The detector implementation still lives in port_audit_engine.py for
 backward compatibility. This wrapper supplies project configuration and is the
 stable entry point for CI and future decomp profiles.
 """
