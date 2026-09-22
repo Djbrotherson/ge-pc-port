@@ -791,8 +791,8 @@ void sub_GAME_7F04088C(ObjectRecord *baseobj, struct coord3d *pos, Mtxf *matrix,
     {
         ObjectRecord *roomObj;
         f32 distfromTileCenter;
-        f32 byrefA;
-        f32 byrefB;
+        rect4f *byrefA;
+        s32 byrefB;
         f32 byrefC;
         f32 byrefD;
 
@@ -4955,7 +4955,7 @@ s32 objTick(struct PropRecord *prop)
 
 					quaternion_slerp((f32 *) (&Rocket->unk68), (f32 *) (&Rocket->unk78), Rocket->unk60, (f32 *) (&sp550));
 					objectMatrix = &obj->mtx;
-					quaternion_to_matrix((f32 *) (&sp550), (f32 *) (&obj->mtx));
+					quaternion_to_matrix((f32 *)&sp550, obj->mtx.m);
 					matrix_column_1_scalar_multiply(Rocket->unkC0, (f32 *) objectMatrix);
 					matrix_column_2_scalar_multiply(Rocket->unkC4, (f32 *) objectMatrix);
 					matrix_column_3_scalar_multiply_2(Rocket->unkC8, (f32 *) objectMatrix);
@@ -6791,7 +6791,7 @@ Gfx *process_monitor_animation_microcode(Model *model, ModelNode *node, MonitorR
 {
     if (node && (node->Opcode & 0xff) == MODELNODE_OPCODE_DLCOLLISION) 
     {
-        Vertex *vertices = dynAllocateVertices(4);
+        Vertex *vertices = (Vertex *)dynAllocateVertices(4);
         Gfx *savedgdl = gdl++;
         union ModelRoData *rodata = node->Data;
         union ModelRwData *rwdata = modelGetNodeRwData(model, node);
@@ -8881,7 +8881,7 @@ bool propobjFindHit(Model *model, ModelNode *startNode, coord3d *rayPos, coord3d
             case MODELNODE_OPCODE_DLCOLLISION:
                 {
                     ModelRoData_DisplayList_CollisionRecord *rodata = &node->Data->DisplayListCollisions;
-                    ModelRwData_DisplayList_CollisionRecord *rwdata = modelGetNodeRwData(model, node);
+                    ModelRwData_DisplayList_CollisionRecord *rwdata = &modelGetNodeRwData(model, node)->DisplayListCollisions;
 
                     if (rwdata->gdl != NULL)
                     {
@@ -9764,7 +9764,7 @@ void objHit(ShotData *shotdata, BulletHit *hit)
 
         if (((DoorRecord *)obj)->unkbd >= 3)
         {
-            sub_GAME_7F04DD68(obj);
+            sub_GAME_7F04DD68((DoorRecord *)obj);
         }
     }
 
@@ -11308,7 +11308,7 @@ PropRecord *hatApplyToChr(HatRecord *hat, ChrRecord *chr, ModelFileHeader *filed
 }
 
 
-void hatLoadAndApplyToChr(HatRecord *hat, PropRecord *arg1)
+void hatLoadAndApplyToChr(HatRecord *hat, ChrRecord *arg1)
 {
     s32 unused;
     s32 obj_idx;
@@ -11693,7 +11693,7 @@ KeyRecord *check_if_entry_is_collectable(s32 ID, PropRecord *prop) //#MATCH
 
     if (prop->type == PROPDEF_KEY)
     {
-        key = prop->obj;
+        key = (KeyRecord *)prop->obj;
         if (ID == key->keyID)
         {
             return key;
@@ -11902,7 +11902,7 @@ bool chrEquipWeapon(WeaponObjRecord *wep, ChrRecord *chr)
 
                 if (wep2->flags & PROPFLAG_IS_DOUBLE && chr->weapons_held[1 - hand])
                 {
-                    propweaponSetDual(wep2, chr->weapons_held[1 - hand]->obj);
+                    propweaponSetDual(wep2, (WeaponObjRecord *)chr->weapons_held[1 - hand]->obj);
                 }
             }
             else
@@ -12091,7 +12091,7 @@ WeaponObjRecord blank_08_object_preset_4001 = {
 /**
  * NTSC address 0x7F052214.
 */
-PropRecord *something_with_generating_object(ChrRecord *self, s32 propid, ITEM_IDS itemid, s32 flags, WeaponObjRecord *weapon, ItemModelFileRecord *prop_header)
+PropRecord *something_with_generating_object(ChrRecord *self, s32 propid, ITEM_IDS itemid, s32 flags, WeaponObjRecord *weapon, ModelFileHeader *prop_header)
 {
     Model *objinst;
     PropRecord *lastobjentry;
@@ -12103,11 +12103,11 @@ PropRecord *something_with_generating_object(ChrRecord *self, s32 propid, ITEM_I
     }
 
     lastobjentry = chrpropAllocate();
-    objinst = modelmgrInstantiateModel((ModelFileHeader *)prop_header);
+    objinst = modelmgrInstantiateModel(prop_header);
 
     if (!weapon)
     {
-        weapon = weaponCreate(lastobjentry == NULL, objinst == NULL, (ModelFileHeader *)prop_header);
+        weapon = weaponCreate(lastobjentry == NULL, objinst == NULL, prop_header);
     }
 
     if (!lastobjentry)
@@ -12117,7 +12117,7 @@ PropRecord *something_with_generating_object(ChrRecord *self, s32 propid, ITEM_I
 
     if (!objinst)
     {
-        objinst = modelmgrInstantiateModel((ModelFileHeader *)prop_header);
+        objinst = modelmgrInstantiateModel(prop_header);
     }
 
     if (weapon && lastobjentry && objinst)
@@ -12132,7 +12132,7 @@ PropRecord *something_with_generating_object(ChrRecord *self, s32 propid, ITEM_I
         // pad = chrnum ???
         weapon->pad = self->chrnum;
 
-        lastobjentry = sub_GAME_7F051F30(weapon, self, (ModelFileHeader *)prop_header, lastobjentry, objinst);
+        lastobjentry = sub_GAME_7F051F30(weapon, self, prop_header, lastobjentry, objinst);
     }
     else
     {
@@ -12268,13 +12268,13 @@ void weaponSetGunfireVisible(PropRecord *prop, s32 firing)
     if (model && model->obj->Skeleton == &skeleton_prop_weapon) {
         node = model->obj->Switches[0];
         if (node) {
-            struct ModelRwData_GunfireRecord *rwdata = modelGetNodeRwData(model, node);
+            struct ModelRwData_GunfireRecord *rwdata = &modelGetNodeRwData(model, node)->Gunfire;
             rwdata->visible = firing;
         }
 
         node = model->obj->Switches[2];
         if (node) {
-            struct ModelRwData_BSPRecord *rwdata = modelGetNodeRwData(model, node);
+            struct ModelRwData_BSPRecord *rwdata = &modelGetNodeRwData(model, node)->BSP;
             rwdata->visible = firing;
         }
     }
@@ -12294,13 +12294,13 @@ s32 weaponIsGunfireVisible(PropRecord *prop)
     if (model && model->obj->Skeleton == &skeleton_prop_weapon) {
         node = model->obj->Switches[0];
         if (node) {
-            struct ModelRwData_GunfireRecord *rwdata = modelGetNodeRwData(model, node);
+            struct ModelRwData_GunfireRecord *rwdata = &modelGetNodeRwData(model, node)->Gunfire;
             return rwdata->visible;
         }
 
         node = model->obj->Switches[2];
         if (node) {
-            struct ModelRwData_BSPRecord *rwdata = modelGetNodeRwData(model, node);
+            struct ModelRwData_BSPRecord *rwdata = &modelGetNodeRwData(model, node)->BSP;
             return rwdata->visible;
         }
     }
@@ -12459,7 +12459,7 @@ void door7F0526EC(DoorRecord *door, Mtxf *rhs)
 
     if (door->doorFlags & DOORFLAG_FLIP)
     {
-        matrix_column_3_scalar_multiply_2(-1.0f, rhs);
+        matrix_column_3_scalar_multiply_2(-1.0f, &rhs->m[0][0]);
     }
 }
 
@@ -12587,7 +12587,7 @@ void doorBuildClippedVertices(DoorRecord *inDoor)
             cutoff = door->bbox.Bounds.xmin + 0.5f;
         }
 
-        ((struct ModelRwData_DisplayList_CollisionRecord *)inDoor)->Vertices = dynAllocateVertices(src->numVertices);
+        ((struct ModelRwData_DisplayList_CollisionRecord *)inDoor)->Vertices = (Vertex *)dynAllocateVertices(src->numVertices);
 
         for (i = 0; i < src->numVertices / 4; i++)
         {
