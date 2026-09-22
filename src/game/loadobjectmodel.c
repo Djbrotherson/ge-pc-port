@@ -330,7 +330,7 @@ ObjectRecord *setupGetPtrToCommandByIndex(s32 index) //#MATCH
         {
             if (i == index)
             {
-                return object;
+                return (ObjectRecord *)object;
             }
 
             object = sizepropdef(object) + object; //This is correct order, using += swaps t7/s1
@@ -526,7 +526,7 @@ void setupUpdateObjectRoomPosition(ObjectRecord *obj)
             case PROPDEF_SAFE: //43:
             case PROPDEF_TANK: //45:
             case PROPDEF_TINTED_GLASS:                 //47:
-                return obj;
+                return (ObjectRecord *)obj;
             break;
 
             case PROPDEF_DOOR_SCALE: //2
@@ -561,7 +561,7 @@ void setupUpdateObjectRoomPosition(ObjectRecord *obj)
             // return ???
         }
     }
-    return obj;
+    return (ObjectRecord *)obj;
 }
 
 

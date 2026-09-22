@@ -2406,7 +2406,10 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                         {
                             matrix_scalar_multiply(obj->model->scale, matrix.m[0]);
                         }
-                        sub_GAME_7F04088C(obj, &pad->pos, &matrix, pad->stan, &pad->pos);
+                        {
+                            coord3d padpos = pad->pos;
+                            sub_GAME_7F04088C(obj, &padpos, &matrix, pad->stan, &padpos);
+                        }
                         setupUpdateObjectRoomPosition(obj);
                     }
                     Offset += sizeof(AiMoveObjectRecord);

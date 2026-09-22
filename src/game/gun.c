@@ -830,7 +830,7 @@ ModelFileHeader *get_ptr_itemheader_in_hand(GUNHAND hand)
 
 u8 * getPlayerWeaponBufferForHand(GUNHAND hand)
 {
-    return g_CurrentPlayer->ptr_hand_weapon_buffer[hand];
+    return (u8 *)g_CurrentPlayer->ptr_hand_weapon_buffer[hand];
 }
 
 

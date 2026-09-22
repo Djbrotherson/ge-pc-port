@@ -1144,7 +1144,7 @@ s32 frontCheckIfCheatIsUnlocked(s32 cheat)
 
 
 u16 *frontGetPlayersFavoriteWeaponInHand(int player,int hand) {
-    return get_ptr_long_watch_text_for_item(array_favweapon[player][hand]);
+    return (u16 *)get_ptr_long_watch_text_for_item(array_favweapon[player][hand]);
 }
 
 
