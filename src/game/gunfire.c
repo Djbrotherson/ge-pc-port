@@ -2376,6 +2376,27 @@ ALSoundState* gunGetFreeSfxState(void)
 }
 
 
+#ifdef PORT
+/*
+ * g_ImpactSfxStates is an array of ALSoundState * slots. The original N64
+ * code passes &slot to sndPlaySfx by punning it as ALSoundState * because
+ * ALLink.next is the first field. That byte layout still happens to work on
+ * LP64, but dereferencing the fake ALSoundState is outside the slot's object
+ * bounds. Keep the legacy call ABI, but read the owner slot with its real
+ * host type.
+ */
+static ALSoundState *gunImpactSlotState(ALSoundState *slot)
+{
+    return *(ALSoundState **)slot;
+}
+#else
+static ALSoundState *gunImpactSlotState(ALSoundState *slot)
+{
+    return (ALSoundState *)slot->link.next;
+}
+#endif
+
+
 void recall_joy2_hits_edit_detail_edit_flag(enum ITEM_IDS item, PropRecord* prop, s32 texture_index)
 {
     s32 sp6C;
@@ -2431,9 +2452,9 @@ void recall_joy2_hits_edit_detail_edit_flag(enum ITEM_IDS item, PropRecord* prop
                 sndPlaySfx((struct ALBankAlt_s* ) g_musicSfxBufferPtr, ricochet_sounds_small_copy.arr[rnd1 % 20], sound_state);
             }
 
-            if (sound_state->link.next != NULL)
+            if (gunImpactSlotState(sound_state) != NULL)
             {
-                sndCreatePostEvent((ALSoundState* ) sound_state->link.next, 8, sp6C);
+                sndCreatePostEvent(gunImpactSlotState(sound_state), 8, sp6C);
             }
         }
         else
@@ -2453,8 +2474,8 @@ void recall_joy2_hits_edit_detail_edit_flag(enum ITEM_IDS item, PropRecord* prop
                 sndPlaySfx((struct ALBankAlt_s* ) g_musicSfxBufferPtr, bullet_flesh_sounds_copy.arr[rnd1 % 2], sound_state);
             }
 
-            if (sound_state->link.next != NULL) {
-                sndCreatePostEvent((ALSoundState* ) sound_state->link.next, 8, sp6C);
+            if (gunImpactSlotState(sound_state) != NULL) {
+                sndCreatePostEvent(gunImpactSlotState(sound_state), 8, sp6C);
             }
         }
     }
@@ -2470,9 +2491,9 @@ void recall_joy2_hits_edit_detail_edit_flag(enum ITEM_IDS item, PropRecord* prop
                 sndPlaySfx((struct ALBankAlt_s* ) g_musicSfxBufferPtr, g_HitTypeSounds[g_Textures[texture_index].hitSound]->sfx[sfx_index], sound_state);
             }
 
-            if (sound_state->link.next != NULL)
+            if (gunImpactSlotState(sound_state) != NULL)
             {
-                chrobjSndCreatePostEventDefault((ALSoundState* ) sound_state->link.next, &prop->pos);
+                chrobjSndCreatePostEventDefault(gunImpactSlotState(sound_state), &prop->pos);
             }
         }
     }
@@ -2500,7 +2521,7 @@ void sub_GAME_7F064720(coord3d* pos)
     {
         sndPlaySfx((struct ALBankAlt_s* ) g_musicSfxBufferPtr, HIT_BULLET_GLASS_SFX, sound);
 
-        link = sound->link.next;
+        link = (ALLink *)gunImpactSlotState(sound);
         if (link != NULL)
         {
             chrobjSndCreatePostEventDefault((ALSoundState* ) link, pos);
@@ -2546,9 +2567,9 @@ void recall_joy2_hits_edit_flag(enum ITEM_IDS item, coord3d* arg1, s32 texture_i
             }
         }
 
-        if (sound_state->link.next != NULL)
+        if (gunImpactSlotState(sound_state) != NULL)
         {
-            chrobjSndCreatePostEventDefault((ALSoundState* ) sound_state->link.next, arg1);
+            chrobjSndCreatePostEventDefault(gunImpactSlotState(sound_state), arg1);
         }
     }
 
@@ -2564,9 +2585,9 @@ void recall_joy2_hits_edit_flag(enum ITEM_IDS item, coord3d* arg1, s32 texture_i
                 sndPlaySfx((struct ALBankAlt_s* ) g_musicSfxBufferPtr, img_sound->sfx[sfx_index], sound_state);
             }
 
-            if (sound_state->link.next != NULL)
+            if (gunImpactSlotState(sound_state) != NULL)
             {
-                chrobjSndCreatePostEventDefault((ALSoundState* ) sound_state->link.next, arg1);
+                chrobjSndCreatePostEventDefault(gunImpactSlotState(sound_state), arg1);
             }
         }
     }
