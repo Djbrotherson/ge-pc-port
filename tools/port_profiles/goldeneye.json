@@ -1,8 +1,14 @@
 {
   "schema_version": 1,
   "project": "goldeneye",
-  "source_roots": ["src", "include", "port"],
-  "exclude_path_parts": ["third_party"],
+  "source_roots": [
+    "src",
+    "include",
+    "port"
+  ],
+  "exclude_path_parts": [
+    "third_party"
+  ],
   "targets": [
     {
       "id": "r36s-aarch64-gles",
@@ -21,5 +27,6 @@
     "semantic_audit": "tools/n64_port_audit.py",
     "native_harness": "tools_pc/verify.sh",
     "target_workflow": ".github/workflows/build-r36s.yml"
-  }
+  },
+  "contract_suite": "goldeneye"
 }
