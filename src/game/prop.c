@@ -57,7 +57,7 @@ void setupDoor(s32 arg0, struct DoorRecord *door, s32 arg2);
 
 
 #ifdef PORT
-static s32 portResolvePadStan(struct PadRecord *pad, const char *plink, StandTile **stan)
+static s32 portResolvePadStan(struct PadRecord *pad, char *plink, StandTile **stan)
 {
     s32 result = init_pathtable_something(pad, plink, stan);
 
