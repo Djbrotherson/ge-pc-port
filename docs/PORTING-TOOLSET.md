@@ -55,12 +55,14 @@ python3 tools/n64_port.py show-profile
 Current configuration is split into:
 
 - `tools/port_profiles/goldeneye.json` — project roots, target(s), adapters and verification entry points.
-- `tools/port_profiles/goldeneye_abi.json` — machine-readable ABI/layout contract.
+- `tools/port_profiles/goldeneye_abi.json` — machine-readable ABI/layout contract; it also declares required C `sizeof` guards.
 - `tools/port_profiles/template.json` — generic starting point for another decomp/recomp.
 - `tools/n64_port_audit.py` — profile-aware semantic runner.
 - `tools/r36s_semantic_audit.py` — detector engine plus the selected GoldenEye contract suite.
+- `tools/n64_portlib/binary.py` — shared endian/alignment primitives now used by d43/d69/d88 instead of three independent copies.
+- `tools/n64_portlib/test_binary.py` — ROM-free unit tests for the reusable binary core.
 
-CI calls the unified CLI, validates the profile first, then runs the semantic/ABI gate. GoldenEye-specific binary checks are selected by `contract_suite`; a profile with an empty suite receives only generic semantic scanning.
+CI calls the unified CLI, validates the profile, runs `selftest`, then runs the semantic/ABI gate. GoldenEye-specific binary checks are selected by `contract_suite`; a profile with an empty suite receives only generic semantic scanning.
 
 ## 3. Current reusable layers
 
