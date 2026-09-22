@@ -587,7 +587,7 @@ s32 __scSchedule(OSSched *sc, OSScTask **sp, OSScTask **dp, s32 availRCP)
                               *dp = gfx;
                               avail &= ~OS_SC_DP;
 
-                              if (avail & OS_SC_DP == 0)
+                              if ((avail & OS_SC_DP) == 0)
                                   assert(sc->curRDPTask == gfx);
                               
                           }
