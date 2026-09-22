@@ -4078,6 +4078,32 @@ GE_LAYOUT_ASSERT(sizeof(struct SetupIntroWatch) == 0x0c, "SetupIntroWatch serial
 GE_LAYOUT_ASSERT(sizeof(CreditsEntry) == 0x0c, "CreditsEntry serialized size");
 GE_LAYOUT_ASSERT(sizeof(struct SetupIntroCredits) == 0x08, "SetupIntroCredits serialized size");
 
+/* Native propDef sizes must match tools_pc/d88_propdefs.py PROPDEF_PC_BYTES
+ * and the PORT sizepropdef() walk. These are host layouts after pointer
+ * widening, not retail N64 serialized sizes. */
+GE_LAYOUT_ASSERT(sizeof(ObjectRecord) == 144, "ObjectRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(GuardRecord) == 32, "GuardRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(LinkRecord) == 32, "LinkRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(TagObjectRecord) == 24, "TagObjectRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(PhotographObjectRecord) == 24, "PhotographObjectRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(RenameObjectRecord) == 48, "RenameObjectRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(LockDoorRecord) == 32, "LockDoorRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(SafeObjectRecord) == 40, "SafeObjectRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(VehichleRecord) == 208, "VehichleRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(AircraftRecord) == 208, "AircraftRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(TankRecord) == 248, "TankRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(TintedGlassRecord) == 168, "TintedGlassRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(DoorRecord) == 296, "DoorRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(KeyRecord) == 152, "KeyRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(CCTVRecord) == 272, "CCTVRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(AmmoCrateRecord) == 152, "AmmoCrateRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(WeaponObjRecord) == 160, "WeaponObjRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(MonitorObjRecord) == 288, "MonitorObjRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(MultiMonitorObjRecord) == 664, "MultiMonitorObjRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(AutogunRecord) == 248, "AutogunRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(MultiAmmoCrateRecord) == 200, "MultiAmmoCrateRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(BodyArmourRecord) == 152, "BodyArmourRecord host propDef size");
+
 #undef GE_LAYOUT_ASSERT
 #endif
 
