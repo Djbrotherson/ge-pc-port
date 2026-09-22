@@ -122,8 +122,10 @@ void set_selected_difficulty(DIFFICULTY difficulty)
 void set_solo_and_ptr_briefing(LEVELID stage)
 {
 #ifdef DAM_ONLY_LAB
+#if !defined(DAM_SHOWCASE)
     if (stage != LEVELID_DAM)
         osSyncPrintf("DAMLAB force-stage requested=%d forced=%d\n", (int)stage, (int)LEVELID_DAM);
+#endif
     stage = LEVELID_DAM;
     selected_difficulty = DIFFICULTY_AGENT;
 #endif
