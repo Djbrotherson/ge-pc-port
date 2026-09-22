@@ -193,6 +193,10 @@ it helps prioritize.
   is the catalogue of N64→PC bug classes hit along the way. Game logic in
   `src/` is unmodified decompilation; every hardware surface lives in the
   MIT-licensed `port/` layer.
+- **Build ports with it**: [`docs/PORTING-TOOLSET.md`](docs/PORTING-TOOLSET.md)
+  defines the reusable N64 decomp/recomp porting architecture growing out of
+  this project: semantic ABI auditing, binary-layout adapters, target profiles,
+  host shims, graphics adaptation and tiered verification.
 - **Mod it**: the port layer, build system and `tools_pc/` are yours to
   extend (see [License](#license)); [`CONTRIBUTING.md`](CONTRIBUTING.md) has
   the ground rules for getting changes in, and [`docs/dev/`](docs/dev/) is
