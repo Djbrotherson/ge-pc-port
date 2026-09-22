@@ -48,7 +48,7 @@
 /* Animation-table values are 32-bit byte offsets by design.  Rebase them
  * onto the native host pointer without ever narrowing the base address. */
 #define CHRLV_ANIM_PTR(off) \
-    ((struct ModelAnimation *)((u8 *)ptr_animation_table + (u32)(off)))
+    ((struct ModelAnimation *)ANIM_TABLE_OFFSET_PTR(off))
 
 point2d D_800309F0 = {0, 0};
 
