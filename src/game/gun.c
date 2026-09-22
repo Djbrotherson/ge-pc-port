@@ -1658,7 +1658,7 @@ void gunInitProjectileObject(ObjectRecord *obj, coord3d *pos, StandTile *stan, M
     {
         chrpropActivate(temp_s1);
         chrpropEnable(temp_s1);
-        matrix_scalar_multiply(obj->model->scale, matrix);
+        matrix_scalar_multiply(obj->model->scale, &matrix->m[0][0]);
         objChangeShading(obj, pos, matrix, stan);
 
         // loadobjectmodel.c
@@ -1783,7 +1783,7 @@ void generate_player_thrown_grenade(s32 hand)
     Mtxf spA0_a;
     struct WeaponObjRecord *wor;
     s32 new_prop_type;
-    s32 sp94; // sp148
+    coord3d sp94; // screen-space path output
     struct coord3d base_speed_vec; // sp136
     struct PropRecord* player_prop; // sp132
     struct coord3d *bondprevpos;  // sp128
@@ -1825,7 +1825,7 @@ void generate_player_thrown_grenade(s32 hand)
     sp40_f.m[3][2] = 0.0f;
     matrix_4x4_multiply_in_place(&sp40_f, &spA0_a);
 
-    wor = create_new_item_instance_of_model(PROP_CHRGRENADE, current_weapon);
+    wor = (WeaponObjRecord *)create_new_item_instance_of_model(PROP_CHRGRENADE, current_weapon);
 
     if (wor != NULL)
     {
@@ -1874,7 +1874,7 @@ void generate_player_thrown_knife(s32 hand)
     Mtxf spA0_a;
     s32 padding;
     s32 new_prop_type;
-    s32 sp94;
+    coord3d sp94;
     struct coord3d base_speed_vec;
     Mtxf sp40_f;
     struct PropRecord* player_prop;
@@ -1915,9 +1915,9 @@ void generate_player_thrown_knife(s32 hand)
     sp40_f.m[3][2] = 0.0f;
     matrix_4x4_multiply_in_place(&sp40_f, &spA0_a);
 
-    guRotateF(&spFC, 360.0f / ((randomGetNext() * (0.5f / (f32)INT_MAX)) + 12.1f), spA0_a.m[1][0], spA0_a.m[1][1], spA0_a.m[1][2]);
+    guRotateF(spFC.m, 360.0f / ((randomGetNext() * (0.5f / (f32)INT_MAX)) + 12.1f), spA0_a.m[1][0], spA0_a.m[1][1], spA0_a.m[1][2]);
 
-    wor = create_new_item_instance_of_model(PROP_CHRKNIFE, ITEM_THROWKNIFE);
+    wor = (WeaponObjRecord *)create_new_item_instance_of_model(PROP_CHRKNIFE, ITEM_THROWKNIFE);
 
     if (wor != NULL)
     {
@@ -1964,7 +1964,7 @@ void generate_player_thrown_object(s32 hand)
     Mtxf spA0_a;
     struct WeaponObjRecord *wor;
     s32 new_prop_type;
-    s32 sp94; // sp148
+    coord3d sp94; // screen-space path output
     struct coord3d base_speed_vec; // sp136
     struct PropRecord* player_prop; // sp132
     struct coord3d *bondprevpos;  // sp128
@@ -2058,7 +2058,7 @@ void generate_player_thrown_object(s32 hand)
 
         }
 
-        wor = create_new_item_instance_of_model(new_prop_type, current_weapon);
+        wor = (WeaponObjRecord *)create_new_item_instance_of_model(new_prop_type, current_weapon);
     }
 
     if (wor != NULL)
@@ -2188,7 +2188,7 @@ void gunSpawnGLGrenade(s32 handnum)
     launchmtx.m[3][1] = 0.0f;
     launchmtx.m[3][2] = 0.0f;
 
-    grenadeobj = create_new_item_instance_of_model(PROP_CHRGRENADEROUND, ITEM_GRENADEROUND);
+    grenadeobj = (WeaponObjRecord *)create_new_item_instance_of_model(PROP_CHRGRENADEROUND, ITEM_GRENADEROUND);
 
     if (grenadeobj != NULL)
     {
@@ -2196,7 +2196,7 @@ void gunSpawnGLGrenade(s32 handnum)
         grenadeobj->runtime_bitflags &= ~RUNTIMEBITFLAG_OWNER;
         grenadeobj->runtime_bitflags |= get_cur_playernum() << RUNTIMEBITSHIFT_OWNER;
 
-        gunInitProjectileFromPlayer(grenadeobj, &hand->field_B58, &launchmtx, &launchvel, (s32 *)&identitymtx);
+        gunInitProjectileFromPlayer(grenadeobj, &hand->field_B58, &launchmtx, &launchvel, &identitymtx);
 
         if (grenadeobj->runtime_bitflags & RUNTIMEBITFLAG_00000080)
         {
@@ -2215,11 +2215,16 @@ void gunSpawnGLGrenade(s32 handnum)
 void gunUpdateAttachedRocket(s32 handIndex)
 {
     struct hand *entry;
+#ifdef PORT
+    ObjectRecord *attachedRocket;
+    PropRecord *attachmentChild;
+#else
     AttachedObj *attachedRocket;
+    AttachmentChild *attachmentChild;
+#endif
     Model *rocketModel;
     Mtxf worldMtx;
     PropRecord *prop;
-    AttachmentChild *attachmentChild;
 
     entry = &g_CurrentPlayer->hands[handIndex];
 
@@ -2230,7 +2235,11 @@ void gunUpdateAttachedRocket(s32 handIndex)
         return;
     }
 
+#ifdef PORT
+    attachmentChild = attachedRocket->prop;
+#else
     attachmentChild = attachedRocket->child;
+#endif
 
     if (attachmentChild == NULL)
     {
@@ -2253,14 +2262,24 @@ void gunUpdateAttachedRocket(s32 handIndex)
 
     rocketModel->render_pos = dynAllocate((s32)rocketModel->obj->numMatrices << 6);
 
+#ifdef PORT
+    matrix_4x4_copy(&attachedRocket->mtx, &worldMtx);
+    matrix_4x4_set_position(&attachedRocket->runtime_pos, &worldMtx);
+#else
     matrix_4x4_copy(&attachedRocket->transform, &worldMtx);
     matrix_4x4_set_position(&attachedRocket->position, &worldMtx);
+#endif
 
     matrix_4x4_multiply_homogeneous(camGetWorldToScreenMtxf(), &worldMtx, &rocketModel->render_pos->pos);
     modelUpdateRelationsQuick(rocketModel, rocketModel->obj->RootNode);
 
+#ifdef PORT
+    attachmentChild->flags |= 2;
+    attachmentChild->zDepth = -rocketModel->render_pos->pos.m[3][2];
+#else
     attachmentChild->flags1 |= 2;
     attachmentChild->unk18 = -rocketModel->render_pos->pos.m[3][2];
+#endif
 }
 
 
@@ -2280,7 +2299,11 @@ void currentPlayerCreateRocket(GUNHAND hand)
 
         if (rocket != NULL)
         {
+#ifdef PORT
             hand_ptr->rocket = (ObjectRecord *)rocket;
+#else
+            hand_ptr->rocket = (AttachedObj *)rocket;
+#endif
             hand_ptr->firedrocket = 0;
             rocket->timer = 1;
         }

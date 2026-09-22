@@ -215,7 +215,13 @@ struct hand
   f32 field_A84;
   f32 field_A88;
   s32 field_A8C;
-  AttachedObj* rocket;
+#ifdef PORT
+  /* Runtime-created rocket is an ObjectRecord/WeaponObjRecord. The old
+   * AttachedObj overlay encodes 32-bit PropRecord offsets and is not LP64-safe. */
+  ObjectRecord *rocket;
+#else
+  AttachedObj *rocket;
+#endif
   s32 firedrocket;
   Mtxf gunmtx_camspace;
   // offset 0xad8
