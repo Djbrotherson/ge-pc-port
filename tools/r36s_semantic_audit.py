@@ -517,6 +517,35 @@ def check_ai_command_layout_contract():
             "Could not prove generated AI bytecode record/length agreement.")
 
 
+def check_abi_size_assertions():
+    """Prove the ABI manifest is represented by matching C compile-time guards."""
+    specs=ABI_CONTRACT.get("size_asserts", [])
+    if not specs:
+        return
+    for spec in specs:
+        path=Path(spec.get("path",""))
+        type_name=str(spec.get("type",""))
+        expected=spec.get("bytes")
+        if not path.exists() or not type_name or not isinstance(expected,int):
+            add("P0","abi-size-assert-spec",path or Path("."),1,str(spec),
+                "ABI size assertion entry is incomplete or references a missing source file.")
+            continue
+        text=path.read_text(errors="replace")
+        pat=re.compile(
+            r"(?:GE_LAYOUT_ASSERT|static_assert|_Static_assert)\s*\(\s*"
+            r"sizeof\(\s*"+re.escape(type_name)+r"\s*\)\s*==\s*"
+            r"(0x[0-9A-Fa-f]+|\d+)"
+        )
+        values=[int(m.group(1),0) for m in pat.finditer(text)]
+        if not values:
+            add("P0","abi-size-assert-missing",path,1,type_name,
+                f"ABI manifest requires sizeof({type_name}) == {expected}, but no matching compile-time assertion exists.")
+        elif expected not in values:
+            add("P0","abi-size-assert-mismatch",path,1,
+                f"{type_name}: asserted={values} manifest={expected}",
+                "C compile-time size guard disagrees with the machine-readable ABI manifest.")
+
+
 def check_renderer_reload_contract():
     """Keep host renderer cache lifetime aligned with game texture lifetime."""
     lv=Path("src/game/lv.c")
@@ -782,6 +811,7 @@ def check_propdef_stride_contract():
 def main():
     collect_pointer_member_names()
     for f in iter_files(): scan_file(f)
+    check_abi_size_assertions()
     if CONTRACT_SUITE == "goldeneye":
         check_propdef_stride_contract()
         check_renderer_reload_contract()
