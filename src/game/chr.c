@@ -2692,8 +2692,8 @@ after_position_update:
 
         chr->field_20 = sub_GAME_7F06B120(NULL, model);
 
-        chrRenderHeldWeapon(prop, GUNRIGHT, (Gfx **)(&chr->field_20));
-        chrRenderHeldWeapon(prop, GUNLEFT, (Gfx **)(&chr->field_20));
+        chrRenderHeldWeapon(prop, GUNRIGHT, &chr->field_20);
+        chrRenderHeldWeapon(prop, GUNLEFT, &chr->field_20);
 
         if (chr->handle_positiondata_hat != NULL)
         {

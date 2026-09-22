@@ -159,7 +159,7 @@ void initResolveAnimGroups(struct anim_group_info **groups)
     {
         if (groups[i]->len < 0)
         {
-            groups[i]->len = initResolveAnimGroupTable(groups[i]->table);
+            groups[i]->len = initResolveAnimGroupTable(*groups[i]->table);
         }
     }
 }

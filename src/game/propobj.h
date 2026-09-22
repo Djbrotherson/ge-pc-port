@@ -155,7 +155,7 @@ TICKOP               weaponTickPlayer(struct PropRecord* arg0);
 void                 sub_GAME_7F04DD68(DoorRecord *door);
 bool                 posIsOnScreen(PropRecord *prop, coord3d *pos, f32 arg2, bool arg3);
 void                 update_color_shading(rgba_u8 *dest, rgba_u8 *src);
-void                 chrRenderHeldWeapon(void *renderContext, GUNHAND hand, Gfx **gdl);
+void                 chrRenderHeldWeapon(void *renderContext, GUNHAND hand, ModelHitEntry **hitlist);
 HATTYPE              get_hat_model(PropRecord *prop);
 s32                  objDrop(PropRecord *prop);
 void                 sub_GAME_7F050DE8(Model* model);

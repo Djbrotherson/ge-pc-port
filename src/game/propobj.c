@@ -12188,7 +12188,7 @@ ModelRenderData D_800322A4 = {
  * Render the weapon(s) characters are holding including the muzzle flash.
  * Address: 0x7f0523f8
  */
-void chrRenderHeldWeapon(void *renderContext, GUNHAND hand, Gfx **gdl)
+void chrRenderHeldWeapon(void *renderContext, GUNHAND hand, ModelHitEntry **hitlist)
 {
     ChrRecord *chr;
     PropRecord *prop;
@@ -12228,11 +12228,11 @@ void chrRenderHeldWeapon(void *renderContext, GUNHAND hand, Gfx **gdl)
                 renderData.mtxlist = dynAllocate(heldModel->obj->numMatrices * sizeof(Mtxf));
                 instcalcmatrices(&renderData, heldModel);
 
-                if (gdl != NULL) 
+                if (hitlist != NULL) 
                 {
                     if (!(weaponObj->runtime_bitflags & RUNTIMEBITFLAG_00000080)) 
                     {
-                        *gdl = sub_GAME_7F06B120(*gdl, heldModel);
+                        *hitlist = sub_GAME_7F06B120(*hitlist, heldModel);
                     }
                 }
 
