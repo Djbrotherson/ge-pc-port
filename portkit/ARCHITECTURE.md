@@ -1,171 +1,155 @@
-# N64 Portkit architecture
+# Portkit Architecture
 
-## Position in the ecosystem
+## Purpose
 
-Portkit is not another N64 decompiler, static recompiler, renderer, or monolithic
-runtime. Its job is to make an N64 codebase portable by turning reverse-
-engineering knowledge into a repeatable host contract.
+Portkit sits between an N64 codebase and a modern host target.
 
-Two input paths are first-class:
+It converts reverse-engineering knowledge into explicit contracts so that
+portability work becomes measurable and repeatable.
 
-1. **Source/decomp path**
-   - input: an existing N64 decompilation;
-   - compile game code natively;
-   - adapt its N64 ABI, serialized data, libultra surfaces and display-list
-     path to host services.
-
-2. **Static-recomp path**
-   - input: N64 binary plus symbols/metadata;
-   - use an external recompilation engine for MIPS/RSP translation;
-   - use Portkit for discovery, target/profile generation, runtime adapters,
-     validation and enhancements.
-
-Portkit should interoperate with existing runtime/recomp projects where their
-contracts fit. Reimplement a subsystem only when portability requirements or a
-target platform require a smaller/different backend.
-
-## Stable layers
+## Layers
 
 ### 1. Discovery
 
-Zero-mutation analysis of a project:
+Inventory:
 
-- source/build layout;
-- libultra and hardware API usage;
-- GBI/custom microcode surface;
-- assembly and CPU-specific code;
-- pointer-width hazards;
-- endian-sensitive serialized structures;
-- ROM, segment, overlay and address-token idioms.
+- source/build roots,
+- OS/libultra surfaces,
+- graphics command usage,
+- assembly/CPU-specific code,
+- pointer-width hazards,
+- endian-sensitive data,
+- ROM/segment/address-token idioms.
 
-Output is a versioned inventory.
+Output: versioned machine-readable inventory.
 
 ### 2. Classification
 
-Every address-like value is assigned a semantic class before transformation:
+Address-like values are classified before any rewrite.
 
-- host pointer;
-- N64 virtual address;
-- N64 physical address;
-- cart/ROM address;
-- segmented address;
-- serialized 32-bit pointer/offset;
-- linker symbol used as a token;
-- scalar/bitfield/GBI word.
+Classes include native pointers, virtual/physical/cart addresses, segmented
+addresses, serialized offsets, linker tokens, scalars and unknowns.
 
-Unknown is a valid class. Automatic rewriting is forbidden for unknown values.
+### 3. Project profile
 
-### 3. Game profile
+A profile contains only project-specific facts:
 
-A profile records facts specific to one title/decomp:
+- source roots/exclusions,
+- target ROM revisions/hashes where relevant,
+- memory/segment rules,
+- custom graphics commands,
+- serialized formats,
+- explicit semantic exceptions,
+- layout/offset/fit contracts.
 
-- ROM revisions/hashes;
-- source roots and exclusions;
-- memory map;
-- overlays/segments;
-- custom GBI/microcode;
-- serialized asset layouts;
-- scheduler/audio quirks;
-- known generated symbols;
-- explicit exceptions to generic audit rules.
+Profiles are data, not forks of the scanner.
 
-Profiles are data, not forks of the generic scanner.
+### 4. ABI/layout contract
 
-### 4. Host contract
+Machine-readable contracts describe fixed sizes, offsets, alignment and
+containment assumptions.
 
-The classified inventory is reduced to capabilities the selected runtime must
-provide:
+The validation layer should prove those contracts against source assertions
+and converter/runtime behavior.
 
-- threads/message queues/timers;
-- VI and frame timing;
-- RSP task dispatch;
-- audio DMA/queue semantics;
-- controller/accessory/save services;
-- PI/cart/ROM reads;
-- cache/TLB no-ops or mappings;
-- filesystem and persistent storage;
-- renderer/window/input callbacks.
+### 5. Host capability contract
 
-This is the boundary between game analysis and implementation.
+The classified inventory reduces into required capabilities:
 
-### 5. Runtime/backend adapters
+- threads/messages/timers,
+- video/frame timing,
+- graphics task/display-list services,
+- audio,
+- input,
+- storage/save,
+- ROM/cart access,
+- filesystem/configuration,
+- platform lifecycle.
 
-Backends satisfy the host contract. Initial targets:
+### 6. Runtime backends
 
-- direct source-port runtime;
-- N64ModernRuntime adapter where compatible;
-- SDL2 platform services;
-- desktop OpenGL;
-- OpenGL ES 3;
-- Linux x86-64;
-- Linux AArch64 / PortMaster.
+Backends advertise capabilities and implementation constraints.
 
-Future backends can add Vulkan/RT64, Android, macOS or other handheld targets
-without changing game profiles.
+A project profile should not need to know backend internals.
 
-### 6. Serialized-data conversion
+### 7. Target descriptors
 
-This is separate from CPU recompilation.
+Targets describe deployment constraints:
 
-N64 ROM structures often combine:
+- OS,
+- architecture,
+- pointer width,
+- graphics API,
+- packaging,
+- device-specific requirements.
 
-- big-endian scalar fields;
-- 32-bit pointers/offsets;
-- N64 struct alignment;
-- packed display-list data;
-- game-specific compressed assets.
+### 8. Serialized-data conversion
 
-Portkit provides conversion primitives and generated walkers, while a game
-profile supplies exact record descriptions when they cannot be inferred
-safely.
+Binary conversion is independent of CPU recompilation.
 
-### 7. Validation
+Reusable primitives cover:
 
-Every promoted fix must become one of:
+- endian reads/writes,
+- alignment,
+- relocation,
+- fixed/variable record walking,
+- segmented token handling,
+- manifest assembly,
+- deterministic validation.
 
-- a static audit rule;
-- a unit/self-test;
-- a build-time assertion;
-- a runtime invariant check;
-- a game-profile exception with justification.
+Project adapters supply exact record knowledge when it cannot be inferred.
 
-The objective is monotonic knowledge: solved bug classes should not reappear
-on the next title.
+### 9. Generation
 
-### 8. Enhancements
+Once the host contract is resolved, Portkit generates only required adapter
+skeletons and compile-time contracts.
 
-Enhancements sit above the compatibility layer:
+Unresolved P0 semantics block a validated scaffold unless explicitly forced for
+bring-up.
 
-- widescreen/ultrawide;
-- FOV correction;
-- resolution/upscale control;
-- texture replacement;
-- high-framerate support;
-- input remapping/gyro;
-- mod hooks;
-- asset override filesystem.
+### 10. Validation
 
-Compatibility must remain testable with all enhancement modules disabled.
+Every promoted fix should become one of:
 
-## GoldenEye's role
+- semantic rule,
+- unit/selftest,
+- source assertion,
+- ABI-manifest rule,
+- converter/runtime contract,
+- target smoke test,
+- documented profile exception.
 
-GoldenEye is reference integration #1. Its fixes are evidence used to improve
-the generic layers. A GoldenEye change graduates into Portkit only when its
-invariant can be stated without using a GoldenEye symbol name.
+Knowledge should be monotonic: solved classes should not reappear.
 
-## Success criterion
+### 11. Enhancements
 
-Given a new, sufficiently complete N64 decomp, Portkit should eventually be
-able to produce:
+Enhancements sit above compatibility:
 
-1. a machine-readable portability inventory;
-2. a classified unresolved-risk report;
-3. a generated host-contract manifest;
-4. a build skeleton for the selected runtime/target;
-5. generated shim stubs for unresolved hardware services;
-6. a renderer/microcode compatibility report;
-7. a target package skeleton;
-8. a small explicit list of title-specific work still requiring human review.
+- widescreen/FOV,
+- resolution/upscaling,
+- texture replacement,
+- high-frame-rate policy,
+- controller remapping,
+- mod/asset override hooks.
 
-The product is the reduction of an open-ended port into a finite, auditable
-exception list.
+Compatibility must remain testable with enhancements disabled.
+
+## Repository integration
+
+The GoldenEye ARM64/R36S port is reference integration #1.
+
+Repository-specific CI glue may remain under `tools/` and `.github/`, but
+new reusable capabilities belong in `portkit/`.
+
+## End state
+
+Given a sufficiently complete N64 project, Portkit should produce:
+
+1. portability inventory,
+2. semantic risk report,
+3. ABI/layout contracts,
+4. host capability contract,
+5. runtime/target resolution,
+6. generated adapter skeleton,
+7. deterministic validation plan,
+8. explicit project-specific exception list.
