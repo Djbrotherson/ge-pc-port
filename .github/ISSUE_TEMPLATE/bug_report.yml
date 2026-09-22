@@ -1,71 +1,83 @@
-name: Bug report (build or run)
-description: A build failure, crash, hang, or rendering/audio/input defect in the PC port
+name: Bug report
+description: Report a reproducible ARM-GE / R36S / runtime defect
+title: "[Bug] "
 labels: ["bug"]
 body:
-  - type: markdown
+  - type: dropdown
+    id: area
     attributes:
-      value: |
-        Thanks for filing a report. First, please check:
+      label: Area
+      options:
+        - R36S runtime
+        - Graphics / GLES
+        - Audio
+        - Input
+        - Save / storage
+        - PortMaster packaging
+        - Binary conversion
+        - Semantic / ABI tooling
+        - Portkit
+        - Build / CI
+        - Other
+    validations:
+      required: true
 
-        - The port is **Phase 2 of 4** — rendering is incomplete and many
-          cosmetic defects are already tracked in
-          [`docs/dev/GRAPHICS-BACKLOG.md`](https://github.com/jkdansereau/goldeneye-pc-port/blob/main/docs/dev/GRAPHICS-BACKLOG.md).
-          Search open issues and that file before filing.
-        - Only the **Windows / MSYS2 MINGW64** build is tested. Linux and
-          macOS are best-effort — build breaks there are expected.
-        - Do **not** attach a ROM, extracted assets, or any game data.
   - type: input
     id: commit
     attributes:
       label: Commit
-      description: Output of `git rev-parse --short HEAD`
-      placeholder: 311fd012
+      description: Exact main commit SHA tested.
+      placeholder: abcdef123456...
     validations:
       required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Minimal deterministic steps.
+      placeholder: |
+        1. Launch...
+        2. Load...
+        3. Trigger...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Logs, crash addresses, screenshots, mission/level, or other useful proof.
+
   - type: dropdown
-    id: region
+    id: clean_boot
     attributes:
-      label: Region / ROMID
-      options: [ntsc-final, pal-final, jpn-final]
-    validations:
-      required: true
-  - type: input
-    id: os
-    attributes:
-      label: OS / environment
-      description: e.g. "Windows 10, MSYS2 MINGW64" or "Ubuntu 22.04, native gcc"
-    validations:
-      required: true
-  - type: dropdown
-    id: stage
-    attributes:
-      label: Which stage fails?
+      label: Reproduces after a clean boot?
       options:
-        - Asset extraction
-        - CMake configure
-        - Compile / link
-        - Runtime — crash or hang
-        - Runtime — wrong rendering / audio / input
+        - "Yes"
+        - "No"
+        - "Not tested"
     validations:
       required: true
-  - type: textarea
-    id: what
+
+  - type: checkboxes
+    id: legal
     attributes:
-      label: What happened vs. what you expected
-    validations:
-      required: true
-  - type: textarea
-    id: repro
-    attributes:
-      label: Steps to reproduce
-      description: Exact commands, flags (e.g. `-level_09`), and what you did in-game.
-    validations:
-      required: true
-  - type: textarea
-    id: logs
-    attributes:
-      label: Logs
-      description: |
-        Paste the terminal error, and `ge007.crash.log` if the port crashed.
-        For a rendering defect, attach a screenshot.
-      render: text
+      label: Content check
+      options:
+        - label: I did not attach a ROM, extracted proprietary game assets, credentials, or unrelated private data.
+          required: true
