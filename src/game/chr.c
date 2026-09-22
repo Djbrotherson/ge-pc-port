@@ -2990,7 +2990,7 @@ Gfx *chrRenderProp(PropRecord *prop, Gfx *gdl, s32 withalpha)
     s32 chrfadealpha; // 180
     rgba_u8 temp_v1_2;
     ModelRenderData mrData; // 112
-    struct view4f sp60; // -?? 96
+    bbox2d sp60; // combined room screen bounds
     struct rgba_s32 chrShade;
     s32 sp4C; // 76
     PropRecord *prop_held_right; // 72
@@ -3070,7 +3070,7 @@ Gfx *chrRenderProp(PropRecord *prop, Gfx *gdl, s32 withalpha)
 
             if ((getPropCombinedRoomsBBox2D(prop, &sp60) > 0) && !(chr->chrflags & CHRFLAG_CULL_USING_HITBOX))
             {
-                gdl = bgScissorCurrentPlayerViewF(gdl, sp60.left, sp60.top, sp60.width, sp60.height);
+                gdl = bgScissorCurrentPlayerViewF(gdl, sp60.min.x, sp60.min.y, sp60.max.x - sp60.min.x, sp60.max.y - sp60.min.y);
             }
             else
             {

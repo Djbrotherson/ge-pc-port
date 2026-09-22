@@ -7435,7 +7435,7 @@ Gfx *chrobjRenderProp(PropRecord *prop, Gfx *gdl, s32 arg2)
     s32 spAC;
     s32 spA8;
     ModelRenderData mrData;
-    struct view4f sp58;
+    bbox2d sp58;
     struct rgba_s32 sp48;
     s32 sp44;
     ObjectRecord *obj;
@@ -7490,7 +7490,7 @@ Gfx *chrobjRenderProp(PropRecord *prop, Gfx *gdl, s32 arg2)
 
     if ((getPropCombinedRoomsBBox2D(prop, &sp58) > 0) && (((s32)obj->flags2 << 5) >= 0))
     {
-        gdl = bgScissorCurrentPlayerViewF(gdl, sp58.left, sp58.top, sp58.width, sp58.height);
+        gdl = bgScissorCurrentPlayerViewF(gdl, sp58.min.x, sp58.min.y, sp58.max.x - sp58.min.x, sp58.max.y - sp58.min.y);
     }
     else
     {
