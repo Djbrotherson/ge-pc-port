@@ -23,7 +23,7 @@ OBJECTIVESTATUS         objectiveStatuses[OBJECTIVES_MAX]; //This is an array of
 //CODE.bss:80075D80
 TagObjectRecord *ptr_last_tag_entry_type16;
 //CODE.bss:80075D84
-struct watchMenuObjectiveText *ptr_last_briefing_setup_entry_type23;
+struct setup_objective_text *ptr_last_briefing_setup_entry_type23;
 //CODE.bss:80075D88
 struct criteria_roomentered *ptr_last_enter_room_subobject_entry_type20;
 //CODE.bss:80075D8C

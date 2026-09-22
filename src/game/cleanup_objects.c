@@ -24,7 +24,7 @@
 void cleanupObjects(s32 stage)
 {
 #ifdef PORT
-    u32 *obj = (u32 *)g_CurrentSetup.propDefs;
+    PropDefHeaderRecord *obj = g_CurrentSetup.propDefs;
 #else
     u32 *obj = (u32)g_CurrentSetup.propDefs;
 #endif
@@ -89,7 +89,11 @@ void cleanupObjects(s32 stage)
                 
             }
 
-            obj =  obj + sizepropdef(obj) ;
+#ifdef PORT
+            obj = (PropDefHeaderRecord *)((u32 *)obj + sizepropdef(obj));
+#else
+            obj = obj + sizepropdef(obj);
+#endif
         }
     }
 }

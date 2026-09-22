@@ -100,7 +100,7 @@ f32 stanGetSignedPointLineDistance(f32 x1, f32 z1, f32 x2, f32 z2, f32 x3, f32 z
 void stanGetMoveBondCollisionTiles(StandTile **tile1, StandTile **tile2, coord3d *coords);
 struct StandTile *sub_GAME_7F0AFB78(f32 *arg_x, f32 *arg_y, f32 *arg_z, f32 arg3);
 bool doSegmentsIntersect(f32 start1X, f32 start1Z, f32 end1X, f32 end1Z, f32 start2X, f32 start2Z, f32 end2X, f32 end2Z);
-struct StandTilePoint *stanMatchTileName(char *id);
+struct StandTilePoint *stanMatchTileName(const char *id);
 s32 isPointInsideTriStandTileUnscaled_Maybe(struct StandTile *tile, f32 p_x, f32 p_z);
 s32 sub_GAME_7F0B21B0(StandTile **tileStack, f32 target_x, f32 target_z, f32 radius, s32 *rooms, s32 *count_rtn, s32 bufMax);
 StandTile *stanFindTileBelowPos(coord3d *pos, u8 *rooms, f32 *yRtn);

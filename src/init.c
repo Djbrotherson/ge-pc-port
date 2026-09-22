@@ -219,6 +219,14 @@ void idleproc(void *arg)
     for (;;);
 }
 
+#ifdef PORT
+static void rmonThreadEntry(void *arg)
+{
+    (void)arg;
+    rmonMain();
+}
+#endif
+
 /**
  * 1338	70000738
  * idleCreateThread - creates an empty thread;
@@ -236,7 +244,11 @@ void idleCreateThread(void)
  */
 void rmonCreateThread(void)
 {
+#ifdef PORT
+    osCreateThread(&rmonThread, RMON_THREAD_ID, rmonThreadEntry, NULL, setSPToEnd(sp_rmon, sizeof(sp_rmon)), RMON_THREAD_PRIORITY);
+#else
     osCreateThread(&rmonThread, RMON_THREAD_ID, rmonMain, NULL, setSPToEnd(sp_rmon, sizeof(sp_rmon)), RMON_THREAD_PRIORITY);
+#endif
     osStartThread(&rmonThread);
 }
 

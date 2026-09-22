@@ -1787,7 +1787,7 @@ Gfx *set_enviro_fog_for_items_in_solo_watch_menu(Gfx *gdl, ITEM_IDS itemid, Mtxf
     i = 0;
     ((Model *) &model)->render_pos = (RenderPosView *)matrices;
     modelCalculateRwDataLen(bodymodel);
-    modelInit((Model *) &model, bodymodel, spb8);
+    modelInit((Model *) &model, bodymodel, (u32 *)spb8);
     sub_GAME_7F05E978((Model *) &model, 0);
     sub_GAME_7F05EA94((Model *) &model, 1);
 
@@ -2055,7 +2055,7 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
 
     if (objheader);
 
-    modelInit(&modelstack, objheader, (union ModelRwData *)rwdata);
+    modelInit(&modelstack, objheader, rwdata);
     modelstack.render_pos = (RenderPosView*) matrices;
     matrix_4x4_copy(basemtx, &matrices[0]);
     

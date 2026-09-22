@@ -3078,7 +3078,7 @@ Gfx * stanRenderDebugStanView(Gfx *arg0) {
  * @param stanIdLo: 5bit stanIdLo File (a-z) and 3bit subtri 0-7
  * canonically Named
  */
-void stanPackId(char *id, u16 *stanIdHi, u8 *stanIdLo)
+void stanPackId(const char *id, u16 *stanIdHi, u8 *stanIdLo)
 {
     u32   bitsnumber; // sp3c
     char *str_end;    // sp38
@@ -3169,7 +3169,7 @@ void stanPackId(char *id, u16 *stanIdHi, u8 *stanIdLo)
 }
 
 
-struct StandTilePoint *stanMatchTileName(char *id)
+struct StandTilePoint *stanMatchTileName(const char *id)
 {
     StandTilePoint *tile;
     u16 stanIdHi;
