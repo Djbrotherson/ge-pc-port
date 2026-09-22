@@ -250,6 +250,37 @@ static int overlayRowAtY(double oy)
     return -1;
 }
 
+static void overlayUpdateVisible(void)
+{
+    s_visN = 0;
+    for (int i = 0; i < NUM_ROWS; ++i) {
+        if (rows[i].page != s_page) continue;
+        if (rows[i].hidePtr && *rows[i].hidePtr != 0) continue;
+        s_visIdx[s_visN++] = i;
+    }
+
+    if (s_visN == 0) {
+        s_sel = 0;
+        s_scroll = 0;
+        return;
+    }
+    if (s_sel < 0) s_sel = 0;
+    if (s_sel >= s_visN) s_sel = s_visN - 1;
+}
+
+static void overlayUpdateScroll(void)
+{
+    const int maxV = maxVisibleRows();
+    if (s_visN <= maxV) {
+        s_scroll = 0;
+        return;
+    }
+    if (s_sel < s_scroll) s_scroll = s_sel;
+    if (s_sel >= s_scroll + maxV) s_scroll = s_sel - maxV + 1;
+    if (s_scroll < 0) s_scroll = 0;
+    if (s_scroll > s_visN - maxV) s_scroll = s_visN - maxV;
+}
+
 static int tabAtX(double ox)
 {
     const int W = viGetX();

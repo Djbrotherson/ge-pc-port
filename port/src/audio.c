@@ -55,8 +55,8 @@ static int  bufferSize = 512;
 static int  queueLimit = 2880;
 static int  masterVolume = 100;
 static int  mute = 0;
-static s16 *volumeScratch = NULL;
-static u32  volumeScratchBytes = 0;
+#define AUDIO_VOLUME_SCRATCH_SAMPLES 8192
+static s16 volumeScratch[AUDIO_VOLUME_SCRATCH_SAMPLES];
 
 /* D204/F1: size in bytes of the block most recently handed to the DAC. Used
  * to bound audioGetAiLengthBytes() to one buffer, like real AI hardware. */
@@ -112,9 +112,7 @@ int audioInit(void)
 void audioDestroy(void)
 {
     if (dev) { SDL_CloseAudioDevice(dev); dev = 0; }
-    free(volumeScratch);
-    volumeScratch = NULL;
-    volumeScratchBytes = 0;
+    /* static volume scratch needs no teardown */
 }
 
 s32 audioGetSamplesBuffered(void)
@@ -290,15 +288,8 @@ void audioSetNextBuffer(const s16 *buf, u32 len)
     if (dev && buf && len) {
         const s16 *queueBuf = buf;
         if (mute || masterVolume < 100) {
-            if (volumeScratchBytes < len) {
-                s16 *next = (s16 *)realloc(volumeScratch, len);
-                if (next) {
-                    volumeScratch = next;
-                    volumeScratchBytes = len;
-                }
-            }
-            if (volumeScratch && volumeScratchBytes >= len) {
-                u32 samples = len / sizeof(s16);
+            u32 samples = len / sizeof(s16);
+            if (samples <= AUDIO_VOLUME_SCRATCH_SAMPLES) {
                 int vol = mute ? 0 : masterVolume;
                 for (u32 i = 0; i < samples; ++i)
                     volumeScratch[i] = (s16)(((s32)buf[i] * vol) / 100);
