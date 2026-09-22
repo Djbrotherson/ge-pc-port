@@ -471,7 +471,7 @@ ModelRoData_BoundingBoxRecord *chrobjGetBboxFromObjFile(ModelFileHeader *obj)
         {
             if (mdlnext->Opcode == MODELNODE_OPCODE_BBOX)
             {
-                return mdlnext->Data;
+                return (ModelRoData_BoundingBoxRecord *)mdlnext->Data;
             }
         }
 
@@ -483,7 +483,7 @@ ModelRoData_BoundingBoxRecord *chrobjGetBboxFromObjFile(ModelFileHeader *obj)
             {
                 if (mdlnext->Opcode == MODELNODE_OPCODE_BBOX)
                 {
-                    return mdlnext->Data;
+                    return (ModelRoData_BoundingBoxRecord *)mdlnext->Data;
                 }
             }
         }
@@ -5998,7 +5998,7 @@ s32 objTick(struct PropRecord *prop)
 					sp304 -= M_TAU_F;
 				}
 
-				temp_s0_13 = model->obj->Switches[1]->Data;
+				temp_s0_13 = (coord3d *)model->obj->Switches[1]->Data;
 				sp308.f[0] = temp_s0_13->f[0];
 				sp308.f[1] = temp_s0_13->f[1];
 				sp308.f[2] = temp_s0_13->f[2];
@@ -6072,11 +6072,11 @@ s32 objTick(struct PropRecord *prop)
 
 				var_f0_3 = 0.0f;
 				temp_v1_7 = model->obj->Switches;
-				sp260 = temp_v1_7[1]->Data;
-				sp25C = temp_v1_7[2]->Data;
-				sp258 = temp_v1_7[3]->Data;
-				sp254 = temp_v1_7[4]->Data;
-				temp_v0_25 = temp_v1_7[6]->Data;
+				sp260 = (coord3d *)temp_v1_7[1]->Data;
+				sp25C = (coord3d *)temp_v1_7[2]->Data;
+				sp258 = (coord3d *)temp_v1_7[3]->Data;
+				sp254 = (coord3d *)temp_v1_7[4]->Data;
+				temp_v0_25 = (f32 *)temp_v1_7[6]->Data;
 				sp250 = (temp_v0_25[4] - temp_v0_25[3]) * model->scale;
 
 				if (isSimOwner)
@@ -6151,7 +6151,7 @@ s32 objTick(struct PropRecord *prop)
 			{
 				struct AircraftRecord *aircraft_render = (struct AircraftRecord *) obj;
 
-				sp1FC = model->obj->Switches[2]->Data;
+				sp1FC = (coord3d *)model->obj->Switches[2]->Data;
 
 				if ((g_ClockTimer > 0) && (isSimOwner))
 				{
@@ -6216,11 +6216,11 @@ s32 objTick(struct PropRecord *prop)
 				struct TankRecord *tank_render = (struct TankRecord *) obj;
 
 				temp_v1_7 = model->obj->Switches;
-				sp168 = temp_v1_7[1]->Data;
-				sp164 = temp_v1_7[3]->Data;
-				sp160 = temp_v1_7[4]->Data;
-				sp15C = temp_v1_7[2]->Data;
-				sp158 = temp_v1_7[6]->Data;
+				sp168 = (coord3d *)temp_v1_7[1]->Data;
+				sp164 = (coord3d *)temp_v1_7[3]->Data;
+				sp160 = (coord3d *)temp_v1_7[4]->Data;
+				sp15C = (coord3d *)temp_v1_7[2]->Data;
+				sp158 = (ModelRoData_BoundingBoxRecord *)temp_v1_7[6]->Data;
 				sp154 = -tank_render->turret_vertical_angle;
 
 				if (sp154 < 0.0f)
@@ -6372,7 +6372,7 @@ s32 objTick(struct PropRecord *prop)
 					if ((prop->flags & PROPFLAG_ONSCREEN) && (model->obj->Switches[var_a0_6] != NULL))
 					{
 						temp_s2_7 = modelFindNodeMtx(model, model->obj->Switches[var_a0_6], 0);
-						temp_v1_11 = model->obj->Switches[var_a0_6]->Data;
+						temp_v1_11 = (coord3d *)model->obj->Switches[var_a0_6]->Data;
 						sp12C.f[0] = temp_v1_11->f[0];
 						sp12C.f[1] = temp_v1_11->f[1];
 						sp12C.f[2] = temp_v1_11->f[2];
@@ -6613,164 +6613,166 @@ void save_ptr_monitor_ani_code_to_obj_ani_slot(MonitorRecord *mon, void *image)
 
 void monitorSetImageByNum(MonitorRecord *mon, s32 monAnimID)
 {
-    s32 *image = &monAnim00Bond;
+    /* Monitor command resources are u32 arrays; keep the host view as u32 *
+     * and rely on normal array decay. &array would be a pointer-to-array. */
+    u32 *image = monAnim00Bond;
     switch (monAnimID)
     {
          default:
          case 0:
             break;
          case 1:
-            image = &monAnim01DesktopsSatellite;
+            image = monAnim01DesktopsSatellite;
             break;
         case 2:
-            image = &monAnim02Astrological;
+            image = monAnim02Astrological;
             break;
         case 3:
-            image = &monAnim03ThreeWavePattern;
+            image = monAnim03ThreeWavePattern;
             break;
         case 4:
-            image = &monAnim04WavePattern;
+            image = monAnim04WavePattern;
             break;
         case 5:
-            image = &monAnim05GreenTextUp;
+            image = monAnim05GreenTextUp;
             break;
         case 6:
-            image = &monAnim06RedTextDown;
+            image = monAnim06RedTextDown;
             break;
         case 7:
-            image = &monAnim07GreenTextDown;
+            image = monAnim07GreenTextDown;
             break;
         case 8:
-            image = &monAnim08RedBarGraph;
+            image = monAnim08RedBarGraph;
             break;
         case 9:
-            image = &monAnim09BlueBarGraph;
+            image = monAnim09BlueBarGraph;
             break;
         case 10:
-            image = &monAnim0AGreenBarGraph;
+            image = monAnim0AGreenBarGraph;
             break;
         case 11:
-            image = &monAnim0BRadar;
+            image = monAnim0BRadar;
             break;
         case 12:
-            image = &monAnim0CSpinningCube;
+            image = monAnim0CSpinningCube;
             break;
         case 13:
-            image = &monAnim0DLocWeapArmed;
+            image = monAnim0DLocWeapArmed;
             break;
         case 14:
-            image = &monAnim0ERedTarget;
+            image = monAnim0ERedTarget;
             break;
         case 15:
-            image = &monAnim0FSatelliteTargeting;
+            image = monAnim0FSatelliteTargeting;
             break;
         case 16:
-            image = &monAnim10GlobalMap;
+            image = monAnim10GlobalMap;
             break;
         case 17:
-            image = &monAnim11KarlYelling;
+            image = monAnim11KarlYelling;
             break;
         case 18:
-            image = &monAnim12Skateboard;
+            image = monAnim12Skateboard;
             break;
         case 19:
-            image = &monAnim13PoliceGuy;
+            image = monAnim13PoliceGuy;
             break;
         case 20:
-            image = &monAnim14Off;
+            image = monAnim14Off;
             break;
         case 21:
-            image = &monAnim15RandomSeven;
+            image = monAnim15RandomSeven;
             break;
         case 22:
-            image = &monAnim16RandomFour;
+            image = monAnim16RandomFour;
             break;
         case 23:
-            image = &monAnim17RandImageEffect;
+            image = monAnim17RandImageEffect;
             break;
         case 24:
-            image = &monRandEffectChanceSHUTTLE1;
+            image = monRandEffectChanceSHUTTLE1;
             break;
         case 25:
-            image = &monRandEffectChanceSHUTTLE2;
+            image = monRandEffectChanceSHUTTLE2;
             break;
         case 26:
-            image = &monRandEffectChanceEARTHFULL1;
+            image = monRandEffectChanceEARTHFULL1;
             break;
         case 27:
-            image = &monRandEffectChanceEARTHFULL2;
+            image = monRandEffectChanceEARTHFULL2;
             break;
         case 28:
-            image = &monRandEffectChanceBLUESTARS;
+            image = monRandEffectChanceBLUESTARS;
             break;
         case 29:
-            image = &monRandEffectChanceGALAXY1;
+            image = monRandEffectChanceGALAXY1;
             break;
         case 30:
-            image = &monRandEffectChanceGALAXY2;
+            image = monRandEffectChanceGALAXY2;
             break;
         case 31:
-            image = &monRandEffectChanceEARTHTEXT;
+            image = monRandEffectChanceEARTHTEXT;
             break;
         case 32:
-            image = &monRandEffectChanceTARGETEARTH;
+            image = monRandEffectChanceTARGETEARTH;
             break;
         case 33:
-            image = &monRandEffectChanceGALAXY3;
+            image = monRandEffectChanceGALAXY3;
             break;
         case 34:
-            image = &monRandChanceScrollOrZoomRandRGBN;
+            image = monRandChanceScrollOrZoomRandRGBN;
             break;
         case 35:
-            image = &monRandChanceScrollOrZoomRed;
+            image = monRandChanceScrollOrZoomRed;
             break;
         case 36:
-            image = &monRandChanceScrollOrZoomGreen;
+            image = monRandChanceScrollOrZoomGreen;
             break;
         case 37:
-            image = &monRandChanceScrollOrZoomBlue;
+            image = monRandChanceScrollOrZoomBlue;
             break;
         case 38:
-            image = &monRandChanceScrollOrZoom;
+            image = monRandChanceScrollOrZoom;
             break;
         case 39:
-            image = &monAnim27RandomEffectScrollRight;
+            image = monAnim27RandomEffectScrollRight;
             break;
         case 40:
-            image = &monAnim28RandomEffectScrollUpFast;
+            image = monAnim28RandomEffectScrollUpFast;
             break;
         case 41:
-            image = &monAnim29RandomEffectScrollUp;
+            image = monAnim29RandomEffectScrollUp;
             break;
         case 42:
-            image = &monAnim2ARandEffectScrollZoom1;
+            image = monAnim2ARandEffectScrollZoom1;
             break;
         case 43:
-            image = &monAnim2ARandEffectScrollZoom2;
+            image = monAnim2ARandEffectScrollZoom2;
             break;
         case 44:
-            image = &monAnim2CRandEffectWaitRoute;
+            image = monAnim2CRandEffectWaitRoute;
             break;
         case 45:
-            image = &monAnim2DRandEffectFlash;
+            image = monAnim2DRandEffectFlash;
             break;
         case 46:
-            image = &monAnim2ERedBrightening;
+            image = monAnim2ERedBrightening;
             break;
         case 47:
-            image = &monAnim2FGreenBrightening;
+            image = monAnim2FGreenBrightening;
             break;
         case 48:
-            image = &monAnim30GreySolid;
+            image = monAnim30GreySolid;
             break;
         case 49:
-            image = &monAnim31RedSolid;
+            image = monAnim31RedSolid;
             break;
         case 50:
-            image = &monAnim32GreenSolid;
+            image = monAnim32GreenSolid;
             break;
         case 51:
-            image = &monAnim33BlackSolid;
+            image = monAnim33BlackSolid;
             break;
     }
     save_ptr_monitor_ani_code_to_obj_ani_slot(mon,  image);
