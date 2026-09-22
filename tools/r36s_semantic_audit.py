@@ -174,9 +174,10 @@ def scan_file(path:Path):
         # Expressions such as `flags & MASK > 0` parse as
         # `flags & (MASK > 0)`, while `avail & MASK == 0` can become a
         # constant-zero mask. Require the intended mask operation explicitly.
-        if re.search(r"\b(?:if|while)\s*\([^\n;]*(?:&|\|)[^\n;]*(?:==|!=|>|<)", line):
+        bitop = r"(?:(?<!&)\&(?!&)|(?<!\|)\|(?!\|))"
+        if re.search(r"\b(?:if|while)\s*\([^\n;]*"+bitop+r"[^\n;]*(?:==|!=|>|<)", line):
             explicit_mask_compare = re.search(
-                r"\(\s*[^()\n;]+(?:&|\|)[^()\n;]+\)\s*(?:==|!=|>|<)",
+                r"\(\s*[^()\n;]+"+bitop+r"[^()\n;]+\)\s*(?:==|!=|>|<)",
                 line
             )
             if not explicit_mask_compare:
