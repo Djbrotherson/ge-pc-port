@@ -41,6 +41,7 @@
 #define _SHIFTR(v, s, w) ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 #endif
 #include <PR/gbi.h>
+#include <bondconstants.h>
 
 #include "platform.h"
 #include "system.h"
@@ -88,13 +89,20 @@ extern void set_mTrack2Vol(u16 value);
 extern u16 call_sndGetSfxSlotFirstNaturalVolume(void);
 extern void sub_GAME_7F0A91A0(u16 value);
 
+/* GoldenEye's original cheat machinery. Port Control invokes the same
+ * handlers as the cartridge button-code path; no parallel cheat state. */
+extern bool cheatIsActive(CHEAT_ID cheat);
+extern void cheatButtonTurnOnCheatForPlayers(CHEAT_ID cheat);
+extern void cheatButtonHandleCheatsTurnedOff(CHEAT_ID cheat);
+extern void cheatDisableAllCheats(void);
+
 /* ------------------------------------------------------------------------ */
 
-enum { ROW_TOGGLE, ROW_SLIDER, ROW_ENUM, ROW_MSAA, ROW_RES };
-enum { PAGE_GRAPHICS, PAGE_AUDIO, PAGE_INPUT, PAGE_GAMEPLAY, PAGE_SYSTEM, PAGE_COUNT };
+enum { ROW_TOGGLE, ROW_SLIDER, ROW_ENUM, ROW_MSAA, ROW_RES, ROW_ACTION };
+enum { PAGE_GRAPHICS, PAGE_AUDIO, PAGE_INPUT, PAGE_GAMEPLAY, PAGE_CHEATS, PAGE_SYSTEM, PAGE_COUNT };
 
 static const char *const kPageNames[PAGE_COUNT] = {
-    "VIDEO", "AUDIO", "INPUT", "GAME", "SYSTEM"
+    "VIDEO", "AUDIO", "INPUT", "GAME", "CHEATS", "SYSTEM"
 };
 
 static const char *const kPageHints[PAGE_COUNT] = {
@@ -102,6 +110,7 @@ static const char *const kPageHints[PAGE_COUNT] = {
     "MIXER / LATENCY / OUTPUT",
     "MOUSE / PAD / AIM",
     "GAMEPLAY / ACCESS",
+    "ORIGINAL GOLDENEYE FUN",
     "RUNTIME / DAM LAB"
 };
 
@@ -215,6 +224,20 @@ static struct Row rows[] = {
     { PAGE_GAMEPLAY, "Game.SkipIntro",           "Skip intro",           ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GAMEPLAY, "Game.NoHitFlash",          "Disable hit flash",   ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GAMEPLAY, "Game.AllUnlocked",         "All missions unlocked",ROW_TOGGLE,1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+
+    /* Cheats — original GE handlers/state, not host-side imitations. */
+    { PAGE_CHEATS, "__CheatInvincible",          "Invincibility",        ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatAllGuns",             "All guns",             ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatInfiniteAmmo",        "Infinite ammo",        ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatInvisible",           "Invisibility",         ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatDK",                  "DK mode",              ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatTiny",                "Tiny Bond",            ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatPaintball",           "Paintball mode",       ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatTurbo",               "Turbo mode",           ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatLineMode",            "Line mode",            ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatEnemyRockets",        "Enemy rockets",        ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatMaxAmmo",             "Give max ammo",        ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatClearAll",            "Disable all cheats",   ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
 
     /* System / diagnostics */
     { PAGE_SYSTEM, "Video.DisplayFPS",           "FPS-only counter",    ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
@@ -465,6 +488,10 @@ static double rowGet(const struct Row *r)
     if (strcmp(r->key, "__LookInvert") == 0) return (double)get_cur_player_look_vertical_inverted();
     if (strcmp(r->key, "__MusicVolume") == 0) return (double)get_mTrack2Vol() * 100.0 / 32767.0;
     if (strcmp(r->key, "__SfxVolume") == 0) return (double)call_sndGetSfxSlotFirstNaturalVolume() * 100.0 / 32767.0;
+    {
+        CHEAT_ID cid = cheatIdForKey(r->key);
+        if (cid != CHEAT_UNUSED) return cheatIsActive(cid) ? 1.0 : 0.0;
+    }
     if (!r->found || !r->ptr) {
         return 0.0;
     }
@@ -493,6 +520,21 @@ static struct Row *rowByKey(const char *key)
         }
     }
     return NULL;
+}
+
+static CHEAT_ID cheatIdForKey(const char *key)
+{
+    if (strcmp(key, "__CheatInvincible") == 0)   return CHEAT_INVINCIBILITY;
+    if (strcmp(key, "__CheatAllGuns") == 0)      return CHEAT_ALLGUNS;
+    if (strcmp(key, "__CheatInfiniteAmmo") == 0) return CHEAT_INFINITE_AMMO;
+    if (strcmp(key, "__CheatInvisible") == 0)    return CHEAT_INVISIBILITY;
+    if (strcmp(key, "__CheatDK") == 0)           return CHEAT_DK_MODE;
+    if (strcmp(key, "__CheatTiny") == 0)         return CHEAT_TINY_BOND;
+    if (strcmp(key, "__CheatPaintball") == 0)    return CHEAT_PAINTBALL;
+    if (strcmp(key, "__CheatTurbo") == 0)        return CHEAT_TURBO_MODE;
+    if (strcmp(key, "__CheatLineMode") == 0)     return CHEAT_LINEMODE;
+    if (strcmp(key, "__CheatEnemyRockets") == 0) return CHEAT_ENEMY_ROCKETS;
+    return CHEAT_UNUSED;
 }
 
 static int s_linkDepth = 0;   /* re-entrancy guard for the sens link below */
@@ -582,6 +624,9 @@ static void rowAdjust(struct Row *r, int dir)
         rowSet(r, v);
         break;
     }
+    case ROW_ACTION:
+        rowSet(r, 1.0);
+        break;
     case ROW_RES: {
         if (s_resFitN <= 0 || videoIsFullscreen()) {
             break;   /* resolution is windowed-only */
@@ -814,6 +859,10 @@ static Gfx *fillRect(Gfx *gdl, s32 x0, s32 y0, s32 x1, s32 y1,
 static void valueText(const struct Row *r, char *out, int n)
 {
     double v = rowGet(r);
+    if (r->kind == ROW_ACTION) {
+        snprintf(out, n, "RUN");
+        return;
+    }
     if (r->kind == ROW_RES) {
         if (videoIsFullscreen()) {
             snprintf(out, n, "(fullscreen)");
