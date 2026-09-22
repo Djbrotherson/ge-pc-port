@@ -4515,7 +4515,7 @@ s32 objTick(struct PropRecord *prop)
 					sub_GAME_7F03D058(Rocket->ownerprop, 0);
 				}
 
-				moveResult = sub_GAME_7F042EB4(obj, &Rocket->unkd4, &sp64C, &sp658, 0, moveOnlyIfPathClear);
+				moveResult = sub_GAME_7F042EB4(obj, (coord3d *)&Rocket->unkd4, &sp64C, &sp658, 0, moveOnlyIfPathClear);
 
 				if (Rocket->ownerprop != NULL)
 				{
@@ -4629,7 +4629,7 @@ s32 objTick(struct PropRecord *prop)
 					sub_GAME_7F03D058(Rocket->ownerprop, 0);
 				}
 
-				moveResult = sub_GAME_7F042EB4(obj, &RocketCurrent.f[0], &collisionPoint, &collisionNormal, canEmbed, 0);
+				moveResult = sub_GAME_7F042EB4(obj, &RocketCurrent, &collisionPoint, &collisionNormal, canEmbed, 0);
 
 				if (Rocket->ownerprop != NULL)
 				{
@@ -4997,7 +4997,7 @@ s32 objTick(struct PropRecord *prop)
 						}
 					}
 
-					sub_GAME_7F042EB4(obj, &RocketCurrent.f[0], &sp530, &sp53C, 0, 0);
+					sub_GAME_7F042EB4(obj, &RocketCurrent, &sp530, &sp53C, 0, 0);
 					objMovedThisFrame = 1;
 					temp_f20 = stanGetPositionYValue(prop->stan, prop->pos.f[0], prop->pos.f[2]);
 					angleDelta = (temp_f20 - chrpropSumMatrixPosY(objectBBox, objectMatrix)) + 4.0f;
