@@ -50,8 +50,10 @@ extern s32 animation_table_ptrs2[];
  * token at a native-pointer boundary.
  */
 #define ANIM_TABLE_EXPANDED_PTR(token) ((void *)(uintptr_t)(u32)(token))
+#define ANIM_TABLE_OFFSET_PTR(offset) ((void *)((u8 *)ptr_animation_table + (u32)(offset)))
 #else
 #define ANIM_TABLE_EXPANDED_PTR(token) ((void *)(token))
+#define ANIM_TABLE_OFFSET_PTR(offset) ((void *)((u8 *)ptr_animation_table + (s32)(offset)))
 #endif
 
 #endif
