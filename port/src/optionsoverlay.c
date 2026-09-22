@@ -128,7 +128,6 @@ static struct Row rows[] = {
     { PAGE_GRAPHICS, "__Resolution",             "Resolution",          ROW_RES,    0,    NULL,       0, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.VSync",              "VSync",               ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.FpsCap",             "Frame cap",           ROW_SLIDER, 10,   NULL,       0, 0, 360,   0,0,0,0,0 },
-    { PAGE_GRAPHICS, "Video.DisplayFPS",         "FPS counter",         ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.MSAA",               "MSAA",                ROW_MSAA,   0,    NULL,       1, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.TextureFilter",      "Texture filter",      ROW_ENUM,   1,    kTexFilter, 0, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.Anisotropy",         "Anisotropic filter",  ROW_SLIDER, 1,    NULL,       0, 1,  16,   0,0,0,0,0 },
@@ -161,6 +160,7 @@ static struct Row rows[] = {
     { PAGE_INPUT, "Input.MouseAimCurve",         "Aim response curve", ROW_SLIDER, 10,   NULL,       0,50, 400,   0,0,0,0,0 },
     { PAGE_INPUT, "Input.MouseYScale",           "Mouse Y scale",      ROW_SLIDER, 5,    NULL,       0, 1, 500,   0,0,0,0,0 },
     { PAGE_INPUT, "Input.MenuPointerSpeed",      "Menu pointer speed", ROW_SLIDER, 10,   NULL,       0,10, 500,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.MenuPointerMode",       "1:1 menu pointer",    ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_INPUT, "Input.HipfirePitchSpeed",     "Hipfire pitch speed",ROW_SLIDER, 10,   NULL,       0,10, 500,   0,0,0,0,0 },
     { PAGE_INPUT, "Input.NaturalPitch",          "Natural pitch",       ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_INPUT, "Input.PadDeadzone",           "Pad deadzone",        ROW_SLIDER, 1000, NULL,       0, 0,30000,  0,0,0,0,0 },
@@ -168,10 +168,14 @@ static struct Row rows[] = {
     { PAGE_INPUT, "Input.PadLookInvertY",        "Invert pad Y",        ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
 
     /* Gameplay */
+    { PAGE_GAMEPLAY, "Game.ScreenShakeIntensity","Screen shake",        ROW_SLIDER, 0.25, NULL,       0, 0, 2.0,   0,0,0,0,0 },
+    { PAGE_GAMEPLAY, "Game.SkipIntro",           "Skip intro",           ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GAMEPLAY, "Game.NoHitFlash",          "Disable hit flash",   ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GAMEPLAY, "Game.AllUnlocked",         "All missions unlocked",ROW_TOGGLE,1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
 
     /* System / diagnostics */
+    { PAGE_SYSTEM, "Video.DisplayFPS",           "FPS-only counter",    ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_SYSTEM, "Debug.PerfHUD",              "CPU/FPS/RAM HUD",     ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_SYSTEM, "Debug.InputLog",             "Input logging",       ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
 };
 #define NUM_ROWS ((int)(sizeof(rows) / sizeof(rows[0])))
