@@ -59,6 +59,7 @@ EMIT_STEPS = (
     ("d88_emit.py", ("--regen",), "pccg-{region}/pccg.bin"),
 )
 OUTPUT_DIRS = ("pcmodels-{region}", "pccg-{region}")
+SIDECAR_SCHEMA = "arm-ge-sidecar-v1"
 
 
 def die(msg):
@@ -192,8 +193,9 @@ def main():
         if dest.exists():
             shutil.rmtree(dest)
         shutil.move(str(src), str(dest))
+        (dest / ".converter-schema").write_text(SIDECAR_SCHEMA + "\n", encoding="ascii")
         n = sum(1 for _ in dest.rglob("*") if _.is_file())
-        print(f"prepare-assets: wrote    {dest}  ({n} files)")
+        print(f"prepare-assets: wrote    {dest}  ({n} files; schema {SIDECAR_SCHEMA})")
 
     if not args.keep_temp and staged_rom.exists() and staged_rom.resolve() != rom.resolve():
         staged_rom.unlink()

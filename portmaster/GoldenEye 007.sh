@@ -22,6 +22,9 @@ ROM="$GAMEDIR/data/ge007.ntsc-final.z64"
 MARKER="$GAMEDIR/.force-first-run-extract"
 CONVERTER="$GAMEDIR/prepare-assets/ge007-convert"
 GAME="$GAMEDIR/ge007.aarch64"
+SIDECAR_SCHEMA="arm-ge-sidecar-v1"
+PCMODEL_SCHEMA="$GAMEDIR/data/pcmodels-ntsc-final/.converter-schema"
+PCCG_SCHEMA="$GAMEDIR/data/pccg-ntsc-final/.converter-schema"
 
 mkdir -p "$CONFDIR" "$GAMEDIR/data"
 cd "$GAMEDIR" || exit 1
@@ -89,6 +92,16 @@ if [ -f "$MARKER" ]; then
   rm -rf "$GAMEDIR/data/pcmodels-ntsc-final" "$GAMEDIR/data/pccg-ntsc-final"
 fi
 
+PCMODEL_HAVE="$(cat "$PCMODEL_SCHEMA" 2>/dev/null || true)"
+PCCG_HAVE="$(cat "$PCCG_SCHEMA" 2>/dev/null || true)"
+if [ -d "$GAMEDIR/data/pcmodels-ntsc-final" ] || [ -d "$GAMEDIR/data/pccg-ntsc-final" ]; then
+  if [ "$PCMODEL_HAVE" != "$SIDECAR_SCHEMA" ] || [ "$PCCG_HAVE" != "$SIDECAR_SCHEMA" ]; then
+    echo "[Extract] sidecar schema mismatch: expected=$SIDECAR_SCHEMA pcmodels=${PCMODEL_HAVE:-missing} pccg=${PCCG_HAVE:-missing}"
+    echo "[Extract] removing stale sidecars before regeneration"
+    rm -rf "$GAMEDIR/data/pcmodels-ntsc-final" "$GAMEDIR/data/pccg-ntsc-final"
+  fi
+fi
+
 if [ ! -f "$GAMEDIR/data/pcmodels-ntsc-final/pcmodels.bin" ] || \
    [ ! -f "$GAMEDIR/data/pccg-ntsc-final/pccg.bin" ]; then
   echo "[Extract] sidecars missing: starting bundled ARM64 converter"
@@ -108,6 +121,16 @@ if [ ! -f "$GAMEDIR/data/pcmodels-ntsc-final/pcmodels.bin" ] || \
   find "$GAMEDIR/data" -maxdepth 2 -type f -printf '%p %s bytes\n' 2>/dev/null | sort || true
   type pm_finish >/dev/null 2>&1 && pm_finish
   exit 3
+fi
+
+PCMODEL_HAVE="$(cat "$PCMODEL_SCHEMA" 2>/dev/null || true)"
+PCCG_HAVE="$(cat "$PCCG_SCHEMA" 2>/dev/null || true)"
+if [ "$PCMODEL_HAVE" != "$SIDECAR_SCHEMA" ] || [ "$PCCG_HAVE" != "$SIDECAR_SCHEMA" ]; then
+  echo "[Extract] FAILED: converter/schema mismatch"
+  echo "[Extract] expected=$SIDECAR_SCHEMA pcmodels=${PCMODEL_HAVE:-missing} pccg=${PCCG_HAVE:-missing}"
+  echo "[Extract] Rebuild/bundle ge007-convert from this same source revision."
+  type pm_finish >/dev/null 2>&1 && pm_finish
+  exit 4
 fi
 
 rm -f "$MARKER"

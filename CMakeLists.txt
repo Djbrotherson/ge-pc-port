@@ -149,7 +149,7 @@ endif()
 # Provenance, printed by --version and at startup (port/src/main.c): a build
 # keeps pointing at this repository no matter who compiles or renames it.
 set(VERSION_CODENAME "larkspur")
-set(ORIGIN_URL "https://github.com/jkdansereau/goldeneye-pc-port")
+set(ORIGIN_URL "https://github.com/bitflipunix-re/ge-pc-port")
 
 configure_file(
   "${CMAKE_SOURCE_DIR}/port/include/versioninfo.h.in"

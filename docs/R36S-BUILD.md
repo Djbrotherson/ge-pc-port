@@ -11,9 +11,7 @@ edit/compile loop.
 Run the cheap checks first:
 
 ```sh
-python3 tools/n64_port.py doctor
-python3 tools/n64_port.py selftest
-python3 tools/n64_port.py audit
+python3 tools/n64_port.py gate
 ```
 
 Do not spend an AArch64 build on a batch that fails Tier 0.
@@ -126,3 +124,13 @@ Use the R36S only after Tier 0/1/2 are clean to verify:
 - runtime libraries,
 - performance/timing,
 - interactive gameplay regressions.
+
+
+## Binary / converter lock
+
+The R36S game binary and ROM-derived sidecars are one ABI unit. The PortMaster
+launcher requires converter schema `arm-ge-sidecar-v1` in both generated
+sidecar directories. A package must therefore bundle `ge007.aarch64` and a
+`ge007-convert` frozen from the same source revision. Stale sidecars are
+deleted automatically; a stale converter is rejected instead of launching the
+game with incompatible setup/model layouts.

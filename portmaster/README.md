@@ -1,6 +1,6 @@
 # GoldenEye 007 ARM64 — R36S fresh-install extraction test
 
-This test package is built from the current `r36s-first-frame-noaudio` branch.
+This test package is built from the current `main` revision.
 It does **not** contain a GoldenEye ROM or ROM-derived runtime sidecars.
 
 ## Test
@@ -13,7 +13,7 @@ It does **not** contain a GoldenEye ROM or ROM-derived runtime sidecars.
 The package intentionally ships `.force-first-run-extract`. On the first launch
 the launcher removes any old `pcmodels-ntsc-final` / `pccg-ntsc-final` trees,
 runs the bundled ARM64 `ge007-convert`, verifies both generated `.bin` files,
-then starts `ge007.aarch64`.
+then verifies that the sidecars were produced by the matching converter schema and starts `ge007.aarch64`.
 
 Everything is recorded in `ge007/log.txt`, including ROM SHA-1, converter
 output, generated sidecar sizes, and the game exit code.
