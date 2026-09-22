@@ -1388,6 +1388,7 @@ typedef union
         struct ModelRoData_Op14Record Op14;
         struct ModelRoData_InterlinkageRecord Interlinkage;
         struct ModelNode_Op16Record Op16;
+        struct ModelRoData_Op17Record Op17;
         struct ModelRoData_SwitchRecord Switch;
         struct ModelRoData_GroupSimpleRecord GroupSimple;
         struct ModelRoData_DisplayListPrimaryRecord DisplayListPrimary;

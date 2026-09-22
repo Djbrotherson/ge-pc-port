@@ -6307,8 +6307,7 @@ void modelPromoteNodeOffsetsToPointers(ModelNode *node, u32 vma, uintptr_t filer
                      * like every other model-record pointer. Treating this
                      * record as GroupRecord promoted bytes from the position
                      * vector instead and left othernode as a seg-5 token. */
-                    ModelRoData_Op17Record *rodata =
-                        (ModelRoData_Op17Record *)node->Data;
+                    ModelRoData_Op17Record *rodata = &node->Data->Op17;
                     PROMOTE(rodata->othernode);
                     break;
                 }
