@@ -39,40 +39,41 @@ struct ramrom_seed
     u8 check;
 };
 
-//move me to better home
-extern u32* ramrom_Dam_1;
-extern u32* ramrom_Dam_2;
-extern u32* ramrom_Facility_1;
-extern u32* ramrom_Facility_2;
-extern u32* ramrom_Facility_3;
-extern u32* ramrom_Runway_1;
-extern u32* ramrom_Runway_2;
-extern u32* ramrom_BunkerI_1;
-extern u32* ramrom_BunkerI_2;
-extern u32* ramrom_Silo_1;
-extern u32* ramrom_Silo_2;
-extern u32* ramrom_Frigate_1;
-extern u32* ramrom_Frigate_2;
-extern u32* ramrom_Train;
+// These are assembly .incbin labels, not pointer variables. Declare them as
+// arrays so the symbol value is the blob address; cast only at the file view.
+extern u32 ramrom_Dam_1[];
+extern u32 ramrom_Dam_2[];
+extern u32 ramrom_Facility_1[];
+extern u32 ramrom_Facility_2[];
+extern u32 ramrom_Facility_3[];
+extern u32 ramrom_Runway_1[];
+extern u32 ramrom_Runway_2[];
+extern u32 ramrom_BunkerI_1[];
+extern u32 ramrom_BunkerI_2[];
+extern u32 ramrom_Silo_1[];
+extern u32 ramrom_Silo_2[];
+extern u32 ramrom_Frigate_1[];
+extern u32 ramrom_Frigate_2[];
+extern u32 ramrom_Train[];
 
 extern u64 g_randomSeed;
 extern u64 g_chrObjRandomSeed;
 
 struct ramrom_struct ramrom_table[] = {
-    {&ramrom_Dam_1, 0},
-    {&ramrom_Dam_2, 0},
-    {&ramrom_Facility_1, 0},
-    {&ramrom_Facility_2, 0},
-    {&ramrom_Facility_3, 0},
-    {&ramrom_Runway_1, 0},
-    {&ramrom_Runway_2, 0},
-    {&ramrom_BunkerI_1, 0},
-    {&ramrom_BunkerI_2, 0},
-    {&ramrom_Silo_1, 0},
-    {&ramrom_Silo_2, 0},
-    {&ramrom_Frigate_1, 0},
-    {&ramrom_Frigate_2, 0},
-    {&ramrom_Train, 0},
+    {(ramromfilestructure *)ramrom_Dam_1, 0},
+    {(ramromfilestructure *)ramrom_Dam_2, 0},
+    {(ramromfilestructure *)ramrom_Facility_1, 0},
+    {(ramromfilestructure *)ramrom_Facility_2, 0},
+    {(ramromfilestructure *)ramrom_Facility_3, 0},
+    {(ramromfilestructure *)ramrom_Runway_1, 0},
+    {(ramromfilestructure *)ramrom_Runway_2, 0},
+    {(ramromfilestructure *)ramrom_BunkerI_1, 0},
+    {(ramromfilestructure *)ramrom_BunkerI_2, 0},
+    {(ramromfilestructure *)ramrom_Silo_1, 0},
+    {(ramromfilestructure *)ramrom_Silo_2, 0},
+    {(ramromfilestructure *)ramrom_Frigate_1, 0},
+    {(ramromfilestructure *)ramrom_Frigate_2, 0},
+    {(ramromfilestructure *)ramrom_Train, 0},
     {0,0}
 };
 

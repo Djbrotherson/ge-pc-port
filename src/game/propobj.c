@@ -608,7 +608,7 @@ void chrobjCollisionRelated(ObjectRecord *obj)
         bbox = chrobjGetBboxFromObjectRecord(obj);
         matrix_4x4_copy(&obj->mtx, &sp24);
         matrix_4x4_set_position(&obj->runtime_pos, &sp24);
-        sub_GAME_7F03F540(bbox, &sp24, &obj->ptr_allocated_collisiondata_block->polygon, obj->ptr_allocated_collisiondata_block);
+        sub_GAME_7F03F540(bbox, &sp24, obj->ptr_allocated_collisiondata_block->polygon, obj->ptr_allocated_collisiondata_block);
 
         obj->ptr_allocated_collisiondata_block->bottom = obj->runtime_pos.f[1] + chrpropSumMatrixPosY(bbox, &sp24);
         obj->ptr_allocated_collisiondata_block->top = obj->runtime_pos.f[1] + chrpropSumMatrixNegY(bbox, &sp24);
@@ -6247,7 +6247,8 @@ s32 objTick(struct PropRecord *prop)
 				matrix_4x4_set_identity_and_position(sp15C, &mtxs[2]);
 				matrix_4x4_multiply_homogeneous_in_place(&mtxs[1], &mtxs[2]);
 				matrix_4x4_multiply_homogeneous(currentPlayerGetViewToWorldMtxf(), &mtxs[1], &sp16C);
-				sub_GAME_7F03F540(sp158, &sp16C, &tank_render->rect, (struct collision_data *) (&tank_render->collision));
+				/* TankRecord intentionally overlays collision_data at &collision. rect is the first polygon storage; following inline words continue that overlay. */
+                sub_GAME_7F03F540(sp158, &sp16C, (struct coord2d *)&tank_render->rect, (struct collision_data *)(&tank_render->collision));
 
 				if (model->obj->Switches[7] != NULL)
 				{
@@ -12497,7 +12498,7 @@ void doorUpdateBbox(DoorRecord *door)
     }
 
     door7F0526EC(door, &sp2C);
-    sub_GAME_7F03F540(&door->bbox, &sp2C, &door->ptr_allocated_collisiondata_block->polygon, door->ptr_allocated_collisiondata_block);
+    sub_GAME_7F03F540(&door->bbox, &sp2C, door->ptr_allocated_collisiondata_block->polygon, door->ptr_allocated_collisiondata_block);
 
     if (door->doorType == DOORTYPE_VERTICAL)
     {

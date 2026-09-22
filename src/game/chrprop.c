@@ -3511,7 +3511,12 @@ void sub_GAME_7F03EC3C(struct ModelRoData_BoundingBoxRecord *bbox, Mtxf *arg1, s
 }
 
 
-void sub_GAME_7F03ECC0(f32 x1, f32 x2, f32 y1, f32 y2, f32 z1, f32 z2, Mtxf *m, struct rect4f *poly, struct collision_data *collision)
+/*
+ * Project the 8 corners of a 3D bbox to a variable-length 2D collision hull.
+ * The hull can exceed four vertices; callers provide collision_data.polygon
+ * storage (or the TankRecord's intentional inline collision_data overlay).
+ */
+void sub_GAME_7F03ECC0(f32 x1, f32 x2, f32 y1, f32 y2, f32 z1, f32 z2, Mtxf *m, struct coord2d *poly, struct collision_data *collision)
 {
     f64 pts[8][2];
     f64 pad[1];
@@ -3604,8 +3609,8 @@ filterloop:
     }
 
     cnt = 0;
-    poly->points[cnt].x = pts[minxi][0];
-    poly->points[cnt].y = pts[minxi][1];
+    poly[cnt].x = pts[minxi][0];
+    poly[cnt].y = pts[minxi][1];
     cnt++;
 
     for (i = 0; i < 4; i++)
@@ -3614,15 +3619,15 @@ filterloop:
 
         if (((pts[index][0] - pts[minzi][0]) * (pts[minxi][1] - pts[minzi][1])) < ((pts[minxi][0] - pts[minzi][0]) * (pts[index][1] - pts[minzi][1])))
         {
-            poly->points[cnt].x = pts[index][0];
-            poly->points[cnt].y = pts[index][1];
+            poly[cnt].x = pts[index][0];
+            poly[cnt].y = pts[index][1];
             cnt++;
             break;
         }
     }
 
-    poly->points[cnt].x = pts[minzi][0];
-    poly->points[cnt].y = pts[minzi][1];
+    poly[cnt].x = pts[minzi][0];
+    poly[cnt].y = pts[minzi][1];
     cnt++;
 
     for (i = 0; i < 4; i++)
@@ -3631,15 +3636,15 @@ filterloop:
 
         if (((pts[index][0] - pts[maxxi][0]) * (pts[minzi][1] - pts[maxxi][1])) < ((pts[minzi][0] - pts[maxxi][0]) * (pts[index][1] - pts[maxxi][1])))
         {
-            poly->points[cnt].x = pts[index][0];
-            poly->points[cnt].y = pts[index][1];
+            poly[cnt].x = pts[index][0];
+            poly[cnt].y = pts[index][1];
             cnt++;
             break;
         }
     }
 
-    poly->points[cnt].x = pts[maxxi][0];
-    poly->points[cnt].y = pts[maxxi][1];
+    poly[cnt].x = pts[maxxi][0];
+    poly[cnt].y = pts[maxxi][1];
     cnt++;
 
     for (i = 0; i < 4; i++)
@@ -3648,15 +3653,15 @@ filterloop:
 
         if (((pts[index][0] - pts[maxzi][0]) * (pts[maxxi][1] - pts[maxzi][1])) < ((pts[maxxi][0] - pts[maxzi][0]) * (pts[index][1] - pts[maxzi][1])))
         {
-            poly->points[cnt].x = pts[index][0];
-            poly->points[cnt].y = pts[index][1];
+            poly[cnt].x = pts[index][0];
+            poly[cnt].y = pts[index][1];
             cnt++;
             break;
         }
     }
 
-    poly->points[cnt].x = pts[maxzi][0];
-    poly->points[cnt].y = pts[maxzi][1];
+    poly[cnt].x = pts[maxzi][0];
+    poly[cnt].y = pts[maxzi][1];
     cnt++;
 
     for (i = 0; i < 4; i++)
@@ -3665,8 +3670,8 @@ filterloop:
 
         if (((pts[index][0] - pts[minxi][0]) * (pts[maxzi][1] - pts[minxi][1])) < ((pts[maxzi][0] - pts[minxi][0]) * (pts[index][1] - pts[minxi][1])))
         {
-            poly->points[cnt].x = pts[index][0];
-            poly->points[cnt].y = pts[index][1];
+            poly[cnt].x = pts[index][0];
+            poly[cnt].y = pts[index][1];
             cnt++;
             break;
         }
@@ -3676,13 +3681,13 @@ filterloop:
 
     for (i = 0; i < cnt; i++)
     {
-        poly->points[i].x += m->m[3][0];
-        poly->points[i].y += m->m[3][2];
+        poly[i].x += m->m[3][0];
+        poly[i].y += m->m[3][2];
     }
 }
 
 
-void sub_GAME_7F03F540(struct ModelRoData_BoundingBoxRecord *bbox, Mtxf* arg1, struct rect4f* arg2, struct collision_data* arg3)
+void sub_GAME_7F03F540(struct ModelRoData_BoundingBoxRecord *bbox, Mtxf* arg1, struct coord2d* arg2, struct collision_data* arg3)
 {
     sub_GAME_7F03ECC0(bbox->Bounds.xmin, bbox->Bounds.xmax, bbox->Bounds.ymin, bbox->Bounds.ymax, bbox->Bounds.zmin, bbox->Bounds.zmax, arg1, arg2, arg3);
 }
