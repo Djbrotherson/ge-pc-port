@@ -30,6 +30,17 @@ copies pcmodels.bin to [CART_BASE+romSize, ...) and patches
 file_resource_table[i].hw_address / rom_size per manifest row.
 """
 import csv, struct, zlib, os, re, sys, bisect
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from tools.n64_portlib.binary import (
+    MASK24 as MASK,
+    align_up,
+    be_offset24 as be32o,
+    be_s16 as be16,
+    be_s32,
+    be_u16 as bu16,
+    be_u32 as be32r,
+)
 from collections import Counter
 
 # ---------------------------------------------------------------- config ---
@@ -93,12 +104,6 @@ def find_row(name):
     return None, None
 
 # ---------------------------------------------------------------- helpers ---
-MASK = 0xFFFFFF
-def be16(b, o):  return struct.unpack_from(">h", b, o)[0]
-def bu16(b, o):  return struct.unpack_from(">H", b, o)[0]
-def be32o(b, o): return struct.unpack_from(">I", b, o)[0] & MASK
-def be32r(b, o): return struct.unpack_from(">I", b, o)[0]
-
 N64_REC = {1: 0x1C, 2: 0x1C, 3: 0x1C, 4: 0x14, 8: 0x10, 9: 0x24, 10: 0x1C,
            12: 0x28, 13: 0x20, 15: 0x1C, 17: 0x20, 18: 0x08, 21: 0x14,
            22: 0x10, 23: 0x02, 24: 0x20}
@@ -114,9 +119,9 @@ PC_NODE = 48
 # 0xB1 is a triangle command with 8-bit indices, NOT G_DL) — leave.
 ADDR_OPS = {0x04, 0xFD}
 
-def round8(x): return (x + 7) & ~7
-def round16(x): return (x + 15) & ~15
-def round64(x): return (x + 63) & ~63
+def round8(x): return align_up(x, 8)
+def round16(x): return align_up(x, 16)
+def round64(x): return align_up(x, 64)
 
 # ------------------------------------------------- node map + visit sim ----
 class N:
@@ -343,7 +348,7 @@ def process(name):
                 dstpos = add_region(puo, 2 * nv, dstpos)
                 op24_pointusage[puo] = nv
         elif op == 22:
-            nv = struct.unpack_from(">i", src, data)[0]; vo = be32o(src, data + 4)
+            nv = be_s32(src, data); vo = be32o(src, data + 4)
             if nv and vo:
                 vtx_regions.append((vo, nv)); dstpos = add_region(vo, 16 * nv, dstpos)
 
