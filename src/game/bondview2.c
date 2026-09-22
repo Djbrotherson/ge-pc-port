@@ -610,7 +610,7 @@ void solo_char_load(void)
             }
 
 #ifdef PORT
-            something_with_generating_object(self, prop, item, 0, helddstptr, (ItemModelFileRecord *)pitemheader);
+            something_with_generating_object(self, prop, item, 0, helddstptr, pitemheader);
 #else
             something_with_generating_object(self, prop, item, 0, (WeaponObjRecord *)helddst, (ItemModelFileRecord *)pitemheader);
 #endif
@@ -8251,7 +8251,7 @@ void bondviewUpdateCameraMatrices(coord3d* cam_pos, coord3d* cam_look_dir, coord
     g_CurrentPlayer->field_64 = dynAllocateMatrix();
     g_CurrentPlayer->field_68 = dynAllocateMatrix();
 
-    lookat = dynAllocateLights(2);
+    lookat = (LookAt *)dynAllocateLights(2);
 
     scale = D_800364CC;
 
@@ -8802,7 +8802,7 @@ void mp_respawn_handler(void)
     u32 var_v0_2;
     struct SetupIntroEmpty* intro_record;
 
-    intro_record = g_CurrentSetup.intro;
+    intro_record = (struct SetupIntroEmpty *)g_CurrentSetup.intro;
 
     init_player_BONDdata();
     bondviewPlayerBeginLife();

@@ -124,7 +124,7 @@ struct weapon_firing_animation_table
 
 struct anim_group_info
 {
-    struct weapon_firing_animation_table *table;
+    struct weapon_firing_animation_table (*table)[];
     s32 len;
 };
 

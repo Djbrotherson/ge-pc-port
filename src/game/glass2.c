@@ -607,7 +607,7 @@ void bullet_sparks_update(void)
 /**
  * Address: 7F0A3F04
  */
-void bullet_spark_render(s_bullet_spark *thing, Gfx *gdlarg, s32 zbufferMode)
+void bullet_spark_render(s_bullet_spark *thing, Gfx **gdlarg, s32 zbufferMode)
 {
     Vtx vtx;
     Mtxf *mtx;
@@ -647,7 +647,7 @@ void bullet_spark_render(s_bullet_spark *thing, Gfx *gdlarg, s32 zbufferMode)
     vtx = *((Vtx *) (&D_80040980));
 #endif
     mtx = currentPlayerGetViewToWorldMtxf();
-    gdl = *((Gfx **) gdlarg);
+    gdl = *gdlarg;
     vertices = dynAllocateVertices(4);
     room = thing->unk06;
     roompos = getRoomPositionByIndex(room);
@@ -710,14 +710,14 @@ void bullet_spark_render(s_bullet_spark *thing, Gfx *gdlarg, s32 zbufferMode)
     gSPVertex(gdl++, osVirtualToPhysical(vertices), 4, 0);
     gSP2Triangles(gdl++, 0, 1, 2, 0, 0, 2, 3, 0);
     gSPMatrix(gdl++, osVirtualToPhysical(currentPlayerGetProjectionMatrix()), G_MTX_PROJECTION | G_MTX_LOAD | G_MTX_NOPUSH);
-    *((Gfx **) gdlarg) = gdl;
+    *gdlarg = gdl;
 }
 
 
 /**
  * Address: 7F0A4528
  */
-void bullet_sparks_render(Gfx *gdl, s32 zbufferMode)
+void bullet_sparks_render(Gfx **gdl, s32 zbufferMode)
 {
 
     s_bullet_spark *thing = &g_BulletSparkArray[0]; \
@@ -839,7 +839,7 @@ void bullet_moving_sparks_update(void)
     }
 }
 #else
-void bullet_moving_sparks_update(Gfx *arg0, s32 zbufferMode)
+void bullet_moving_sparks_update(Gfx **arg0, s32 zbufferMode)
 {
     bullet_sparks_render(arg0, zbufferMode);
 }
@@ -851,7 +851,7 @@ void bullet_moving_sparks_update(Gfx *arg0, s32 zbufferMode)
  */
 #ifndef VERSION_EU
 
-void bullet_moving_sparks_render_all(Gfx *arg0, s32 zbufferMode)
+void bullet_moving_sparks_render_all(Gfx **arg0, s32 zbufferMode)
 {
     s32 max_index;
     s_moving_bullet_spark *ptr;
@@ -889,7 +889,7 @@ void bullet_sparks_update_all(void)
 /**
  * Address: 7F0A4824
  */
-void bullet_sparks_render_all(Gfx *arg0, s32 zbufferMode)
+void bullet_sparks_render_all(Gfx **arg0, s32 zbufferMode)
 {
     bullet_sparks_render(arg0, zbufferMode);
     bullet_moving_sparks_render_all(arg0, zbufferMode);

@@ -91,7 +91,7 @@ u8 * get_ptr_text_for_watch_breifing_page(WATCH_BRIEFING_PAGE page)
 
     textptr = NULL;
 
-    for (curentry = ptr_last_briefing_setup_entry_type23; curentry != 0; curentry = curentry->nextentry)
+    for (curentry = (struct watchMenuObjectiveText *)ptr_last_briefing_setup_entry_type23; curentry != 0; curentry = curentry->nextentry)
     {
         if (page == curentry->menu)
         {

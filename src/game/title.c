@@ -530,7 +530,7 @@ void initializeGunBarrelIntro(u8 *gfxBuffer, s32 bufferSize)
     gfxBuffer += 0x200;
     
 #ifdef PORT
-    createGunbarrelRenderHole((u8 *)barrelDisplayListPtr, 0x1E);
+    createGunbarrelRenderHole((struct s_display_list_something *)barrelDisplayListPtr, 0x1E);
 #else
     createGunbarrelRenderHole(barrelDisplayListPtr, 0x1E);
 #endif
