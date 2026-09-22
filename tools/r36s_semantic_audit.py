@@ -462,6 +462,39 @@ def check_ai_command_layout_contract():
             "Could not prove generated AI bytecode record/length agreement.")
 
 
+def check_model_sidecar_layout_contract():
+    """Cross-check d43 model sidecar native record widths."""
+    converter=Path("tools_pc/d43_emit.py")
+    if not converter.exists():
+        return
+    try:
+        tree=ast.parse(converter.read_text(errors="replace"))
+        pc_node=None
+        pc_rec=None
+        for node in tree.body:
+            if isinstance(node, ast.Assign):
+                for t in node.targets:
+                    if isinstance(t, ast.Name) and t.id=="PC_NODE":
+                        pc_node=ast.literal_eval(node.value)
+                    elif isinstance(t, ast.Name) and t.id=="PC_REC":
+                        pc_rec=ast.literal_eval(node.value)
+        expected_rec={
+            1:24, 2:40, 3:40, 4:40, 8:24, 9:48, 10:28, 12:48,
+            13:48, 15:28, 18:16, 21:20, 22:32, 23:2, 24:64,
+        }
+        if pc_node != 48:
+            add("P0","model-sidecar-node-stride",converter,1,
+                f"PC_NODE={pc_node}",
+                "Model sidecar converter must emit 48-byte native ModelNode records.")
+        if pc_rec != expected_rec:
+            add("P0","model-sidecar-rodata-strides",converter,1,
+                f"PC_REC={pc_rec}",
+                "Model sidecar converter native rodata sizes drifted from the compile-time ABI contract in bondtypes.h.")
+    except Exception as exc:
+        add("P0","model-sidecar-audit-error",converter,1,str(exc),
+            "Could not prove model sidecar converter/native ABI agreement.")
+
+
 def check_stan_layout_contract():
     """Cross-check STAN converter tile strides against runtime navigation."""
     converter=Path("tools_pc/d69_emit.py")
@@ -627,6 +660,7 @@ def main():
     collect_pointer_member_names()
     for f in iter_files(): scan_file(f)
     check_propdef_stride_contract()
+    check_model_sidecar_layout_contract()
     check_stan_layout_contract()
     check_ai_command_layout_contract()
     findings.sort(key=lambda x:(0 if x[0]=="P0" else 1,x[2],x[3],x[1]))
