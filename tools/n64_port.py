@@ -116,6 +116,60 @@ def audit(profile_path: Path) -> int:
     return subprocess.call(cmd, cwd=ROOT)
 
 
+def selftest() -> int:
+    compile_rc = subprocess.call(
+        [
+            sys.executable,
+            "-m",
+            "compileall",
+            "-q",
+            str(ROOT / "tools"),
+            str(ROOT / "tools_pc"),
+            str(ROOT / "portkit"),
+        ],
+        cwd=ROOT,
+    )
+    if compile_rc:
+        return compile_rc
+
+    unit_rc = subprocess.call(
+        [
+            sys.executable,
+            "-m",
+            "unittest",
+            "discover",
+            "-s",
+            str(ROOT / "tools" / "n64_portlib"),
+            "-p",
+            "test_*.py",
+        ],
+        cwd=ROOT,
+    )
+    if unit_rc:
+        return unit_rc
+
+    return subprocess.call(
+        [sys.executable, str(ROOT / "portkit" / "selftest.py")],
+        cwd=ROOT,
+    )
+
+
+def gate(profile_path: Path, profile: dict) -> int:
+    steps = (
+        ("doctor", lambda: doctor(profile_path, profile)),
+        ("selftest", selftest),
+        ("audit", lambda: audit(profile_path)),
+    )
+    for name, run in steps:
+        print(f"==> {name}", flush=True)
+        rc = run()
+        if rc:
+            print(f"gate: FAIL at {name} (rc={rc})", file=sys.stderr)
+            return rc
+    print("gate: PASS")
+    return 0
+
+
 def show(profile: dict) -> int:
     print(json.dumps(profile, indent=2, sort_keys=True))
     return 0
@@ -132,6 +186,7 @@ def main() -> int:
     sub.add_parser("doctor", help="validate profile, adapters, contracts and targets")
     sub.add_parser("selftest", help="run ROM-free reusable tool-library tests")
     sub.add_parser("audit", help="run semantic + project contract audit")
+    sub.add_parser("gate", help="run doctor + selftest + semantic audit")
     sub.add_parser("show-profile", help="print the resolved profile")
 
     args = parser.parse_args()
@@ -148,40 +203,11 @@ def main() -> int:
     if args.command == "doctor":
         return doctor(profile_path, profile)
     if args.command == "selftest":
-        compile_rc = subprocess.call(
-            [
-                sys.executable,
-                "-m",
-                "compileall",
-                "-q",
-                str(ROOT / "tools"),
-                str(ROOT / "tools_pc"),
-            ],
-            cwd=ROOT,
-        )
-        if compile_rc:
-            return compile_rc
-        unit_rc = subprocess.call(
-            [
-                sys.executable,
-                "-m",
-                "unittest",
-                "discover",
-                "-s",
-                str(ROOT / "tools" / "n64_portlib"),
-                "-p",
-                "test_*.py",
-            ],
-            cwd=ROOT,
-        )
-        if unit_rc:
-            return unit_rc
-        return subprocess.call(
-            [sys.executable, str(ROOT / "portkit" / "selftest.py")],
-            cwd=ROOT,
-        )
+        return selftest()
     if args.command == "audit":
         return audit(profile_path)
+    if args.command == "gate":
+        return gate(profile_path, profile)
     if args.command == "show-profile":
         return show(profile)
     return 2

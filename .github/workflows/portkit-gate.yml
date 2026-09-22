@@ -1,4 +1,4 @@
-name: R36S Semantic Host-Port Gate
+name: Portkit Semantic Gate
 
 on:
   workflow_dispatch:
@@ -9,16 +9,24 @@ on:
       - 'src/**'
       - 'include/**'
       - 'port/**'
-      - 'tools_pc/d43_emit.py'
-      - 'tools_pc/d69_emit.py'
-      - 'tools_pc/d88_propdefs.py'
+      - 'portkit/**'
       - 'tools/n64_port.py'
       - 'tools/n64_port_audit.py'
       - 'tools/port_audit_engine.py'
       - 'tools/n64_portlib/**'
       - 'tools/integration_profiles/**'
-      - 'portkit/**'
-      - '.github/workflows/r36s-semantic-gate.yml'
+      - 'tools_pc/d43_emit.py'
+      - 'tools_pc/d69_emit.py'
+      - 'tools_pc/d88_emit.py'
+      - 'tools_pc/d88_propdefs.py'
+      - '.github/workflows/portkit-gate.yml'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -31,29 +39,24 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Validate N64 port profile
-        run: python3 tools/n64_port.py doctor
-
-      - name: Test reusable N64 port library
-        run: python3 tools/n64_port.py selftest
-
-      - name: Run semantic host-port gate
+      - name: Run Portkit gate
         run: |
           set -o pipefail
-          python3 tools/n64_port.py audit | tee semantic-audit.log
+          python3 tools/n64_port.py gate | tee portkit-gate.log
 
-      - name: Publish report
+      - name: Publish semantic report
         if: always()
         run: |
-          test -f semantic-audit-out/semantic-report.md && cat semantic-audit-out/semantic-report.md >> "$GITHUB_STEP_SUMMARY" || true
+          test -f semantic-audit-out/semantic-report.md &&
+            cat semantic-audit-out/semantic-report.md >> "$GITHUB_STEP_SUMMARY" || true
 
-      - name: Upload semantic audit
+      - name: Upload gate report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: r36s-semantic-host-port-audit
+          name: portkit-semantic-gate
           path: |
             semantic-audit-out/semantic-report.md
             semantic-audit-out/semantic-findings.tsv
-            semantic-audit.log
+            portkit-gate.log
           if-no-files-found: warn

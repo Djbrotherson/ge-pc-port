@@ -68,9 +68,7 @@ python3 portkit/portkit.py scaffold \
 Repository CI also uses a narrower integration wrapper:
 
 ```sh
-python3 tools/n64_port.py doctor
-python3 tools/n64_port.py selftest
-python3 tools/n64_port.py audit
+python3 tools/n64_port.py gate
 ```
 
 The wrapper exists for this repository's GoldenEye-specific contracts and
@@ -130,9 +128,7 @@ That is how GoldenEye work becomes reusable porting infrastructure.
 ### Tier 0 — every relevant change
 
 ```sh
-python3 tools/n64_port.py doctor
-python3 tools/n64_port.py selftest
-python3 tools/n64_port.py audit
+python3 tools/n64_port.py gate
 ```
 
 ### Tier 1 — host
@@ -188,8 +184,8 @@ Use:
 1. finish R36S runtime regression,
 2. continue moving generic behavior into Portkit,
 3. consolidate relocation/record/sidecar primitives,
-4. consolidate verification behind stable tool interfaces,
-5. make the R36S target fully declarative,
+4. make the R36S target fully declarative,
+5. unify remaining GoldenEye-specific converter primitives behind Portkit contracts,
 6. add reusable widescreen/FOV hooks,
 7. add texture/mod override hooks,
 8. validate Portkit against a second N64 project.

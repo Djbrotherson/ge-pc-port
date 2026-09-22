@@ -16,9 +16,7 @@ Current documentation only.
 ## Repository CI
 
 ```sh
-python3 tools/n64_port.py doctor
-python3 tools/n64_port.py selftest
-python3 tools/n64_port.py audit
+python3 tools/n64_port.py gate
 ```
 
 ## Documentation policy
