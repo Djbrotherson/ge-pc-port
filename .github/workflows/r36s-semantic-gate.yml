@@ -15,6 +15,8 @@ on:
       - 'tools/n64_port.py'
       - 'tools/n64_port_audit.py'
       - 'tools/r36s_semantic_audit.py'
+      - 'tools/n64_portlib/**'
+      - 'tools/port_profiles/**'
       - '.github/workflows/r36s-semantic-gate.yml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
