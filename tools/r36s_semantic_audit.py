@@ -172,6 +172,19 @@ def scan_file(path:Path):
                 add("P0","port-32bit-address-math",path,i,raw,
                     "PORT path performs address arithmetic after direct 32-bit pointer narrowing.")
 
+        # Decompiler artifact: testing the address of a member through a
+        # possibly-null base does not test the base pointer. On modern hosts
+        # this is undefined behavior and compilers are free to fold the
+        # condition unexpectedly. Test the owning pointer directly instead.
+        if re.search(
+            r"\b(?:if|while)\s*\(\s*!\s*&\s*"
+            r"[A-Za-z_]\w*(?:(?:->|\.)[A-Za-z_]\w*|\[[^\]]+\])*"
+            r"\s*->\s*[A-Za-z_]\w*\s*\)",
+            line,
+        ):
+            add("P0","member-address-null-check",path,i,raw,
+                "Address-of a member is used as a NULL test; test the owning pointer before dereferencing it.")
+
         # Bitmask/comparison precedence is a real host/runtime hazard.
         # Expressions such as `flags & MASK > 0` parse as
         # `flags & (MASK > 0)`, while `avail & MASK == 0` can become a
