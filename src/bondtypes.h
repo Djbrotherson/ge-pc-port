@@ -4067,6 +4067,20 @@ struct SetupIntroCredits
  */
 GE_LAYOUT_ASSERT(sizeof(Vertex) == 0x10, "Vertex must remain the 16-byte N64/gSPVertex stride");
 GE_LAYOUT_ASSERT(sizeof(ModelNode) == 0x30, "ModelNode host sidecar stride");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_HeaderRecord) == 24, "model op1 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_GroupRecord) == 40, "model op2/op3 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_DisplayListRecord) == 40, "model op4 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_LODRecord) == 24, "model op8 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_BSPRecord) == 48, "model op9 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_BoundingBoxRecord) == 28, "model op10 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_GunfireRecord) == 48, "model op12 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_ShadowRecord) == 48, "model op13 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_InterlinkageRecord) == 28, "model op15 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_SwitchRecord) == 16, "model op18 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_GroupSimpleRecord) == 20, "model op21 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_DisplayListPrimaryRecord) == 32, "model op22 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_HeadPlaceholderRecord) == 2, "model op23 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_DisplayList_CollisionRecord) == 64, "model op24 host rodata size");
 GE_LAYOUT_ASSERT(sizeof(StandTilePoint) == 0x08, "StandTilePoint serialized stride");
 GE_LAYOUT_ASSERT(offsetof(StandTile, room) == 0x03, "StandTile.room host offset");
 GE_LAYOUT_ASSERT(offsetof(StandTile, mid) == 0x04, "StandTile.mid host offset");
