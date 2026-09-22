@@ -4804,7 +4804,7 @@ void gunTickGameplay(s32 triggerOn)
         {
             // Start or restart the hum sound if needed
             if (hand_right->audioHandle == NULL
-                || sndGetPlayingState((struct ALSoundState *) hand_right->audioHandle) == 0)
+                || sndGetPlayingState(hand_right->audioHandle) == 0)
             {
                 if (lvlGetControlsLockedFlag() == 0)
                 {
@@ -4821,9 +4821,9 @@ void gunTickGameplay(s32 triggerOn)
 
             if (hand_right->audioHandle != NULL)
             {
-                if (sndGetPlayingState((struct ALSoundState *) hand_right->audioHandle) != 0)
+                if (sndGetPlayingState(hand_right->audioHandle) != 0)
                 {
-                    sndDeactivate((struct ALSoundState *) hand_right->audioHandle);
+                    sndDeactivate(hand_right->audioHandle);
                 }
             }
         }

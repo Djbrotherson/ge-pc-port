@@ -1503,7 +1503,7 @@ void lvlManageMpGame(void)
 
     }
     {
-        struct ALBank * sfx;
+        struct ALBankAlt_s *sfx;
         s16 sound_index;
         s16 *sound_index_ptr;
         switch (getDebugMode())

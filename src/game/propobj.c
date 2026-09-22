@@ -166,7 +166,7 @@
 #define PROP_PROJECTILE_GRAVITY_MODIFIER 0.27777779f
 
 /* 0x80030AC8 */ s32 alarm_timer = 0;
-/* 0x80030ACC */ s32 *ptr_alarm_sfx = 0;
+/* 0x80030ACC */ ALSoundState *ptr_alarm_sfx = NULL;
 /* 0x80030AD0 */ f32 toxic_gas_sound_timer = 0.0;
 /* 0x80030AD4 */ s32 activate_gas_sound_timer = FALSE;
 /* 0x80030AD8 */ coord3d gasLeakSource = { 0.0f, 0.0f, 0.0f };
@@ -4230,7 +4230,7 @@ s32 objTick(struct PropRecord *prop)
 
 	s32 playerCount;
 	bool applyFogCull;
-	struct ALSoundState *sfx_state;
+	ALSoundState *sfx_state;
 	s32 projectileAlive;
 
     /**
@@ -12949,7 +12949,7 @@ void door7F053B10(DoorRecord *door) //#MATCH
 
 void doorPlayOpenSound0(DoorRecord *door) {
     ALSoundState *soundState = NULL;
-    ALSoundState *pendingState = NULL;
+    ALSoundState **pendingState = NULL;
 
     door7F053B10(door);
 
@@ -12972,28 +12972,28 @@ void doorPlayOpenSound0(DoorRecord *door) {
         soundState = sndPlaySfx(g_musicSfxBufferPtr, DOOR_SMART_CATCH1_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_SMART_SLIDE1_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_SMART_SLIDE1_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_02:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, DOOR_SMART_CATCH1_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_METAL:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, METAL_SLIDE_OPEN_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, METAL_SLIDE_LOOP_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, METAL_SLIDE_LOOP_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_04:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, HEAVY_SLIDE_OPEN_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, HEAVY_SINGLE_LOOP_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, HEAVY_SINGLE_LOOP_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_WOOD:
@@ -13006,20 +13006,20 @@ void doorPlayOpenSound0(DoorRecord *door) {
         soundState = sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_CATCH_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_WOOD_SLIDE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_WOOD_SLIDE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_WOOD_3:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, DOOR_WOOD_OPEN_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_09:
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_SHUTTER_OPEN_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_SHUTTER_OPEN_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_METAL_2:
@@ -13035,19 +13035,19 @@ void doorPlayOpenSound0(DoorRecord *door) {
         soundState = sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_HYDROLIC:
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_HYDRAL_CLOSE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_HYDRAL_CLOSE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_STONE:
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_SLIDE_STONE_OPEN_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_SLIDE_STONE_OPEN_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_16:
@@ -13062,7 +13062,7 @@ void doorPlayOpenSound0(DoorRecord *door) {
         soundState = sndPlaySfx(g_musicSfxBufferPtr, METAL_SLIDE_OPEN_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, METAL_SLIDE_LOOP_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, METAL_SLIDE_LOOP_SFX, pendingState);
         }
         break;
     }
@@ -13082,7 +13082,7 @@ void doorPlayOpenSound0(DoorRecord *door) {
 
 void doorPlayOpenSound1(DoorRecord *door) {
     ALSoundState *soundState = NULL;
-    ALSoundState *pendingState = NULL;
+    ALSoundState **pendingState = NULL;
 
     door7F053B10(door);
 
@@ -13105,67 +13105,67 @@ void doorPlayOpenSound1(DoorRecord *door) {
         soundState = sndPlaySfx(g_musicSfxBufferPtr, DOOR_SMART_CATCH1_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_SMART_SLIDE1_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_SMART_SLIDE1_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_02:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, DOOR_SMART_CATCH1_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_METAL:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, METAL_SLIDE_OPEN_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, METAL_SLIDE_LOOP_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, METAL_SLIDE_LOOP_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_04:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, HEAVY_SLIDE_OPEN_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, HEAVY_SINGLE_LOOP_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, HEAVY_SINGLE_LOOP_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_WOOD_2:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_CATCH_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_WOOD_SLIDE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_WOOD_SLIDE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_WOOD_3:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, DOOR_WOOD_OPEN_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_09:
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_SHUTTER_OPEN_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_SHUTTER_OPEN_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_13:
         soundState = sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, TRAIN_SLIDE_DOOR_SLIDE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_HYDROLIC:
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_HYDRAL_CLOSE_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_HYDRAL_CLOSE_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_STONE:
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, DOOR_SLIDE_STONE_OPEN_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, DOOR_SLIDE_STONE_OPEN_SFX, pendingState);
         }
         break;
     case DOOR_OPEN_SOUND_16:
@@ -13180,7 +13180,7 @@ void doorPlayOpenSound1(DoorRecord *door) {
         soundState = sndPlaySfx(g_musicSfxBufferPtr, METAL_SLIDE_OPEN_SFX, NULL);
         if (pendingState != NULL)
         {
-            sndPlaySfx(g_musicSfxBufferPtr, METAL_SLIDE_LOOP_SFX, pendingState);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, METAL_SLIDE_LOOP_SFX, pendingState);
         }
         break;
     }
@@ -14383,7 +14383,7 @@ void handle_gas_damage(void)
             gasLeakTimer = gasLeakTimer + g_GlobalTimerDelta;
             if ((ptr_gas_sound == NULL) && (lvlGetControlsLockedFlag() == 0))
             {
-                sndPlaySfx((struct ALBankAlt_s* ) g_musicSfxBufferPtr, GAS_HISS_SFX, (ALSoundState* ) &ptr_gas_sound);
+                sndPlaySfxToSlot((struct ALBankAlt_s *)g_musicSfxBufferPtr, GAS_HISS_SFX, &ptr_gas_sound);
             }
             if (ptr_gas_sound != NULL)
             {
