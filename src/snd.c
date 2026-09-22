@@ -93,6 +93,20 @@ typedef union ALSndpEvent_u {
 
 } ALSndpEvent;
 
+#ifdef PORT
+#if defined(__cplusplus)
+static_assert(sizeof(ALSndpEvent) <= sizeof(ALEvent),
+              "ALSndpEvent must fit in ALEvent queue storage");
+static_assert(__builtin_offsetof(ALSndpEvent, common.type) == 0,
+              "ALSndpEvent type must remain at byte zero");
+#else
+_Static_assert(sizeof(ALSndpEvent) <= sizeof(ALEvent),
+               "ALSndpEvent must fit in ALEvent queue storage");
+_Static_assert(__builtin_offsetof(ALSndpEvent, common.type) == 0,
+               "ALSndpEvent type must remain at byte zero");
+#endif
+#endif
+
 union ALSndpSmallEvent_u {
     struct {
         u16 type;
