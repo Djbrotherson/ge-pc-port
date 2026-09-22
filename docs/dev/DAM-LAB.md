@@ -93,8 +93,10 @@ overlay. It preserves the historical toggle binding and existing keyboard,
 mouse and controller navigation, but replaces the old flat settings list with
 five capability pages:
 
-- **Video** — fullscreen, resolution, VSync, frame cap/FPS display, MSAA,
-  filtering, anisotropy, mip/wrap fixes, FOV and draw/LOD distance controls.
+- **Video** — fullscreen, resolution, VSync, frame cap, MSAA, texture filter,
+  independent mipmap filtering, anisotropy, framebuffer effects, mip/wrap
+  fixes, GoldenEye Full/Wide/Cinema screen mode, GoldenEye Normal/16:9 aspect
+  ratio, FOV and draw/LOD distance controls.
 - **Audio** — mute, master volume, queue limit and device buffer controls plus a
   live queue-depth gauge.
 - **Input** — mouse/pad/aim sensitivity, response, smoothing, deadzone,
