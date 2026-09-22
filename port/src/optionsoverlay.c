@@ -533,7 +533,7 @@ static void rowAdjust(struct Row *r, int dir)
         break;
     }
     case ROW_ENUM: {
-        double lo = r->cfgMin, hi = r->cfgMax;
+        double lo = rowLo(r), hi = rowHi(r);
         v += dir;
         if (v < lo) v = hi;
         if (v > hi) v = lo;
