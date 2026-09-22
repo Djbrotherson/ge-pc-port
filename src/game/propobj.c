@@ -2026,7 +2026,7 @@ done:
 /**
  * US address 7F042EB4.
 */
-s32 sub_GAME_7F042EB4(struct ObjectRecord *arg0, f32 *arg1, struct coord3d *arg2, struct coord3d *arg3, s32 arg4, s32 arg5)
+s32 sub_GAME_7F042EB4(struct ObjectRecord *arg0, coord3d *arg1, struct coord3d *arg2, struct coord3d *arg3, s32 arg4, s32 arg5)
 {
     if ((arg0->runtime_bitflags & RUNTIMEBITFLAG_HASPROJECTILE) && (arg0->projectile->flags & PROJECTILEFLAG_STICKY))
     {
