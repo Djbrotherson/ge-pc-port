@@ -173,9 +173,13 @@ typedef struct bg_room_data
 #if defined(__cplusplus)
 static_assert(sizeof(RoomVtxBatchBounds) == 0x1c, "RoomVtxBatchBounds serialized size");
 static_assert(sizeof(bg_room_data) == 0x18, "bg_room_data serialized stride");
+static_assert(sizeof(bg_portal_entry) == 0x10, "bg_portal_entry serialized stride");
+static_assert(sizeof(bg_portal_data_entry) == 0x10, "bg_portal_data_entry host stride");
 #else
 _Static_assert(sizeof(RoomVtxBatchBounds) == 0x1c, "RoomVtxBatchBounds serialized size");
 _Static_assert(sizeof(bg_room_data) == 0x18, "bg_room_data serialized stride");
+_Static_assert(sizeof(bg_portal_entry) == 0x10, "bg_portal_entry serialized stride");
+_Static_assert(sizeof(bg_portal_data_entry) == 0x10, "bg_portal_data_entry host stride");
 #endif
 #endif
 
