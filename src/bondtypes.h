@@ -1782,6 +1782,14 @@ typedef union
         bbox     bbox;      /*0x2c - 0x40 confirmed*/
     } BoundPadRecord;
 
+#ifdef PORT
+    _Static_assert(sizeof(PadRecord) == 56, "PadRecord host size must match d88 setup sidecars");
+    _Static_assert(__builtin_offsetof(PadRecord, plink) == 40, "PadRecord.plink host offset drift");
+    _Static_assert(__builtin_offsetof(PadRecord, stan) == 48, "PadRecord.stan host offset drift");
+    _Static_assert(sizeof(BoundPadRecord) == 80, "BoundPadRecord host size must match d88 setup sidecars");
+    _Static_assert(__builtin_offsetof(BoundPadRecord, bbox) == 56, "BoundPadRecord.bbox host offset drift");
+#endif
+
 
     /**
      //##Paths
@@ -3994,6 +4002,16 @@ typedef struct SetupIntroCamera
     struct SetupIntroCamera *prev;
 #endif
 } SetupIntroCamera;
+
+#ifdef PORT
+_Static_assert(sizeof(SetupIntroSpawn) == 12, "SetupIntroSpawn serialized stride drift");
+_Static_assert(sizeof(struct SetupIntroItem) == 16, "SetupIntroItem serialized stride drift");
+_Static_assert(sizeof(struct SetupIntroAmmo) == 16, "SetupIntroAmmo serialized stride drift");
+_Static_assert(sizeof(struct SetupIntroSwirl) == 32, "SetupIntroSwirl serialized stride drift");
+_Static_assert(sizeof(struct SetupIntroAnim) == 8, "SetupIntroAnim serialized stride drift");
+_Static_assert(sizeof(struct SetupIntroCuff) == 8, "SetupIntroCuff serialized stride drift");
+_Static_assert(sizeof(SetupIntroCamera) == 40, "SetupIntroCamera serialized stride drift");
+#endif
 
 /**
  * type == INTROTYPE_WATCH

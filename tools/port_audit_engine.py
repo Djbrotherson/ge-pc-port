@@ -605,6 +605,32 @@ def check_stage_setup_layout_contract():
             add("P0","stage-setup-header-growth",converter,1,
                 m.group(0) if m else "missing header growth seed",
                 f"d88 stage header growth must match ABI contract delta {expected_growth} bytes.")
+
+        tree=ast.parse(text)
+        intro_sizes=None
+        for node in tree.body:
+            if isinstance(node, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id=="INTRO_SZ" for t in node.targets
+            ):
+                intro_sizes=ast.literal_eval(node.value)
+                break
+        expected_intro={int(k):int(v) for k,v in spec.get("intro_record_bytes",{}).items()}
+        if not expected_intro:
+            raise ValueError("stage_setup.intro_record_bytes missing from ABI contract")
+        if intro_sizes != expected_intro:
+            add("P0","stage-setup-intro-strides",converter,1,
+                f"converter={intro_sizes}",
+                "Intro record strides must match the runtime SetupIntro* serialized layouts; spawn/camera walks otherwise select the wrong pads.")
+
+        expected_pad_offsets={str(k):int(v) for k,v in spec.get("pad_host_offsets",{}).items()}
+        if expected_pad_offsets != {"pos":0,"up":12,"look":24,"plink":40,"stan":48}:
+            add("P0","stage-setup-pad-offset-contract",converter,1,
+                f"manifest={expected_pad_offsets}",
+                "PadRecord host offsets drifted from the d88 converter layout.")
+        if int(spec.get("boundpad_bbox_offset",-1)) != 56:
+            add("P0","stage-setup-boundpad-offset-contract",converter,1,
+                f"bbox={spec.get('boundpad_bbox_offset')}",
+                "BoundPadRecord bbox offset drifted from the d88 converter layout.")
     except Exception as exc:
         add("P0","stage-setup-audit-error",converter,1,str(exc),
             "Could not prove d88 stage setup table/native ABI agreement.")

@@ -138,7 +138,7 @@ def main()->int:
         ")",
         "",
         "target_include_directories(portkit_generated PUBLIC",
-        "  \${CMAKE_CURRENT_SOURCE_DIR}",
+        "  ${CMAKE_CURRENT_SOURCE_DIR}",
         ")",
         "",
         "# The parent project supplies platform/runtime libraries and compile definitions.",

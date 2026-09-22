@@ -425,6 +425,17 @@ void bondviewLoadSetupIntroSection(void)
 
 
         start_stan = g_Startpad[rand_pad_index]->stan;
+#ifdef PORT
+        osSyncPrintf("R36S SPAWN stage=%d padidx=%d pos=(%.3f,%.3f,%.3f) look=(%.3f,%.3f,%.3f) stan=%p\\n",
+            (int)bossGetStageNum(), (int)rand_pad_index,
+            g_Startpad[rand_pad_index]->pos.f[0],
+            g_Startpad[rand_pad_index]->pos.f[1],
+            g_Startpad[rand_pad_index]->pos.f[2],
+            g_Startpad[rand_pad_index]->look.f[0],
+            g_Startpad[rand_pad_index]->look.f[1],
+            g_Startpad[rand_pad_index]->look.f[2],
+            (void *)start_stan);
+#endif
 
         stan_height = bondviewYPositionRelated(start_stan, start_pos.f[0], start_pos.f[2]);
         start_pos.f[1] = g_CurrentPlayer->eyeheight + stan_height;

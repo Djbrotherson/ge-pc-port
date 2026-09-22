@@ -1744,7 +1744,11 @@ Gfx *set_enviro_fog_for_items_in_solo_watch_menu(Gfx *gdl, ITEM_IDS itemid, Mtxf
 #else
     ModelHeader model;
 #endif
+#ifdef PORT
+    u32 *modelrwdata;
+#else
     u8 spb8[0x80];
+#endif
     s32 padb4;
     Mtxf sp74;
     Mtxf *matrices;
@@ -1787,7 +1791,14 @@ Gfx *set_enviro_fog_for_items_in_solo_watch_menu(Gfx *gdl, ITEM_IDS itemid, Mtxf
     i = 0;
     ((Model *) &model)->render_pos = (RenderPosView *)matrices;
     modelCalculateRwDataLen(bodymodel);
+#ifdef PORT
+    modelrwdata = bodymodel->numRecords > 0
+        ? (u32 *)dynAllocate(bodymodel->numRecords * sizeof(u32))
+        : NULL;
+    modelInit((Model *) &model, bodymodel, modelrwdata);
+#else
     modelInit((Model *) &model, bodymodel, (u32 *)spb8);
+#endif
     sub_GAME_7F05E978((Model *) &model, 0);
     sub_GAME_7F05EA94((Model *) &model, 1);
 
@@ -1999,7 +2010,11 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
     s32 j;
     s32 offset;
     f32 angle;
+#ifdef PORT
+    u32 *rwdata;
+#else
     u32 rwdata[26];
+#endif
     u32 pad2;
     Mtxf sp41c;
     Mtxf sp3dc;
@@ -2052,6 +2067,11 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
     objheader = g_CurrentPlayer->copy_of_body_obj_header;
     matrices = dynAllocate(objheader->numMatrices * (sizeof(Mtxf)));
     modelCalculateRwDataLen(objheader);
+#ifdef PORT
+    rwdata = objheader->numRecords > 0
+        ? (u32 *)dynAllocate(objheader->numRecords * sizeof(u32))
+        : NULL;
+#endif
 
     if (objheader);
 
@@ -5790,7 +5810,12 @@ void sub_GAME_7F068EC4(CasingRecord *casing, Gfx **gdl)
     Gfx             *savedgdl = *gdl;
     ModelFileHeader *model_header = casing->header;
     RenderPosView   *model_matrices = dynAllocate(model_header->numMatrices * sizeof(RenderPosView));
+#ifdef PORT
+    Model            model;
+    u32             *model_rwdata;
+#else
     ModelHead        model;
+#endif
     ModelRenderData  render_data = *(ModelRenderData *)g_DefaultCasingModelRenderData;
     Mtxf             casing_model_mtx;
     s32              axis_offset;
@@ -5800,7 +5825,14 @@ void sub_GAME_7F068EC4(CasingRecord *casing, Gfx **gdl)
     u8              *matrix_axis_ptr;
 
     modelCalculateRwDataLen(model_header);
+#ifdef PORT
+    model_rwdata = model_header->numRecords > 0
+        ? (u32 *)dynAllocate(model_header->numRecords * sizeof(u32))
+        : NULL;
+    modelInit((Model *)&model, model_header, model_rwdata);
+#else
     modelInit((Model *)&model, model_header, NULL);
+#endif
 
     model.render_pos = model_matrices;
 

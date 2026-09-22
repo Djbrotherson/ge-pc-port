@@ -143,13 +143,13 @@ def main() -> int:
             "", "## Top type pairs", "",
         ]
         for name, count in by_pair.most_common(25):
-            md.append(f"- **{count}×** \`{name}\`")
+            md.append(f"- **{count}×** `{name}`")
         md += ["", "## Top callees", ""]
         for name, count in by_callee.most_common(25):
-            md.append(f"- **{count}×** \`{name}\`")
+            md.append(f"- **{count}×** `{name}`")
         md += ["", "## Top files", ""]
         for name, count in by_file.most_common(25):
-            md.append(f"- **{count}×** \`{name}\`")
+            md.append(f"- **{count}×** `{name}`")
         args.markdown.write_text("\n".join(md) + "\n")
 
     print(json.dumps({
