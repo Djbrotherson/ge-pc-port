@@ -227,6 +227,27 @@ def scan_file(path:Path):
                 add("P0","desktop-gl-on-gles-path",path,i,raw,
                     f"{fn} is desktop GL only and is not proven excluded from USE_GLES.")
 
+        # N64 pointer arrays have 4-byte elements; native LP64 pointer arrays
+        # have 8-byte elements. A decomp pattern that computes an offset with
+        # `<< 2` / `* 4` and then byte-indexes a T** is a portability
+        # hazard unless the PORT path explicitly uses sizeof(T *). Keep this
+        # as P1 because some arrays intentionally remain serialized tokens.
+        if host_active and re.search(r"(?:<<\s*2|\*\s*4\b)", line):
+            window="\n".join(raw_lines[max(0,i-45):min(len(raw_lines),i+45)])
+            pointer_arrays=re.findall(
+                r"\b[A-Za-z_]\w*(?:\s+const)?\s*\*\s*\*\s*([A-Za-z_]\w*)\s*;",
+                window,
+            )
+            for parr in pointer_arrays:
+                if re.search(
+                    r"\(\s*u8\s*\*\s*\)\s*" + re.escape(parr) +
+                    r"\s*\+\s*[A-Za-z_]\w*",
+                    window,
+                ) and "sizeof" not in line:
+                    add("P1","lp64-pointer-array-4byte-stride",path,i,raw,
+                        "Pointer-array byte offset uses an N64 4-byte stride; verify PORT uses sizeof(pointer) or token-array storage.")
+                    break
+
         if re.search(r"\b(?:Gfx|Vtx|Mtx)\s*\*",line):
             window=" ".join(raw_lines[max(0,i-3):min(len(raw_lines),i+3)])
             if re.search(r"(?:\+=|-=|Alloc\w*\()\s*0x(?:40|80|100|180|200|400|800)\b",window):
