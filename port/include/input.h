@@ -67,6 +67,7 @@ void inputPostWheel(int notches);
 
 /* Re-enumerate gamepads after a hotplug (SDL_CONTROLLERDEVICEADDED/REMOVED). */
 void inputRescanPads(void);
+void inputRefreshBinds(void);
 
 #ifdef __cplusplus
 }
