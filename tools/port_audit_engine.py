@@ -269,7 +269,7 @@ def scan_file(path:Path):
         # possibly-null base does not test the base pointer. On modern hosts
         # this is undefined behavior and compilers are free to fold the
         # condition unexpectedly. Test the owning pointer directly instead.
-        if re.search(
+        if host_active and re.search(
             r"\b(?:if|while)\s*\(\s*!\s*&\s*"
             r"[A-Za-z_]\w*(?:(?:->|\.)[A-Za-z_]\w*|\[[^\]]+\])*"
             r"\s*->\s*[A-Za-z_]\w*\s*\)",
@@ -722,7 +722,7 @@ def check_propdef_stride_contract():
         enum_map={}
         value=-1
         for raw in m.group(1).split(","):
-            item=re.sub(r"/\*.*?\*/|//.*", "", raw, flags=re.S).strip()
+            item=re.sub(r"/\*.*?\*/|//[^\n]*", "", raw, flags=re.S).strip()
             if not item:
                 continue
             if "=" in item:

@@ -606,7 +606,7 @@ void initializeGunBarrelIntro(u8 *gfxBuffer, s32 bufferSize)
 #undef S_7F008E80_ANIM_SPEED
     
 #ifdef PORT
-    animation = (struct ModelAnimation *)((u8 *)ptr_animation_table + PTR_ANIM_bond_eye_walk);
+    animation = (struct ModelAnimation *)ANIM_TABLE_OFFSET_PTR(PTR_ANIM_bond_eye_walk);
 #else
     animation = (struct ModelAnimation*)((s32)ptr_animation_table + (s32)&ANIM_DATA_bond_eye_walk);
 #endif
