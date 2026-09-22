@@ -24,23 +24,40 @@ The port proves the runtime. Portkit captures the reusable method.
 
 ## Current state
 
-The ARM64 target has already reached:
+The current `main` line has closed the major host-port conversion layers for
+the GoldenEye/R36S target.
 
-- native AArch64 builds,
-- GLES rendering,
-- menus and intro rendering,
-- in-mission rendering and gameplay,
-- controller integration,
-- PortMaster launch/package support,
-- ROM-derived host sidecars,
-- broad LP64/N64 semantic cleanup,
-- fixed binary-layout contracts,
-- crash/logging instrumentation,
-- automated host-port semantic auditing.
+| Area | Status | Evidence |
+|---|---:|---|
+| Core AArch64 / LP64 host semantics | **100%** | pointer/token boundaries, ABI/layout contracts and semantic gate |
+| GLES / render / input / runtime integration | **100%** | native GLES3 path, menus, intro, missions and controller integration |
+| Stage / setup / model semantic conversion | **100%** | setup tables, propDefs, model sidecars and runtime relocation contracts |
+| Gameplay / stage behavioral correctness | **active frontier** | full-level regression, AI/objective/prop behavior, transitions and edge cases |
 
-Current work is concentrated on runtime regression, renderer correctness,
-host-resource lifetime, packaging polish, and extraction of remaining reusable
-porting machinery into Portkit.
+Latest closure proof:
+
+- exact proof commit: `fb618e64bd6060e2b31ca64722207aed3ef379db`,
+- Portkit semantic audit: **P0=0, P1=0, total=0**,
+- 64-bit pointer regression: **PASS**,
+- AArch64 GLES configure/build/link: **PASS**,
+- output verified as a 64-bit AArch64 ELF,
+- `ge007.aarch64` artifact produced successfully.
+
+The stage/setup/model sweep also closed a previously missing model opcode-17
+conversion path. The record now has an LP64 sidecar layout, a typed runtime
+representation, correct `othernode` promotion, compile-time layout assertions,
+an ABI-manifest entry and semantic-gate coverage. The gate now checks complete
+model record coverage and converter/runtime pointer-promotion parity so this
+class cannot silently regress.
+
+The port has already demonstrated native AArch64 execution, GLES rendering,
+menus and intro, in-mission rendering/gameplay, controller integration,
+PortMaster launch/package support and ROM-derived host sidecars.
+
+Current work is now concentrated on **behavioral correctness rather than basic
+conversion plumbing**: spawn behavior, objectives and AI, prop interactions,
+mission transitions, collision/navigation edge cases, full-level regression,
+runtime polish and extraction of the remaining reusable machinery into Portkit.
 
 ## Portkit
 
@@ -181,11 +198,11 @@ Use:
 
 ## Roadmap
 
-1. finish R36S runtime regression,
-2. continue moving generic behavior into Portkit,
-3. consolidate relocation/record/sidecar primitives,
-4. make the R36S target fully declarative,
-5. unify remaining GoldenEye-specific converter primitives behind Portkit contracts,
+1. complete full-stage behavioral regression on R36S,
+2. close remaining spawn, objective, AI, prop, mission-transition and navigation edge cases,
+3. continue moving proven generic behavior into Portkit,
+4. consolidate relocation/record/sidecar primitives behind reusable Portkit contracts,
+5. make the R36S target fully declarative,
 6. add reusable widescreen/FOV hooks,
 7. add texture/mod override hooks,
 8. validate Portkit against a second N64 project.
