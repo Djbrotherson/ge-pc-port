@@ -17,6 +17,7 @@ on:
       - 'tools/port_audit_engine.py'
       - 'tools/n64_portlib/**'
       - 'tools/port_profiles/**'
+      - 'portkit/**'
       - '.github/workflows/r36s-semantic-gate.yml'
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
