@@ -179,9 +179,9 @@
 /* 0x80030AF4 */ s32 g_RemoteMineOwnerTriggerFlag = 0;
 /* 0x80030AF8 */ s32 g_NextWeaponSlot = 0; // numbers between 0 and 30
 /* 0x80030AFC */ s32 g_NextHatSlot = 0;
-/* 0x80030B00 */ ObjectRecord *g_LevelLoadPropSwitch = NULL;
+/* 0x80030B00 */ LinkRecord *g_LevelLoadPropSwitch = NULL;
 /* 0x80030B04 */ LockDoorRecord *g_LevelLoadPropLockDoor = NULL;
-/* 0x80030B08 */ ObjectRecord *g_LevelLoadPropSafeItem = NULL;
+/* 0x80030B08 */ SafeObjectRecord *g_LevelLoadPropSafeItem = NULL;
 /* 0x80030B0C */ struct PropRecord * D_80030B0C = NULL;
 /* 0x80030B10 */ s32 bodypartshot = 0xFFFFFFFF;
 /* 0x80030B14 */ f32 F_80030B14 = 1.0;

@@ -70,7 +70,7 @@ void alloc_lookup_buffers(void)
 
     ptr_list_object_lookup_indices = (s16 *)mempAllocBytesInBank(PTR_LIST_OBJECT_LOOKUP_INDICES_LEN * sizeof(s16), MEMPOOL_STAGE);
     RoomPropListBlockIndices       = (s16 *)mempAllocBytesInBank((((g_MaxNumRooms * 4) + 0xF) | 0xF) ^ 0xF, MEMPOOL_STAGE);
-    RoomPropListBlocks             = (s16 *)mempAllocBytesInBank(BSS_8007161C_LEN * sizeof(struct roomproplistblock), MEMPOOL_STAGE);
+    RoomPropListBlocks             = (struct roomproplistblock *)mempAllocBytesInBank(BSS_8007161C_LEN * sizeof(struct roomproplistblock), MEMPOOL_STAGE);
 
     ptr_list_object_lookup_indices[0] = -1;
 
@@ -186,9 +186,9 @@ void initSetLevelLoadPropLockDoor(struct LockDoorRecord *arg0)
  * Called from proplvreset2 when PROPDEF type is PROPDEF_SAFE_ITEM.
  * Address 0x7F001940.
 */
-void initSetLevelLoadPropSafeItem(struct ObjectRecord *arg0)
+void initSetLevelLoadPropSafeItem(SafeObjectRecord *arg0)
 {
-    arg0->prop = g_LevelLoadPropSafeItem;
+    arg0->next = g_LevelLoadPropSafeItem;
     g_LevelLoadPropSafeItem = arg0;
 }
 
