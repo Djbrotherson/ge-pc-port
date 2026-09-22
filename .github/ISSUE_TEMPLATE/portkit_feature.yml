@@ -1,0 +1,42 @@
+name: Portkit proposal
+description: Propose a reusable Portkit capability or contract
+title: "[Portkit] "
+labels: ["portkit"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Portability problem
+      description: Describe the reusable N64-to-host problem, not only one title-specific symptom.
+    validations:
+      required: true
+
+  - type: textarea
+    id: invariant
+    attributes:
+      label: Proposed invariant or capability
+      description: What generic rule, contract, backend capability, or generator should Portkit provide?
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / examples
+      description: Source patterns, ABI facts, converter behavior, or target constraints.
+
+  - type: textarea
+    id: boundary
+    attributes:
+      label: Project-specific boundary
+      description: What must remain in a profile/adapter instead of generic Portkit code?
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Design checks
+      options:
+        - label: This can be stated without relying on a GoldenEye-specific symbol name.
+          required: true
+        - label: I considered how the capability can be tested without copyrighted ROM data where practical.
+          required: true
