@@ -462,6 +462,50 @@ def check_ai_command_layout_contract():
             "Could not prove generated AI bytecode record/length agreement.")
 
 
+def check_stan_layout_contract():
+    """Cross-check STAN converter tile strides against runtime navigation."""
+    converter=Path("tools_pc/d69_emit.py")
+    runtime=Path("src/game/stan.c")
+    if not (converter.exists() and runtime.exists()):
+        return
+    try:
+        tree=ast.parse(converter.read_text(errors="replace"))
+        conv_sizes=None
+        for node in tree.body:
+            if isinstance(node, ast.Assign) and any(
+                isinstance(t, ast.Name) and t.id=="TILESIZES" for t in node.targets
+            ):
+                conv_sizes=ast.literal_eval(node.value)
+                break
+        if not isinstance(conv_sizes, list):
+            raise ValueError("TILESIZES not found in d69_emit.py")
+
+        rtext=runtime.read_text(errors="replace")
+        m=re.search(
+            r"u8\s+list_of_tilesizes\s*\[\s*\]\s*=\s*\{(.*?)\}\s*;",
+            rtext,re.S,
+        )
+        if not m:
+            raise ValueError("list_of_tilesizes[] not found in stan.c")
+        vals=[]
+        for tok in m.group(1).split(","):
+            tok=re.sub(r"/\*.*?\*/|//.*","",tok,flags=re.S).strip()
+            if tok:
+                vals.append(int(tok,0))
+        if vals != conv_sizes:
+            add("P0","stan-tilesize-contract",runtime,1,
+                f"runtime={vals} converter={conv_sizes}",
+                "STAN converter and runtime tile-size tables disagree; navigation tile walks will desynchronise.")
+
+        expected=[0x20,0x20,0x20,0x20,0x28,0x30,0x38,0x40,0x48,0x50,0x58,0]
+        if conv_sizes != expected:
+            add("P0","stan-tilesize-shape",converter,1,str(conv_sizes),
+                "STAN point-count stride table no longer matches the verified 8-byte header + 8-byte point layout.")
+    except Exception as exc:
+        add("P0","stan-layout-audit-error",runtime,1,str(exc),
+            "Could not prove STAN converter/runtime tile-size agreement.")
+
+
 def check_propdef_stride_contract():
     """Cross-check offline propDef expansion against the runtime stream walk.
 
@@ -583,6 +627,7 @@ def main():
     collect_pointer_member_names()
     for f in iter_files(): scan_file(f)
     check_propdef_stride_contract()
+    check_stan_layout_contract()
     check_ai_command_layout_contract()
     findings.sort(key=lambda x:(0 if x[0]=="P0" else 1,x[2],x[3],x[1]))
     out=Path("semantic-audit-out"); out.mkdir(exist_ok=True)
