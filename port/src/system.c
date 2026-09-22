@@ -4,6 +4,10 @@
  * Modelled on the PD port's port/src/system.c.
  */
 
+#if !defined(_WIN32) && !defined(_WIN64) && !defined(_POSIX_C_SOURCE)
+#define _POSIX_C_SOURCE 199309L
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +27,6 @@
   extern void abort(void);
   extern void exit(int status);
 #else
-  #define _POSIX_C_SOURCE 199309L
   #include <unistd.h>
   #include <time.h>
   #include <sys/stat.h>

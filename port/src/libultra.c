@@ -766,14 +766,6 @@ static void portPostEventForce(OSId e)
     }
 }
 
-static void portPostEvent(OSId e)
-{
-    PortEvent *ev = &g_events[e];
-    if (ev->used && ev->mq) {
-        osSendMesg(ev->mq, ev->msg, OS_MESG_NOBLOCK);
-    }
-}
-
 /* ------------------------------------------------------------------------ */
 /* VI (video) — retrace pacing + framebuffer bookkeeping                    */
 /* ------------------------------------------------------------------------ */
