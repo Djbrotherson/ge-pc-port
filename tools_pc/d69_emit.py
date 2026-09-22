@@ -44,7 +44,20 @@ Tbg_*_stanZ (RZ-compressed: 0x11 0x72 + raw deflate, decompress/recompress):
 Output: data/pccg-<region>/pccg.bin (concatenated, 16-aligned) +
 manifest.csv (name,offset,size decimal; file_resource_table.inc.c order).
 """
-import csv, struct, zlib, os, re, sys
+import csv, zlib, os, re, sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from tools.n64_portlib.binary import (
+    MASK24 as MASK,
+    align_up,
+    be_s16 as bs16,
+    be_s32 as bs32,
+    be_u16 as bu16,
+    be_u32 as be32,
+    le_s32_bytes,
+    le_u16_bytes as bswap16_bytes,
+    le_u32_bytes as bswap32_bytes,
+)
 
 REGION = "ntsc-final"
 if len(sys.argv) > 1 and sys.argv[1] in ("ntsc-final", "pal-final", "jpn-final"):
@@ -73,13 +86,6 @@ for r in rows:
 def find_row(basename):
     return fl_by_base.get(basename)
 
-MASK = 0xFFFFFF
-def be32(b, o): return struct.unpack_from(">I", b, o)[0]
-def bs16(b, o): return struct.unpack_from(">h", b, o)[0]
-
-def bswap32_bytes(v): return struct.pack("<I", v & 0xFFFFFFFF)
-def bswap16_bytes(v): return struct.pack("<H", v & 0xFFFF)
-
 errors = []
 manifest = []   # (name, offset, size) in table order
 chunks = []
@@ -87,7 +93,7 @@ cur_off = 0
 
 def emit(name, data):
     global cur_off
-    start = (cur_off + 15) & ~15
+    start = align_up(cur_off, 16)
     if start > cur_off:
         chunks.append(b"\x00" * (start - cur_off))
         cur_off = start
@@ -148,7 +154,7 @@ def convert_seg(name, src):
         o2 = h3
         while o2 < h2:
             etype = src[o2]
-            data = struct.unpack_from(">i", src, o2 + 4)[0]
+            data = bs32(src, o2 + 4)
             if etype == ENVIRONMENTDATA_ALT and data:
                 alt_targets.append(data & MASK)
             o2 += 8
@@ -238,10 +244,10 @@ def convert_seg(name, src):
             etype = src[o2]
             out[o2] = etype
             out[o2 + 1:o2 + 4] = src[o2 + 1:o2 + 4]
-            data = struct.unpack_from(">i", src, o2 + 4)[0]
+            data = bs32(src, o2 + 4)
             if etype == ENVIRONMENTDATA_ALT:
                 data = (data + portal_delta) if data else data
-            out[o2 + 4:o2 + 8] = struct.pack("<i", data)
+            out[o2 + 4:o2 + 8] = le_s32_bytes(data)
             o2 += 8
             if etype == 0:
                 break
@@ -298,7 +304,7 @@ def convert_seg(name, src):
         out[dst] = src[start]                              # numPoints
         out[dst + 1:dst + 4] = src[start + 1:start + 4]     # pad verbatim
         for k in range((size - 4) // 4):
-            v = struct.unpack_from(">I", src, start + 4 + 4 * k)[0]
+            v = be32(src, start + 4 + 4 * k)
             out[dst + 4 + 4 * k:dst + 8 + 4 * k] = bswap32_bytes(v)
 
     return bytes(out)
@@ -311,7 +317,7 @@ def convert_stan(name, src):
     if D < 8:
         errors.append(f"{name}: too small ({D})")
         return None
-    stanfile = struct.unpack_from(">i", src, 0)[0]
+    stanfile = bs32(src, 0)
     # room-offset array: starts at file offset 4 on N64, u32 entries,
     # NULL-terminated.
     offs = []
@@ -332,7 +338,7 @@ def convert_stan(name, src):
     assert new_tiledata_start == 8 + 8 * (N + 1)
 
     out = bytearray(D + array_delta)
-    out[0:4] = struct.pack("<i", stanfile)
+    out[0:4] = le_s32_bytes(stanfile)
     out[4:8] = b"\x00\x00\x00\x00"  # PC pointer-alignment pad
     p = 8
     for v in offs:
@@ -380,7 +386,7 @@ def convert_stan(name, src):
             po = src_o + 8 + 8 * i
             qo = dst_o + 8 + 8 * i
             x = bs16(src, po); y = bs16(src, po + 2); z = bs16(src, po + 4)
-            link = struct.unpack_from(">H", src, po + 6)[0]
+            link = bu16(src, po + 6)
             out[qo:qo + 2] = bswap16_bytes(x)
             out[qo + 2:qo + 4] = bswap16_bytes(y)
             out[qo + 4:qo + 6] = bswap16_bytes(z)
