@@ -1,5 +1,8 @@
 /*
- * F10 in-game options overlay -- approach (C) from docs/dev/OPTIONS-MENU-PLAN.md.
+ * ARM-GE Port Control overlay.
+ *
+ * F10 retains the historical binding, but the old flat PC-options list has
+ * been replaced by a page-based controller/mouse/keyboard UI.
  *
  * Port-layer only. No src/ menu code is touched: the overlay draws its own
  * fast3d 2D display list (appended after the game DL in gfx_run) and edits the
@@ -43,6 +46,7 @@
 #include "system.h"
 #include "config.h"
 #include "video.h"
+#include "audio.h"
 #include "input.h"
 #include "optionsoverlay.h"
 
@@ -63,6 +67,11 @@ extern s16   viGetY(void);
 /* ------------------------------------------------------------------------ */
 
 enum { ROW_TOGGLE, ROW_SLIDER, ROW_ENUM, ROW_MSAA, ROW_RES };
+enum { PAGE_GRAPHICS, PAGE_AUDIO, PAGE_INPUT, PAGE_GAMEPLAY, PAGE_SYSTEM, PAGE_COUNT };
+
+static const char *const kPageNames[PAGE_COUNT] = {
+    "VIDEO", "AUDIO", "INPUT", "GAME", "SYSTEM"
+};
 
 static const char *const kOnOff[]     = { "OFF", "ON", NULL };
 static const char *const kTexFilter[] = { "NEAREST", "BILINEAR", "3-POINT", NULL };
@@ -83,6 +92,7 @@ static int s_resFitN = 0;
 static int s_resSel  = 0;       /* index into s_resFit */
 
 struct Row {
+    int                page;
     const char        *key;
     const char        *label;
     int                kind;
@@ -104,49 +114,56 @@ struct Row {
 };
 
 static struct Row rows[] = {
-    { "Video.Fullscreen",         "Fullscreen",       ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
-    { "__Resolution",             "Resolution",       ROW_RES,    0,    NULL,       0, 0, 0,   0,0,0,0,0 },
-    { "Video.VSync",              "VSync",            ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
-    { "Video.FpsCap",             "Frame cap",        ROW_SLIDER, 10,   NULL,       0, 0, 360, 0,0,0,0,0 },
-    { "Video.MSAA",               "MSAA",             ROW_MSAA,   0,    NULL,       1, 0, 0,   0,0,0,0,0 },
-    { "Video.TextureFilter",      "Texture filter",   ROW_ENUM,   1,    kTexFilter, 0, 0, 0,   0,0,0,0,0 },
-    { "Video.Anisotropy",         "Anisotropic",      ROW_SLIDER, 1,    NULL,       0, 0, 0,   0,0,0,0,0 },
-    { "Video.FovScale",           "FOV scale %",      ROW_SLIDER, 5,    NULL,       0, 0, 0,   0,0,0,0,0 },
-    { "Video.DrawDistance",       "Draw distance %",  ROW_SLIDER, 25,   NULL,       0, 0, 0,   0,0,0,0,0, "Video.DrawDistanceAutoFov" },
-    { "Video.DrawDistanceAutoFov","Draw dist. auto",  ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
-    { "Video.LodDistance",        "LOD distance %",   ROW_SLIDER, 25,   NULL,       0, 0, 0,   0,0,0,0,0, "Video.LodDistanceAutoFov" },
-    { "Video.LodDistanceAutoFov", "LOD dist. auto",   ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
-    /* Aim row edits Input.AimModeSens -- the knob the default GEPD aim path
-     * actually uses (Input.MouseAimSpeed only feeds the legacy velocity-stick
-     * fallback, so it was inert here). */
-    { "Input.AimModeSens",        "Mouse aim speed",  ROW_SLIDER, 1,    NULL,       0, 1, 80,  0,0,0,0,0 },
-    { "Input.MouseTurnSpeed",     "Mouse turn speed", ROW_SLIDER, 1,    NULL,       0, 0, 100, 0,0,0,0,0 },
-    { "Input.SensLink",           "Link aim/turn sens",ROW_TOGGLE, 1,   kOnOff,     0, 0, 0,   0,0,0,0,0 },
-    { "Input.MouseInvertY",       "Mouse invert Y",   ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
-    /* D181/Game.ScreenShakeIntensity: user testing (v0.2.1) found the slider
-     * "basically useless" -- viShake() is only called from explosion.c, so it
-     * scales explosion shake alone; it never touches the always-on walking
-     * head-bob or any getting-shot reaction, which is what "Screen shake"
-     * reads as to a player. Pulled from the menu until it covers all
-     * screen-shake/view-bob sources, not just explosions. Config var + fr.c
-     * hook stay in place. */
-    /* D232: the community "no damage flash" toggle (suppresses the red/green
-     * hit-flash overlay in bondview2). */
-    { "Game.NoHitFlash",          "No hit flash",     ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
-    /* D216/Game.SkipIntro: user report (v0.2.1 testing) that it breaks audio
-     * -- pulled from the menu until root-caused. Not exposed to players; the
-     * config var + lv.c hook stay in place (dead unless an existing ini has
-     * it set, which no menu path can do any more). Do not re-add without
-     * fixing the underlying issue first. */
-    /* D257: everything-unlocked goodie (default ON). Consumed at startup by
-     * main.c -- applies from the next launch. */
-    { "Game.AllUnlocked",         "All unlocked",     ROW_TOGGLE, 1,    kOnOff,     0, 0, 0,   0,0,0,0,0 },
+    /* Graphics */
+    { PAGE_GRAPHICS, "Video.Fullscreen",         "Fullscreen",          ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "__Resolution",             "Resolution",          ROW_RES,    0,    NULL,       0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.VSync",              "VSync",               ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.FpsCap",             "Frame cap",           ROW_SLIDER, 10,   NULL,       0, 0, 360,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.DisplayFPS",         "FPS counter",         ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.MSAA",               "MSAA",                ROW_MSAA,   0,    NULL,       1, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.TextureFilter",      "Texture filter",      ROW_ENUM,   1,    kTexFilter, 0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.Anisotropy",         "Anisotropic filter",  ROW_SLIDER, 1,    NULL,       0, 1,  16,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.FixMipTextures",     "Mip texture fix",     ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.WrapFix",            "Texture wrap fix",    ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.FovScale",           "FOV scale",           ROW_SLIDER, 5,    NULL,       0, 50, 200,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.DrawDistanceAutoFov","Auto draw distance",  ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.DrawDistance",       "Draw distance",       ROW_SLIDER, 25,   NULL,       0, 25, 400,   0,0,0,0,0, "Video.DrawDistanceAutoFov" },
+    { PAGE_GRAPHICS, "Video.LodDistanceAutoFov", "Auto LOD distance",   ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.LodDistance",        "LOD distance",        ROW_SLIDER, 25,   NULL,       0, 25, 400,   0,0,0,0,0, "Video.LodDistanceAutoFov" },
+
+    /* Audio */
+    { PAGE_AUDIO, "Audio.Mute",                  "Mute",                 ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_AUDIO, "Audio.MasterVolume",          "Master volume",       ROW_SLIDER, 5,    NULL,       0, 0, 100,   0,0,0,0,0 },
+    { PAGE_AUDIO, "Audio.QueueLimit",            "Queue limit",         ROW_SLIDER, 128,  NULL,       0, 512,8192,  0,0,0,0,0 },
+    { PAGE_AUDIO, "Audio.BufferSize",            "Device buffer",       ROW_SLIDER, 64,   NULL,       1, 128,4096,  0,0,0,0,0 },
+
+    /* Input */
+    { PAGE_INPUT, "Input.MouseEnabled",          "Mouse enabled",       ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.AimAbsolute",           "Absolute aim",        ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.AimModeSens",           "Aim sensitivity",     ROW_SLIDER, 1,    NULL,       0, 1,  80,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.MouseTurnSpeed",        "Turn sensitivity",    ROW_SLIDER, 1,    NULL,       0, 1, 100,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.SensLink",              "Link sensitivities",  ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.MouseInvertY",          "Invert mouse Y",      ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.MouseSmoothing",        "Mouse smoothing",     ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.MouseRawInput",         "Raw mouse input",     ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.NaturalPitch",          "Natural pitch",       ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.PadDeadzone",           "Pad deadzone",        ROW_SLIDER, 1,    NULL,       0, 0,  40,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.PadTriggerPct",         "Trigger threshold",   ROW_SLIDER, 5,    NULL,       0, 0, 100,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.PadLookInvertY",        "Invert pad Y",        ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+
+    /* Gameplay */
+    { PAGE_GAMEPLAY, "Game.NoHitFlash",          "Disable hit flash",   ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GAMEPLAY, "Game.AllUnlocked",         "All missions unlocked",ROW_TOGGLE,1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+
+    /* System / diagnostics */
+    { PAGE_SYSTEM, "Debug.InputLog",             "Input logging",       ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
 };
 #define NUM_ROWS ((int)(sizeof(rows) / sizeof(rows[0])))
 
 static int  s_inited = 0;
 static volatile int s_open = 0;
-static int  s_sel = 0;        /* selection, index into s_visIdx (visible list) */
+static int  s_sel = 0;
+static int  s_page = PAGE_GRAPHICS;        /* selection, index into s_visIdx (visible list) */
 
 /* Visible-row list: rows whose hiddenIfOn option is nonzero are omitted
  * (manual % rows hide while their auto toggle is on). Rebuilt every frame in
@@ -193,97 +210,55 @@ static void fpsTick(void)
  * emit path and the mouse hit-testing in optionsOverlayHandleInput().
  * BankGothic caps are ~9 units tall here, so rows need ~16 units of pitch and
  * values are right-aligned to the panel edge to survive the wide font. */
-#define OV_X0        20
-#define OV_LABEL_X   28
-#define OV_TOP       12
-#define OV_LINE      15                       /* row pitch (13 rows must fit ~240) */
-#define OV_HDR       2                        /* header rows above row 0 (title+hint) */
-/* i is a VISIBLE-POSITION (already scroll-adjusted by the caller). */
-#define OV_ROW_Y(i)  (OV_TOP + ((i) + OV_HDR) * OV_LINE)
+#define OV_X0        10
+#define OV_TOP       8
+#define OV_TAB_Y     24
+#define OV_BODY_Y    43
+#define OV_LINE      17
+#define OV_LABEL_X   22
+#define OV_RIGHT     (viGetX() - 14)
+#define OV_BAR_X     ((viGetX() * 58) / 100)
+#define OV_NUM_W     46
+#define OV_ROW_Y(i)  (OV_BODY_Y + (i) * OV_LINE)
 
-/* How many rows fit between the header and the bottom edge of whatever 2D
- * space we are in right now (320x240 in-game, 440x330 on front-end screens --
- * viSetXY differs, see src/game/front.c). More rows than this => scroll. */
 static int maxVisibleRows(void)
 {
-    int n = (viGetY() - 6 - OV_TOP - OV_HDR * OV_LINE) / OV_LINE;
-    if (n < 4) {
-        n = 4;
-    }
-    return n;
+    int n = (viGetY() - OV_BODY_Y - 24) / OV_LINE;
+    return n < 4 ? 4 : n;
 }
-#define OV_RIGHT     (viGetX() - OV_X0)       /* right edge for right-aligned text */
-#define OV_NUM_W     36                       /* reserved width for a slider's number */
-#define OV_BAR_X     150
 
-/* Slider fill bar span in overlay space (shared by emit + hit-testing). */
 static void sliderBarSpan(s32 *x0, s32 *x1)
 {
     *x0 = OV_BAR_X;
     *x1 = OV_RIGHT - OV_NUM_W;
-    if (*x1 < *x0 + 16) {
-        *x1 = *x0 + 16;
-    }
+    if (*x1 < *x0 + 20) *x1 = *x0 + 20;
 }
 
-/* Visible position (0..s_visN-1) the given overlay-space y falls in, or -1. */
 static int overlayRowAtY(double oy)
 {
     for (int p = 0; p < s_visN; p++) {
         double top = OV_ROW_Y(p - s_scroll) - 3;
-        if (oy >= top && oy < top + OV_LINE) {
-            return p;
-        }
+        if (oy >= top && oy < top + OV_LINE) return p;
     }
     return -1;
 }
 
-/* Rebuild the visible-row list and keep the selection in range. */
-static void overlayUpdateVisible(void)
+static int tabAtX(double ox)
 {
-    s_visN = 0;
-    for (int i = 0; i < NUM_ROWS; i++) {
-        if (!(rows[i].hidePtr && *rows[i].hidePtr != 0)) {
-            s_visIdx[s_visN++] = i;
-        }
+    const int W = viGetX();
+    const int left = 14, right = W - 14;
+    const int span = right - left;
+    for (int i = 0; i < PAGE_COUNT; ++i) {
+        int x0 = left + (span * i) / PAGE_COUNT;
+        int x1 = left + (span * (i + 1)) / PAGE_COUNT;
+        if (ox >= x0 && ox < x1) return i;
     }
-    if (s_visN == 0) {   /* cannot happen (toggles have no hide source) */
-        s_visIdx[s_visN++] = 0;
-    }
-    if (s_sel < 0) {
-        s_sel = 0;
-    }
-    if (s_sel >= s_visN) {
-        s_sel = s_visN - 1;
-    }
+    return -1;
 }
 
-/* Keep the selected row on screen: shift the window when it nears an edge. */
-static void overlayUpdateScroll(void)
-{
-    int maxV = maxVisibleRows();
-    if (s_visN <= maxV) {
-        s_scroll = 0;
-        return;
-    }
-    s_scroll = s_sel - (maxV - 1);
-    if (s_scroll < 0) {
-        s_scroll = 0;
-    }
-    if (s_scroll > s_visN - maxV) {
-        s_scroll = s_visN - maxV;
-    }
-}
-
-/* The close box brackets the title row at the panel's right edge. */
-#define OV_CB_X0   (OV_RIGHT - 14)
-#define OV_CB_X1   (OV_RIGHT + 7)
-#define OV_CB_Y0   (OV_TOP - 3)
-#define OV_CB_Y1   (OV_TOP + 12)
 static int overlayInCloseBox(double ox, double oy)
 {
-    return ox >= OV_CB_X0 && ox <= OV_CB_X1 &&
-           oy >= OV_CB_Y0 && oy <= OV_CB_Y1;
+    return ox >= viGetX() - 30 && ox <= viGetX() - 8 && oy >= 5 && oy <= 21;
 }
 
 /* ------------------------------------------------------------------------ */
@@ -523,6 +498,17 @@ int optionsOverlayIsOpen(void)
     return s_open;
 }
 
+static void overlaySetPage(int page)
+{
+    if (page < 0) page = PAGE_COUNT - 1;
+    if (page >= PAGE_COUNT) page = 0;
+    if (page == s_page) return;
+    s_page = page;
+    s_sel = 0;
+    s_scroll = 0;
+    overlayUpdateVisible();
+}
+
 void optionsOverlayScroll(int dir)
 {
     if (!s_inited) {
@@ -603,6 +589,16 @@ void optionsOverlayHandleInput(void)
           || inputPadButton(0, SDL_CONTROLLER_BUTTON_A)
           || inputPadButton(0, SDL_CONTROLLER_BUTTON_X);
 
+    static int prevPageL = 0, prevPageR = 0;
+    int pageL = ks[SDL_SCANCODE_PAGEUP] || ks[SDL_SCANCODE_Q]
+             || inputPadButton(0, SDL_CONTROLLER_BUTTON_LEFTSHOULDER);
+    int pageR = ks[SDL_SCANCODE_PAGEDOWN] || ks[SDL_SCANCODE_E]
+             || inputPadButton(0, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER);
+    if (pageL && !prevPageL) overlaySetPage(s_page - 1);
+    if (pageR && !prevPageR) overlaySetPage(s_page + 1);
+    prevPageL = pageL;
+    prevPageR = pageR;
+
     static int prevStart = 0;   /* not reset while closed: a Start held across
                                   close must not re-close on the next open */
     int startNow = inputPadButton(0, SDL_CONTROLLER_BUTTON_START);
@@ -624,6 +620,7 @@ void optionsOverlayHandleInput(void)
         double oy = (double)my * (double)viGetY() / wh;
         int hoverVis = overlayRowAtY(oy);
         int onClose  = overlayInCloseBox(ox, oy);
+        int hoverTab = (oy >= OV_TAB_Y - 3 && oy <= OV_TAB_Y + 13) ? tabAtX(ox) : -1;
 
         /* No hover-to-highlight: merely moving the mouse must not move the
          * selection or scroll the window (hovering near a list edge fed the
@@ -636,6 +633,11 @@ void optionsOverlayHandleInput(void)
         s32 bx0, bx1;
         sliderBarSpan(&bx0, &bx1);
         if (lmb && !prevLmb) {
+            if (hoverTab >= 0) {
+                overlaySetPage(hoverTab);
+                prevLmb = lmb;
+                return;
+            }
             if (onClose) {
                 optionsOverlayToggle();   /* close + configSave */
                 return;
@@ -755,116 +757,125 @@ static Gfx *drawTextR(Gfx *gdl, s32 xr, s32 y, const char *str, u32 colour)
 
 Gfx *optionsOverlayEmit(void)
 {
-    if (!s_inited) {
-        overlayInit();
-    }
-
+    if (!s_inited) overlayInit();
     fpsTick();
 
     if (!s_open) {
-        if (!s_showFps || !s_fpsText[0]) {
-            return NULL;   /* nothing appended -> golden dumps byte-identical */
-        }
-        /* D213: FPS-only mini DL (top-right), panel closed. */
-        const s32 fw = viGetX();
-        const s32 fh = viGetY();
-        Gfx *fgdl = s_buf;
-        gDPPipeSync(fgdl++);
-        gDPSetCycleType(fgdl++, G_CYC_1CYCLE);
-        gDPSetTexturePersp(fgdl++, G_TP_NONE);
-        gDPSetScissor(fgdl++, G_SC_NON_INTERLACE, 0, 0, fw, fh);
-        fgdl = microcode_constructor(fgdl);
-        fgdl = drawTextR(fgdl, fw - 6, 6, s_fpsText, 0x40ff60ff);
-        gDPPipeSync(fgdl++);
-        gSPEndDisplayList(fgdl++);
+        if (!s_showFps || !s_fpsText[0]) return NULL;
+        const s32 fw = viGetX(), fh = viGetY();
+        Gfx *gdl = s_buf;
+        gDPPipeSync(gdl++);
+        gDPSetCycleType(gdl++, G_CYC_1CYCLE);
+        gDPSetTexturePersp(gdl++, G_TP_NONE);
+        gDPSetScissor(gdl++, G_SC_NON_INTERLACE, 0, 0, fw, fh);
+        gdl = microcode_constructor(gdl);
+        gdl = drawTextR(gdl, fw - 7, 6, s_fpsText, 0x62f4c7ff);
+        gDPPipeSync(gdl++);
+        gSPEndDisplayList(gdl++);
         return s_buf;
     }
 
     overlayUpdateVisible();
     overlayUpdateScroll();
 
-    const s32 W = viGetX();
-    const s32 H = viGetY();
-    const s32 right = OV_RIGHT;
-    const s32 panelTop = OV_TOP - 9;
-    /* Last visible position actually drawn (window may be shorter than the
-     * list at small 2D viewports -- the rest is reached by scrolling). */
-    const int maxV  = maxVisibleRows();
-    const int pLast = (s_visN - s_scroll < maxV) ? s_visN - s_scroll
-                                                 : s_scroll + maxV - 1;
-    const s32 panelBottom = OV_ROW_Y(pLast) + OV_LINE / 2 + 3;
+    const s32 W = viGetX(), H = viGetY();
+    const int maxV = maxVisibleRows();
+    const int count = s_visN - s_scroll;
+    const int drawN = count < maxV ? count : maxV;
+    const int pLast = s_scroll + drawN - 1;
     s32 bx0, bx1;
     sliderBarSpan(&bx0, &bx1);
-    Gfx *gdl = s_buf;
 
+    Gfx *gdl = s_buf;
     gDPPipeSync(gdl++);
     gDPSetCycleType(gdl++, G_CYC_1CYCLE);
     gDPSetTexturePersp(gdl++, G_TP_NONE);
     gDPSetScissor(gdl++, G_SC_NON_INTERLACE, 0, 0, W, H);
 
-    /* ---- pass 1: all fills (G_CC_PRIMITIVE) ---- */
-    gdl = fillRect(gdl, 0, 0, W, H, 0, 0, 0, 150);                       /* dim */
-    gdl = fillRect(gdl, OV_X0 - 8, panelTop, W - (OV_X0 - 8), panelBottom,
-                   8, 10, 24, 210);                                     /* panel */
-    gdl = fillRect(gdl, OV_CB_X0, OV_CB_Y0, OV_CB_X1, OV_CB_Y1,
-                   150, 40, 40, 235);                                   /* close */
+    /* Fullscreen glass shell. Dark neutral base + cyan/gold accents keeps the
+     * UI visually separate from GoldenEye's original watch/front-end art. */
+    gdl = fillRect(gdl, 0, 0, W, H, 0, 0, 0, 150);
+    gdl = fillRect(gdl, 7, 5, W - 8, H - 7, 9, 14, 20, 238);
+    gdl = fillRect(gdl, 7, 5, W - 8, 22, 15, 25, 34, 250);
+    gdl = fillRect(gdl, 7, 40, W - 8, 41, 70, 215, 190, 235);
+    gdl = fillRect(gdl, 7, H - 22, W - 8, H - 7, 12, 20, 28, 248);
 
-    for (int p = s_scroll; p <= pLast; p++) {
+    /* Top tab strip. */
+    const int tabLeft = 14, tabRight = W - 14, tabSpan = tabRight - tabLeft;
+    for (int i = 0; i < PAGE_COUNT; ++i) {
+        int x0 = tabLeft + (tabSpan * i) / PAGE_COUNT;
+        int x1 = tabLeft + (tabSpan * (i + 1)) / PAGE_COUNT - 2;
+        if (i == s_page)
+            gdl = fillRect(gdl, x0, OV_TAB_Y - 3, x1, OV_TAB_Y + 12, 28, 90, 92, 245);
+        else
+            gdl = fillRect(gdl, x0, OV_TAB_Y - 3, x1, OV_TAB_Y + 12, 17, 31, 42, 225);
+    }
+
+    /* Rows as separated cards instead of one flat list. */
+    for (int p = s_scroll; p <= pLast; ++p) {
         const struct Row *r = &rows[s_visIdx[p]];
-        s32 rowY = OV_ROW_Y(p - s_scroll);
-        if (p == s_sel) {
-            gdl = fillRect(gdl, OV_X0 - 4, rowY - 3, W - (OV_X0 - 4),
-                           rowY + OV_LINE - 4, 40, 46, 96, 220);
-        }
+        int y = OV_ROW_Y(p - s_scroll);
+        const int selected = (p == s_sel);
+        gdl = fillRect(gdl, 14, y - 3, W - 14, y + 11,
+                       selected ? 27 : 15, selected ? 51 : 27,
+                       selected ? 58 : 35, selected ? 245 : 220);
+        if (selected)
+            gdl = fillRect(gdl, 14, y - 3, 17, y + 11, 91, 241, 201, 255);
+
         if (r->kind == ROW_SLIDER && r->found) {
-            double lo = rowLo(r), hi = rowHi(r);
-            double f = (hi > lo) ? (rowGet(r) - lo) / (hi - lo) : 0.0;
-            if (f < 0) f = 0; if (f > 1) f = 1;
-            s32 by = rowY + 3;
-            gdl = fillRect(gdl, bx0, by, bx1, by + 5, 60, 60, 70, 220);
-            gdl = fillRect(gdl, bx0, by, bx0 + (s32)((bx1 - bx0) * f), by + 5,
-                           210, 200, 90, 255);
+            double lo=rowLo(r), hi=rowHi(r);
+            double f=(hi>lo)?(rowGet(r)-lo)/(hi-lo):0.0;
+            if(f<0)f=0; if(f>1)f=1;
+            gdl=fillRect(gdl,bx0,y+3,bx1,y+6,44,55,64,255);
+            gdl=fillRect(gdl,bx0,y+3,bx0+(s32)((bx1-bx0)*f),y+6,87,231,193,255);
         }
     }
 
-    /* ---- pass 2: text ---- */
     gdl = microcode_constructor(gdl);
 
-    gdl = drawText(gdl, OV_X0, OV_TOP, "PC OPTIONS", 0xffe040ff);
-    gdl = drawText(gdl, OV_X0, OV_TOP + OV_LINE,
-                   "select: scroll/click, change: mouse/arrows",
-                   0x8890a0ff);                                        /* hint line */
-    gdl = drawText(gdl, (OV_CB_X0 + OV_CB_X1) / 2 - measureText("X") / 2,
-                   OV_TOP, "X", 0xffffffff);                            /* close glyph */
+    gdl = drawText(gdl, 14, 8, "ARM-GE // PORT CONTROL", 0x62f4c7ff);
+    gdl = drawTextR(gdl, W - 12, 8, "F10  X", 0xaebbc4ff);
 
-    for (int p = s_scroll; p <= pLast; p++) {
-        const struct Row *r = &rows[s_visIdx[p]];
-        s32 rowY = OV_ROW_Y(p - s_scroll);
-        u32 col = (p == s_sel) ? 0xffffffff : 0xc0c0c8ff;
-        char val[48];
+    for (int i = 0; i < PAGE_COUNT; ++i) {
+        int x0 = tabLeft + (tabSpan * i) / PAGE_COUNT;
+        int x1 = tabLeft + (tabSpan * (i + 1)) / PAGE_COUNT - 2;
+        int tw = measureText(kPageNames[i]);
+        gdl = drawText(gdl, x0 + ((x1 - x0) - tw) / 2, OV_TAB_Y,
+                       kPageNames[i], i == s_page ? 0xffffffff : 0x8fa3adff);
+    }
 
-        gdl = drawText(gdl, OV_LABEL_X, rowY, (char *)r->label,
-                       r->found ? col : 0x808080ff);
-        if (!r->found) {
-            gdl = drawTextR(gdl, right, rowY, "(n/a)", 0x808080ff);
+    for (int p = s_scroll; p <= pLast; ++p) {
+        const struct Row *r=&rows[s_visIdx[p]];
+        int y=OV_ROW_Y(p-s_scroll);
+        u32 col=(p==s_sel)?0xffffffff:0xc5d0d6ff;
+        char val[64];
+        gdl=drawText(gdl,OV_LABEL_X,y,r->label,r->found?col:0x66727aff);
+        if(!r->found){
+            gdl=drawTextR(gdl,OV_RIGHT,y,"N/A",0x66727aff);
             continue;
         }
-
-        valueText(r, val, sizeof(val));
-        if (r->restart) {
-            /* value left of the bar span, "(restart)" pinned to the edge */
-            gdl = drawText(gdl, bx0, rowY, val, col);
-            gdl = drawTextR(gdl, right, rowY, "(restart)", 0x909090ff);
-        } else {
-            gdl = drawTextR(gdl, right, rowY, val, col);
+        valueText(r,val,sizeof(val));
+        if(r->restart){
+            gdl=drawTextR(gdl,OV_RIGHT,y,"RESTART",0xd7a758ff);
+            gdl=drawText(gdl,bx0,y,val,col);
+        }else{
+            gdl=drawTextR(gdl,OV_RIGHT,y,val,col);
         }
+    }
+
+    {
+        char perf[96];
+        snprintf(perf,sizeof(perf),"%s   AUDIO Q %d   PAGE %d/%d",
+                 s_fpsText[0]?s_fpsText:"-- FPS",
+                 audioGetSamplesBuffered(),s_page+1,PAGE_COUNT);
+        gdl=drawText(gdl,14,H-18,perf,0x7fdcc4ff);
+        gdl=drawTextR(gdl,W-14,H-18,"L/R TAB   F10 CLOSE",0x7f929cff);
     }
 
     gDPPipeSync(gdl++);
     gSPEndDisplayList(gdl++);
-
-    if ((gdl - s_buf) > OV_BUF_CMDS) {
-        sysLogPrintf(LOG_ERROR, "optionsoverlay: DL overflow (%d)", (int)(gdl - s_buf));
-    }
+    if ((gdl-s_buf)>OV_BUF_CMDS)
+        sysLogPrintf(LOG_ERROR,"optionsoverlay: DL overflow (%d)",(int)(gdl-s_buf));
     return s_buf;
 }
+

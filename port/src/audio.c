@@ -53,6 +53,10 @@ static int  bufferSize = 512;
  * NB: an existing data/ge007.ini pins QueueLimit, so this default only
  * applies to fresh configs -- see docs/dev/findings.md D204. */
 static int  queueLimit = 2880;
+static int  masterVolume = 100;
+static int  mute = 0;
+static s16 *volumeScratch = NULL;
+static u32  volumeScratchBytes = 0;
 
 /* D204/F1: size in bytes of the block most recently handed to the DAC. Used
  * to bound audioGetAiLengthBytes() to one buffer, like real AI hardware. */
@@ -108,6 +112,9 @@ int audioInit(void)
 void audioDestroy(void)
 {
     if (dev) { SDL_CloseAudioDevice(dev); dev = 0; }
+    free(volumeScratch);
+    volumeScratch = NULL;
+    volumeScratchBytes = 0;
 }
 
 s32 audioGetSamplesBuffered(void)
@@ -281,8 +288,25 @@ void audioSetNextBuffer(const s16 *buf, u32 len)
         }
     }
     if (dev && buf && len) {
+        const s16 *queueBuf = buf;
+        if (mute || masterVolume < 100) {
+            if (volumeScratchBytes < len) {
+                s16 *next = (s16 *)realloc(volumeScratch, len);
+                if (next) {
+                    volumeScratch = next;
+                    volumeScratchBytes = len;
+                }
+            }
+            if (volumeScratch && volumeScratchBytes >= len) {
+                u32 samples = len / sizeof(s16);
+                int vol = mute ? 0 : masterVolume;
+                for (u32 i = 0; i < samples; ++i)
+                    volumeScratch[i] = (s16)(((s32)buf[i] * vol) / 100);
+                queueBuf = volumeScratch;
+            }
+        }
         if (audioGetSamplesBuffered() < queueLimit) {
-            SDL_QueueAudio(dev, buf, len);
+            SDL_QueueAudio(dev, queueBuf, len);
             lastBufferBytes = len;
         } else if (dropCount++ % 128 == 0) {
             /* D204/F3: dropping here used to be silent, so overproduction
@@ -296,6 +320,8 @@ void audioSetNextBuffer(const s16 *buf, u32 len)
 
 PD_CONSTRUCTOR static void audioConfigInit(void)
 {
-    configRegisterInt("Audio.BufferSize", &bufferSize, 0, 1 * 1024 * 1024);
-    configRegisterInt("Audio.QueueLimit", &queueLimit, 0, 1 * 1024 * 1024);
+    configRegisterInt("Audio.BufferSize", &bufferSize, 128, 4096);
+    configRegisterInt("Audio.QueueLimit", &queueLimit, 512, 8192);
+    configRegisterInt("Audio.MasterVolume", &masterVolume, 0, 100);
+    configRegisterInt("Audio.Mute", &mute, 0, 1);
 }

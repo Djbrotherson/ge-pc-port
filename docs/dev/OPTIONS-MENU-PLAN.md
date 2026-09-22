@@ -1,107 +1,69 @@
-# In-game PC options menu — design + resume point
+# ARM-GE Port Control Overlay
 
-Status: **config-system foundation landed (M-35); menu surface not built.**
-Pattern follows `docs/dev/AUDIO-PLAN.md` — a plan doc that a later session
-executes.
+Status: **active Dam-lab UI replacement**.
 
-Findings context: D180 (input), D181 (first route-(b) hook). Config API:
-`configRegister{Int,UInt,Float,String}` with clamps (`port/include/config.h`).
+The old single-column F10 list has been replaced on `dam-only-lab` with the
+ARM-GE Port Control overlay. The interaction design takes cues from modern
+source-port/recomp settings surfaces: categorical pages, controller-first
+navigation, mouse/keyboard parity, live settings, and a persistent performance
+footer. It intentionally does not copy another project's styling.
 
----
+## Controls
 
-## 1. What PD does, and why it doesn't port directly
+Existing bindings are preserved:
 
-PD's `pd_port/port/src/optionsmenu.c` (~2000 lines) hooks port-side handlers
-into **PD's own decomp menu tables** (`menudata`/`menuitem` arrays with
-`MENUITEMTYPE_SLIDER` etc.). It works because PD's front end is a generic
-data-driven list menu.
+- `F10` toggles the overlay,
+- arrows/D-pad move and change values,
+- Enter/A/X advances a value,
+- B/Y/Left decrements,
+- Start closes,
+- mouse click/drag/wheel remains supported.
 
-GE is different. GE's settings UI is the **in-game watch** (`src/game/options.c`):
-`draw_watch_game_options_page` / `draw_watch_control_options_page` +
-`watch_screenN_navigation` — hand-drawn pages with bespoke nav functions,
-not a table. The front-end menus (`front.c`, `initmenus.c`, `mpmenu.c`) are
-also bespoke draw/nav pairs, not a reusable list widget.
+Added navigation:
 
-So there is **no table to inject rows into**. A PC options surface is either
-(A) a new hand-built watch page, (B) a new hand-built front-end screen, or
-(C) a port-layer overlay drawn outside the game's menu system.
+- L/R shoulder switches category,
+- Q/E or PageUp/PageDown switches category,
+- clicking a tab switches category.
 
-## 2. Recommended approach: (C) port-layer overlay
+## Pages
 
-A self-contained immediate-mode overlay in `port/`, toggled by a hotkey
-(e.g. `F10`), drawn as fast3d 2D quads + the game's own `textRender` over
-the top of whatever is on screen, with keyboard/mouse nav handled entirely
-in the port layer. Reasons:
+### Graphics
 
-- **Zero `src/` menu-code edits.** No new bespoke nav function to get wrong
-  (the watch-nav code is exactly the D118d / over-scroll family).
-- Works in-level *and* in the front end (it's above the game).
-- The values it edits are already port-owned `config.c` variables — the
-  overlay is just a view over the registered option list.
-- Precedent: the port already draws port-owned UI (FPS in the window title,
-  F12 screenshot). This is the render-side equivalent.
+Fullscreen, resolution, VSync, frame cap, FPS display, MSAA, texture filter,
+anisotropy, mip fix, texture-wrap fix, FOV scale, automatic/manual draw
+distance and automatic/manual LOD distance.
 
-Cost: an immediate-mode widget layer (label, slider, toggle, dropdown) in
-fast3d 2D. ~300–500 lines. The `config.c` registry already gives us
-key/min/max/value + a type tag (after M-35) — enough to auto-generate rows.
+### Audio
 
-### Sketch
+Mute, live master volume, queue-limit tuning and SDL device-buffer size.
+Device-buffer size is marked restart-required; master volume and mute are
+applied directly to the PCM stream before it reaches SDL.
 
-```
-port/src/optionsoverlay.c
-  optionsOverlayToggle()        // F10 in video.c event pump
-  optionsOverlayHandleInput()   // called from inputComputePad idx 0 when open:
-                                //   swallow kbd/mouse from the game, drive the cursor
-  optionsOverlayRender(Gfx**)   // called from a fast3d 2D hook after the game DL
-```
+### Input
 
-Registry additions needed in `config.c`:
-- `configForEachOption(cb)` — iterate {key, type, ptr, min, max}.
-- optional per-option metadata: display label, step, enum-value names,
-  "apply live" vs "needs restart". Add a `configRegisterIntEx(...)` variant
-  or a side table keyed by dotted key.
+Mouse enable/absolute aim, aim/turn sensitivity and linking, invert Y,
+smoothing, raw input, natural pitch, controller deadzone, trigger threshold
+and controller Y inversion.
 
-Live-apply: most keys already re-read their variable every frame
-(`mouseAimSpeed`, `portScreenShakeScale`, `cfgVSync` via `videoSetVSync`).
-Ones that need a hook (MSAA, fullscreen) get an `configOnChange` callback
-or are flagged "restart".
+### Gameplay
 
-## 3. Minimum option set for v1
+Port-side behavior toggles currently proven safe enough to expose.
 
-| Row | Key | Type | Notes |
-|---|---|---|---|
-| VSync | `Video.VSync` | toggle | live (`SDL_GL_SetSwapInterval`) |
-| Frame cap | `Video.FpsCap` | int slider 0–360 | live |
-| MSAA | `Video.MSAA` | dropdown 1/2/4/8 | needs FBO rebuild — flag "restart" for v1 |
-| Texture filter | `Video.TextureFilter` | dropdown nearest/bilinear/3-point | live-ish |
-| Mouse aim speed | `Input.MouseAimSpeed` | slider 1–100 | live |
-| Mouse turn speed | `Input.MouseTurnSpeed` | slider 1–100 | live |
-| Mouse invert Y | `Input.MouseInvertY` | toggle | live |
-| Capture mode | `Input.MouseCaptureMode` | toggle | live |
-| Screen shake | `Game.ScreenShakeIntensity` | slider 0–3 (×) | live (D181) |
-| Screenshot key | — | (F12, documented; rebind = later) | — |
+### System
 
-`configSave()` on overlay close.
+Diagnostics intended for development builds. The Dam lab keeps its separate
+hardware telemetry HUD; this page is for persistent port controls.
 
-## 4. Alternative if an in-fiction surface is required later
+## Visual system
 
-Route (B): a new front-end screen `constructor_menuXX_pcoptions` +
-`menuXX_pcoptions_navigation` in `front.c` under `#ifdef PORT`, reached from
-a new "PC OPTIONS" row on the main options menu. Each row calls a
-`configGet/Set` shim. This is a genuine route-(b) `src/` edit (menu content
-change) → its own Dxx, N64 verbatim under `#else`, opt-in. More faithful,
-more surface area, more nav bugs. Defer unless the owner wants it in-fiction.
+The new overlay uses a full-screen translucent shell, a fixed title strip,
+five category tabs, separated row cards, a bright selection rail, compact
+sliders, cyan/green live-state accents and a persistent footer. This is
+deliberately visually distinct from the original GoldenEye watch UI and from
+the previous PC overlay.
 
-## 5. Resume checklist
+## Design rule
 
-1. Add `configForEachOption` + a label/step/enum side-table to `config.c`.
-2. Build the fast3d 2D immediate-mode widget helpers (reuse `gDPFillRectangle`
-   + `textRender`; see how `options.c draw_watch_game_options_page` emits
-   text for the font/`Gfx**` conventions).
-3. `port/src/optionsoverlay.c` state machine + F10 toggle in `video.c`.
-4. Route input: when open, `inputComputePad` idx 0 returns a neutral pad and
-   forwards nav to the overlay (same "swallow" pattern WI-1 uses for the
-   free-cursor click).
-5. `configOnChange` hooks for MSAA/fullscreen; everything else is live.
-6. Verify: overlay open/close in-level and in the front end; golden dumps
-   unaffected with the overlay closed (it draws nothing).
+A setting is only exposed when the port has a real implementation behind it.
+The UI must never create a placebo toggle. New renderer/audio enhancements
+should land as runtime capability first and overlay control second.

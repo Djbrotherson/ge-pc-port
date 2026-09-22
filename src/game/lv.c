@@ -11,6 +11,9 @@ extern void reset_texture_state(void);
 #include <PR/libaudio.h>
 #include <assets/font_dl.h>
 #include <deb.h>
+#ifdef DAM_ONLY_LAB
+#include <boss.h>
+#endif
 #include <memp.h>
 #include <music.h>
 #include <tlb_manage.h>

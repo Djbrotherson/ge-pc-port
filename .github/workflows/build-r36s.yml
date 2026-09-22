@@ -1,6 +1,6 @@
 name: GoldenEye AArch64 R36S GLES Build
 
-# Dam behavioral lab AArch64 proof — telemetry compile retry
+# Dam behavioral lab AArch64 proof — Port Control overlay
 on:
   # Expensive cross-builds are intentional. Active development pushes are
   # covered by the cheap semantic gate. Run this only after a reviewed batch
