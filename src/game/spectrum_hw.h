@@ -639,7 +639,7 @@ flag_dest |= \
     src = ((src << 1) | (flag_dest & 1)); \
     flag_dest = (val \
         | (( (temp) \
-        | src & (SPEC_FLAG_SIGN | SPEC_FLAG_UNUSED_5 | SPEC_FLAG_UNUSED_3)) \
+        | (src & (SPEC_FLAG_SIGN | SPEC_FLAG_UNUSED_5 | SPEC_FLAG_UNUSED_3))) \
         | ((!src) << SPEC_FLAG_ZERO_INDEX) ) \
     ); \
 }

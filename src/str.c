@@ -24,7 +24,7 @@ char *strcpy(char *dst, const char *src) {
      * N64 langGet never returns NULL for these ids, so this is inert there. */
     if (GE_IS_NULL(src)) { if (!GE_IS_NULL(dst)) *ptr = '\0'; return dst; }
 #endif
-    while(*ptr++ = *src++);
+    while ((*ptr++ = *src++));
     return dst;
 }
 
@@ -51,7 +51,7 @@ char *strcat(char *dst, const char *src) {
     if (GE_IS_NULL(src)) { return dst; }          /* D150 — see strcpy note */
 #endif
     while (*ptr) { ptr++; };
-    while(*ptr++ = *src++);
+    while ((*ptr++ = *src++));
     return dst;
 }
 

@@ -3791,7 +3791,7 @@ void chrlvWalkingAnimationRelated(ChrRecord *self)
     left = chrGetEquippedWeaponProp(self, GUNLEFT);
     right = chrGetEquippedWeaponProp(self, GUNRIGHT);
 
-    if (((left != NULL) && (right != NULL)) || ((left == NULL)) && (right == NULL))
+    if (((left != NULL) && (right != NULL)) || ((left == NULL) && (right == NULL)))
     {
         flag = 0;
         ani_arg = randomGetNext() & 1;
@@ -4533,7 +4533,7 @@ bool chrIsNotDeadOrShot(ChrRecord *self)
     s8 currentaction = self->actiontype;
 
     if ((currentaction == ACT_DIE) || (currentaction == ACT_DEAD) || (currentaction == ACT_PREARGH)
-        || (currentaction == ACT_ARGH) && !(self->chrflags & CHRFLAG_00000200))
+        || ((currentaction == ACT_ARGH) && !(self->chrflags & CHRFLAG_00000200)))
     {
         return FALSE;
     }

@@ -7905,7 +7905,7 @@ void spectrum_hw_emulation(void)
 
                         s2_reg_B--;
                         s1_reg_F = (((ptr_pc_keyboard_table_alloc[s2_reg_B] ^ s3_reg_C) & 4)
-                            | (s2_reg_B & 0xA8
+                            | ((s2_reg_B & 0xA8)
                             | ((s2_reg_B > 0) << 6)
                             | 2)
                         );
