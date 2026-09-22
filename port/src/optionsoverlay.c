@@ -41,7 +41,6 @@
 #define _SHIFTR(v, s, w) ((u32)(((u32)(v) >> (s)) & ((0x01 << (w)) - 1)))
 #endif
 #include <PR/gbi.h>
-#include <bondconstants.h>
 
 #include "platform.h"
 #include "system.h"
@@ -89,11 +88,29 @@ extern void set_mTrack2Vol(u16 value);
 extern u16 call_sndGetSfxSlotFirstNaturalVolume(void);
 extern void sub_GAME_7F0A91A0(u16 value);
 
+/* Narrow ABI bridge for the original cheat handlers. Do not include the
+ * full game constants/type graph in this port-layer UI file: the CHEAT_ID
+ * enum is an int ABI and these verified values are stable in bondconstants.h. */
+enum {
+    GE_CHEAT_UNUSED = 0,
+    GE_CHEAT_INVINCIBILITY = 2,
+    GE_CHEAT_ALLGUNS = 3,
+    GE_CHEAT_MAXAMMO = 4,
+    GE_CHEAT_LINEMODE = 7,
+    GE_CHEAT_INVISIBILITY = 10,
+    GE_CHEAT_INFINITE_AMMO = 11,
+    GE_CHEAT_DK_MODE = 12,
+    GE_CHEAT_TINY_BOND = 14,
+    GE_CHEAT_PAINTBALL = 15,
+    GE_CHEAT_TURBO_MODE = 24,
+    GE_CHEAT_ENEMY_ROCKETS = 29
+};
+
 /* GoldenEye's original cheat machinery. Port Control invokes the same
  * handlers as the cartridge button-code path; no parallel cheat state. */
-extern bool cheatIsActive(CHEAT_ID cheat);
-extern void cheatButtonTurnOnCheatForPlayers(CHEAT_ID cheat);
-extern void cheatButtonHandleCheatsTurnedOff(CHEAT_ID cheat);
+extern bool cheatIsActive(int cheat);
+extern void cheatButtonTurnOnCheatForPlayers(int cheat);
+extern void cheatButtonHandleCheatsTurnedOff(int cheat);
 extern void cheatDisableAllCheats(void);
 
 /* ------------------------------------------------------------------------ */
@@ -489,7 +506,7 @@ static void overlayInit(void)
     }
 }
 
-static CHEAT_ID cheatIdForKey(const char *key);
+static int cheatIdForKey(const char *key);
 
 static double rowGet(const struct Row *r)
 {
@@ -506,8 +523,8 @@ static double rowGet(const struct Row *r)
     if (strcmp(r->key, "__MusicVolume") == 0) return (double)get_mTrack2Vol() * 100.0 / 32767.0;
     if (strcmp(r->key, "__SfxVolume") == 0) return (double)call_sndGetSfxSlotFirstNaturalVolume() * 100.0 / 32767.0;
     {
-        CHEAT_ID cid = cheatIdForKey(r->key);
-        if (cid != CHEAT_UNUSED) return cheatIsActive(cid) ? 1.0 : 0.0;
+        int cid = cheatIdForKey(r->key);
+        if (cid != GE_CHEAT_UNUSED) return cheatIsActive(cid) ? 1.0 : 0.0;
     }
     if (!r->found || !r->ptr) {
         return 0.0;
@@ -539,19 +556,19 @@ static struct Row *rowByKey(const char *key)
     return NULL;
 }
 
-static CHEAT_ID cheatIdForKey(const char *key)
+static int cheatIdForKey(const char *key)
 {
-    if (strcmp(key, "__CheatInvincible") == 0)   return CHEAT_INVINCIBILITY;
-    if (strcmp(key, "__CheatAllGuns") == 0)      return CHEAT_ALLGUNS;
-    if (strcmp(key, "__CheatInfiniteAmmo") == 0) return CHEAT_INFINITE_AMMO;
-    if (strcmp(key, "__CheatInvisible") == 0)    return CHEAT_INVISIBILITY;
-    if (strcmp(key, "__CheatDK") == 0)           return CHEAT_DK_MODE;
-    if (strcmp(key, "__CheatTiny") == 0)         return CHEAT_TINY_BOND;
-    if (strcmp(key, "__CheatPaintball") == 0)    return CHEAT_PAINTBALL;
-    if (strcmp(key, "__CheatTurbo") == 0)        return CHEAT_TURBO_MODE;
-    if (strcmp(key, "__CheatLineMode") == 0)     return CHEAT_LINEMODE;
-    if (strcmp(key, "__CheatEnemyRockets") == 0) return CHEAT_ENEMY_ROCKETS;
-    return CHEAT_UNUSED;
+    if (strcmp(key, "__CheatInvincible") == 0)   return GE_CHEAT_INVINCIBILITY;
+    if (strcmp(key, "__CheatAllGuns") == 0)      return GE_CHEAT_ALLGUNS;
+    if (strcmp(key, "__CheatInfiniteAmmo") == 0) return GE_CHEAT_INFINITE_AMMO;
+    if (strcmp(key, "__CheatInvisible") == 0)    return GE_CHEAT_INVISIBILITY;
+    if (strcmp(key, "__CheatDK") == 0)           return GE_CHEAT_DK_MODE;
+    if (strcmp(key, "__CheatTiny") == 0)         return GE_CHEAT_TINY_BOND;
+    if (strcmp(key, "__CheatPaintball") == 0)    return GE_CHEAT_PAINTBALL;
+    if (strcmp(key, "__CheatTurbo") == 0)        return GE_CHEAT_TURBO_MODE;
+    if (strcmp(key, "__CheatLineMode") == 0)     return GE_CHEAT_LINEMODE;
+    if (strcmp(key, "__CheatEnemyRockets") == 0) return GE_CHEAT_ENEMY_ROCKETS;
+    return GE_CHEAT_UNUSED;
 }
 
 static int s_linkDepth = 0;   /* re-entrancy guard for the sens link below */
@@ -616,14 +633,14 @@ static void rowSet(struct Row *r, double v)
 
     /* Original GoldenEye cheat machinery. */
     if (strcmp(r->key, "__CheatMaxAmmo") == 0) {
-        cheatButtonTurnOnCheatForPlayers(CHEAT_MAXAMMO);
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_MAXAMMO);
         return;
     }
     if (strcmp(r->key, "__CheatClearAll") == 0) {
         cheatDisableAllCheats();
         {
-            const CHEAT_ID extra[] = { CHEAT_INVINCIBILITY, CHEAT_ALLGUNS,
-                CHEAT_DK_MODE, CHEAT_TINY_BOND, CHEAT_ENEMY_ROCKETS };
+            const int extra[] = { GE_CHEAT_INVINCIBILITY, GE_CHEAT_ALLGUNS,
+                GE_CHEAT_DK_MODE, GE_CHEAT_TINY_BOND, GE_CHEAT_ENEMY_ROCKETS };
             for (unsigned i = 0; i < sizeof(extra) / sizeof(extra[0]); ++i) {
                 if (cheatIsActive(extra[i])) cheatButtonHandleCheatsTurnedOff(extra[i]);
             }
@@ -631,8 +648,8 @@ static void rowSet(struct Row *r, double v)
         return;
     }
     {
-        CHEAT_ID cid = cheatIdForKey(r->key);
-        if (cid != CHEAT_UNUSED) {
+        int cid = cheatIdForKey(r->key);
+        if (cid != GE_CHEAT_UNUSED) {
             int want = v != 0.0;
             int have = cheatIsActive(cid) ? 1 : 0;
             if (want != have) {
