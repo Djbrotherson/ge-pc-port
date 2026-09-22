@@ -137,6 +137,16 @@ def scan_file(path:Path):
         in_port = port_state is True
         host_active = port_state is not False
 
+        # Animation offsets must cross into native pointers through the
+        # audited helper. Raw base+offset expressions duplicate the exact
+        # signed/unsigned LP64 boundary that previously caused animation
+        # crashes and make future audits harder.
+        if (host_active and path.as_posix() != "src/game/initanitable.h"
+                and re.search(r"(?:\(\s*u8\s*\*\s*\)\s*)?ptr_animation_table\s*\+", line)
+                and "ANIM_TABLE_OFFSET_PTR" not in line):
+            add("P0","raw-animation-table-rebase",path,i,raw,
+                "Use ANIM_TABLE_OFFSET_PTR for 32-bit animation offsets rebased onto the native table pointer.")
+
         # Exact semantic regression class: synthetic animation symbols are
         # offsets. Comments have already been stripped above.
         if re.search(r"\(uintptr_t\)\s*&ANIM_DATA_", line) or re.search(r"\+\s*&ANIM_DATA_",line):
