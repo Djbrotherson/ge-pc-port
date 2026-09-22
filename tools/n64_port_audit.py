@@ -14,7 +14,7 @@ import runpy
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-DEFAULT_PROFILE = HERE / "port_profiles" / "goldeneye.json"
+DEFAULT_PROFILE = HERE / "integration_profiles" / "goldeneye.json"
 _IMPL = HERE / "port_audit_engine.py"
 
 
