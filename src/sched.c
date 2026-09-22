@@ -1,5 +1,6 @@
 #include <ultra64.h>
 #include <PR/os.h>
+#include <assert.h>
 #include "init.h"
 #include "sched.h"
 #include <bondgame.h>
