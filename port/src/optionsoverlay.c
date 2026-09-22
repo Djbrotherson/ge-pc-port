@@ -65,6 +65,13 @@ extern void  textMeasure(s32 *textheight, s32 *textwidth, char *text,
 extern s16   viGetX(void);
 extern s16   viGetY(void);
 
+/* GoldenEye-owned display settings. These are the same getters/setters used
+ * by the in-watch options page; Port Control is only another UI surface. */
+extern u32 get_screen_ratio(void);
+extern void set_screen_ratio(u32 ratio);
+extern u32 cur_player_get_screen_setting(void);
+extern void cur_player_set_screen_setting(u32 value);
+
 /* ------------------------------------------------------------------------ */
 
 enum { ROW_TOGGLE, ROW_SLIDER, ROW_ENUM, ROW_MSAA, ROW_RES };
@@ -83,7 +90,10 @@ static const char *const kPageHints[PAGE_COUNT] = {
 };
 
 static const char *const kOnOff[]     = { "OFF", "ON", NULL };
-static const char *const kTexFilter[] = { "NEAREST", "BILINEAR", "3-POINT", NULL };
+static const char *const kTexFilter[]    = { "NEAREST", "BILINEAR", "3-POINT", NULL };
+static const char *const kMipmapFilter[] = { "OFF", "NEAREST", "TRILINEAR", "AUTO", NULL };
+static const char *const kScreenMode[]   = { "FULL", "WIDE", "CINEMA", NULL };
+static const char *const kScreenRatio[]  = { "NORMAL", "16:9", NULL };
 static const int         kMsaaSeq[]   = { 1, 2, 4, 8 };
 
 /* Windowed-mode resolution presets. Filtered at init to those that fit the
@@ -129,7 +139,11 @@ static struct Row rows[] = {
     { PAGE_GRAPHICS, "Video.VSync",              "VSync",               ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.FpsCap",             "Frame cap",           ROW_SLIDER, 10,   NULL,       0, 0, 360,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.MSAA",               "MSAA",                ROW_MSAA,   0,    NULL,       1, 0,   0,   0,0,0,0,0 },
-    { PAGE_GRAPHICS, "Video.TextureFilter",      "Texture filter",      ROW_ENUM,   1,    kTexFilter, 0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.TextureFilter",      "Texture filter",      ROW_ENUM,   1,    kTexFilter,      0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.MipmapFilter",       "Mipmap filter",       ROW_ENUM,   1,    kMipmapFilter,   0, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "Video.FramebufferEffects", "Framebuffer effects", ROW_TOGGLE, 1,    kOnOff,          1, 0,   0,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "__ScreenMode",             "Game screen mode",    ROW_ENUM,   1,    kScreenMode,     0, 0,   2,   0,0,0,0,0 },
+    { PAGE_GRAPHICS, "__ScreenRatio",            "Game aspect ratio",   ROW_ENUM,   1,    kScreenRatio,    0, 0,   1,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.Anisotropy",         "Anisotropic filter",  ROW_SLIDER, 1,    NULL,       0, 1,  16,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.FixMipTextures",     "Mip texture fix",     ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.WrapFix",            "Texture wrap fix",    ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
@@ -346,8 +360,10 @@ static void overlayInit(void)
     configForEachOption(resolveCb, NULL);
 
     for (int i = 0; i < NUM_ROWS; i++) {
-        if (rows[i].kind == ROW_RES) {
-            rows[i].found = 1;   /* not config-backed; driven via video.c */
+        if (rows[i].kind == ROW_RES ||
+            strcmp(rows[i].key, "__ScreenMode") == 0 ||
+            strcmp(rows[i].key, "__ScreenRatio") == 0) {
+            rows[i].found = 1;   /* special live rows, not config-backed */
             continue;
         }
         if (!rows[i].found) {
@@ -405,6 +421,8 @@ static void overlayInit(void)
 
 static double rowGet(const struct Row *r)
 {
+    if (strcmp(r->key, "__ScreenMode") == 0) return (double)cur_player_get_screen_setting();
+    if (strcmp(r->key, "__ScreenRatio") == 0) return (double)get_screen_ratio();
     if (!r->found || !r->ptr) {
         return 0.0;
     }
@@ -440,6 +458,16 @@ static int s_linkDepth = 0;   /* re-entrancy guard for the sens link below */
 static void rowSet(struct Row *r, double v)
 {
     double lo = rowLo(r), hi = rowHi(r);
+    if (strcmp(r->key, "__ScreenMode") == 0) {
+        if (v < 0) v = 0; if (v > 2) v = 2;
+        cur_player_set_screen_setting((u32)lround(v));
+        return;
+    }
+    if (strcmp(r->key, "__ScreenRatio") == 0) {
+        if (v < 0) v = 0; if (v > 1) v = 1;
+        set_screen_ratio((u32)lround(v));
+        return;
+    }
     if (lo != hi) {
         if (v < lo) v = lo;
         if (v > hi) v = hi;
