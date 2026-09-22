@@ -504,6 +504,32 @@ def check_ai_command_layout_contract():
             "Could not prove generated AI bytecode record/length agreement.")
 
 
+def check_renderer_reload_contract():
+    """Keep host renderer cache lifetime aligned with game texture lifetime."""
+    lv=Path("src/game/lv.c")
+    gfx=Path("port/fast3d/gfx_pc.cpp")
+    if not (lv.exists() and gfx.exists()):
+        return
+    try:
+        ltext=lv.read_text(errors="replace")
+        gtext=gfx.read_text(errors="replace")
+        if 'extern "C" void reset_texture_state()' not in gtext:
+            add("P0","renderer-reset-export",gfx,1,"reset_texture_state",
+                "Renderer texture/shader cache reset must remain callable from the C game lifecycle.")
+        m=re.search(
+            r'R36S_LV_BREADCRUMB\("lv:texReset"\);(.*?)'
+            r'R36S_LV_BREADCRUMB\("lv:post-texReset"\);',
+            ltext,re.S,
+        )
+        if not m or "texReset();" not in m.group(1) or "reset_texture_state();" not in m.group(1):
+            add("P0","renderer-level-reload-reset",lv,1,
+                "texReset/reset_texture_state lifecycle pair missing",
+                "Level reload must clear both GoldenEye texture state and host renderer caches; recycled stage addresses otherwise permit stale texture hits.")
+    except Exception as exc:
+        add("P0","renderer-reload-audit-error",lv,1,str(exc),
+            "Could not prove renderer/game texture reset alignment.")
+
+
 def check_stage_setup_layout_contract():
     """Cross-check d88 growing-table widths against native setup structs."""
     converter=Path("tools_pc/d88_emit.py")
@@ -740,6 +766,7 @@ def main():
     collect_pointer_member_names()
     for f in iter_files(): scan_file(f)
     check_propdef_stride_contract()
+    check_renderer_reload_contract()
     check_stage_setup_layout_contract()
     check_model_sidecar_layout_contract()
     check_stan_layout_contract()
