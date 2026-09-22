@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Target-neutral entry point for N64 decomp/recomp host-port semantic checks.
 
-The detector implementation still lives in port_audit_engine.py for
-backward compatibility. This wrapper supplies project configuration and is the
-stable entry point for CI and future decomp profiles.
+The detector engine lives in port_audit_engine.py. This wrapper supplies
+repository/project configuration for the current integration CI.
 """
 from __future__ import annotations
 
@@ -16,7 +15,7 @@ import runpy
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 DEFAULT_PROFILE = HERE / "port_profiles" / "goldeneye.json"
-_IMPL = HERE / "r36s_semantic_audit.py"
+_IMPL = HERE / "port_audit_engine.py"
 
 
 def main() -> None:
