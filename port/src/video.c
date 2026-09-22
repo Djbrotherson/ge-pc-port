@@ -727,6 +727,11 @@ void videoPumpEvents(void)
             if ((ev.key.keysym.sym == SDLK_F4) && (ev.key.keysym.mod & KMOD_ALT)) {
                 sysLogPrintf(LOG_INFO, "video: Alt+F4 -> quit");
                 exit(0);
+            } else if ((ev.key.keysym.sym == SDLK_RETURN) && (ev.key.keysym.mod & KMOD_ALT) && !ev.key.repeat) {
+                if (wmAPI && wmAPI->set_fullscreen && wmAPI->get_fullscreen_state) {
+                    wmAPI->set_fullscreen(!wmAPI->get_fullscreen_state());
+                    gfx_sdl_update_cached_size();
+                }
             } else if (ev.key.keysym.sym == SDLK_F12 && !ev.key.repeat) {
                 screenshotReq = 1;
             } else if (ev.key.keysym.sym == SDLK_F10 && !ev.key.repeat) {

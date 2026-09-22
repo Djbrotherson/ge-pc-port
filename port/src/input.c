@@ -411,32 +411,33 @@ static int    lastMenuMouseX = -1, lastMenuMouseY = -1;  /* WI-2: last abs curso
 static void inputOpenPads(void)
 {
     connectedMask = 0x1;
-    int n = SDL_NumJoysticks();
-    for (int i = 0; i < n && i < MAX_PADS; ++i) {
-        if (!SDL_IsGameController(i)) {
+
+    /* SDL joystick indices include devices that are not GameController
+     * mappings. Pack actual game controllers densely into N64 controller
+     * slots so a keypad/power/input device before the GO-Super pad cannot
+     * strand the first real pad in pads[1+] while controller 0 stays empty. */
+    int slot = 0;
+    const int n = SDL_NumJoysticks();
+    for (int joy = 0; joy < n && slot < MAX_PADS; ++joy) {
+        if (!SDL_IsGameController(joy)) {
             continue;
         }
-        if (pads[i]) {
+
+        SDL_GameController *pad = SDL_GameControllerOpen(joy);
+        if (!pad) {
+            sysLogPrintf(LOG_WARNING, "input: failed to open gamepad index %d: %s",
+                         joy, SDL_GetError());
             continue;
         }
-        pads[i] = SDL_GameControllerOpen(i);
-        if (pads[i]) {
-            connectedMask |= (1 << i);
-            sysLogPrintf(LOG_NOTE, "input: opened gamepad %d '%s' as controller %d",
-                         i, SDL_GameControllerName(pads[i]), i);
-        }
+
+        pads[slot] = pad;
+        connectedMask |= (1 << slot);
+        sysLogPrintf(LOG_NOTE, "input: opened gamepad index %d '%s' as controller %d",
+                     joy, SDL_GameControllerName(pad), slot);
+        ++slot;
     }
-    for (int i = 0; i < MAX_PADS; ++i) {
-        if (pads[i]) {
-            connectedMask |= (1 << i);
-        }
-    }
-    numControllers = 1;
-    for (int i = 1; i < MAX_PADS; ++i) {
-        if (connectedMask & (1 << i)) {
-            numControllers = i + 1;
-        }
-    }
+
+    numControllers = slot > 0 ? slot : 1;
 }
 
 /* ------------------------------------------------------------------------

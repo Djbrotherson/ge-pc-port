@@ -320,54 +320,13 @@ static void gfx_sdl_get_dimensions(uint32_t* width, uint32_t* height, int32_t* p
 }
 
 static void gfx_sdl_handle_events(void) {
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        switch (event.type) {
-            case SDL_KEYDOWN:
-                if (event.key.keysym.sym == SDLK_RETURN && (event.key.keysym.mod & KMOD_ALT)) {
-                    // alt-enter received, switch fullscreen state
-                    set_fullscreen(!fullscreen_state, true);
-                } else if (event.key.keysym.sym == SDLK_F4 && (event.key.keysym.mod & KMOD_ALT)) {
-                    // D145: Alt+F4 quits; bare ESC no longer does (it is the
-                    // menu "back" key -- see port/src/video.c / input.c).
-                    exit(0);
-                } else if (event.key.keysym.sym == SDLK_ESCAPE && !event.key.repeat) {
-                    // WI-1: this render-thread pump and port/src/video.c's
-                    // host-thread pump both drain the same SDL queue, so either
-                    // one can be the loop that dequeues a given ESC keydown.
-                    // Handle it here too or click-to-lock's ESC-to-free races
-                    // (and usually loses to this loop, which runs every frame).
-                    inputReleaseCapture();
-                }
-                break;
-            case SDL_MOUSEBUTTONDOWN:
-                inputNotifyClick();   // WI-1: (re)lock in click-to-lock mode
-                break;
-            case SDL_MOUSEWHEEL:
-                inputPostWheel(event.wheel.y);   // weapon cycle
-                break;
-            case SDL_WINDOWEVENT:
-                if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED) {
-                    SDL_GL_GetDrawableSize(wnd, &window_width, &window_height);
-                    if (!fullscreen_state) {
-                        maximized_state = SDL_GetWindowFlags(wnd) & SDL_WINDOW_MAXIMIZED ? true : false;
-                    }
-                } else if (event.window.event == SDL_WINDOWEVENT_CLOSE &&
-                           event.window.windowID == SDL_GetWindowID(wnd)) {
-                    // We listen specifically for main window close because closing main window
-                    // on macOS does not trigger SDL_Quit.
-                    exit(0);
-                } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
-                    inputSetMouseGrab(0);   // free + show cursor on alt-tab (also handled by video.c's pump; whichever dequeues it)
-                } else if (event.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-                    inputSetMouseGrab(1);
-                }
-                break;
-            case SDL_QUIT:
-                exit(0);
-                break;
-        }
-    }
+    /*
+     * The host/window thread owns SDL_PollEvent in port/src/video.c.
+     * Polling the same queue here from the scheduler/render thread races
+     * hotplug/focus/ESC handling and violates the video-thread requirement
+     * of stricter SDL backends. fast3d keeps this hook for API compatibility,
+     * but event dispatch is intentionally centralized on the host thread.
+     */
 }
 
 /* The window/context are created on the host main thread, but the game's

@@ -771,8 +771,9 @@ static void gfx_opengl_set_sampler_parameters(int tile, bool linear_filter, uint
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, max_filter);
 
-    if (mipmaps) {
-        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, current_anisotropy_level);
+    if (mipmaps && GLAD_GL_EXT_texture_filter_anisotropic) {
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY,
+                        (GLfloat)current_anisotropy_level);
     }
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gfx_cm_to_opengl(cms));
@@ -1030,7 +1031,13 @@ static void gfx_opengl_init(void) {
         gfx_opengl_log_info();
     }
 
-    if (GLVersion.major < 2 || (GLVersion.major == 2 && GLVersion.minor < 1)) {
+    if (gl_es) {
+        if (GLVersion.major < 3) {
+            const char *ver = (const char *)glGetString(GL_VERSION);
+            sysFatalError("OpenGL ES 3.0 is required.\nReported version: %d.%d (%s)",
+                GLVersion.major, GLVersion.minor, ver ? ver : "unknown");
+        }
+    } else if (GLVersion.major < 2 || (GLVersion.major == 2 && GLVersion.minor < 1)) {
         const char *ver = (const char *)glGetString(GL_VERSION);
         sysFatalError("Could not load OpenGL 2.1.\nReported version: %d.%d (%s)",
             GLVersion.major, GLVersion.minor, ver ? ver : "unknown");
@@ -1382,13 +1389,23 @@ void gfx_opengl_set_mipmap_filter(MipmapFilteringMode mode) {
 }
 
 static int gfx_opengl_get_max_anisotropy_level() {
-	GLfloat max_aniso_level;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &max_aniso_level);
-	return (int)max_aniso_level;
+    if (!GLAD_GL_EXT_texture_filter_anisotropic) {
+        return 1;
+    }
+
+    GLfloat max_aniso_level = 1.0f;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &max_aniso_level);
+    if (max_aniso_level < 1.0f) {
+        max_aniso_level = 1.0f;
+    }
+    return (int)max_aniso_level;
 }
 
 static void gfx_opengl_set_anisotropy_level(int level) {
-	current_anisotropy_level = level;
+    const int max_level = gfx_opengl_get_max_anisotropy_level();
+    if (level < 1) level = 1;
+    if (level > max_level) level = max_level;
+    current_anisotropy_level = level;
 }
 
 struct GfxRenderingAPI gfx_opengl_api = {
