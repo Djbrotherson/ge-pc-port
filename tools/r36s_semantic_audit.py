@@ -147,6 +147,21 @@ def scan_file(path:Path):
             add("P0","animation-offset-legacy-cast",path,i,raw,
                 "ANIM_DATA_* is an N64 animation offset token; use the generated PTR_ANIM_* constant on the host path.")
 
+        # Pointer members used as scalar/tag storage are another common
+        # decomp portability boundary. Ignore ordinary NULL/zero tests, but
+        # surface comparisons against other numeric constants and bitwise
+        # operations for explicit classification.
+        scalar_member=re.search(
+            r"(?:->|\.)([A-Za-z_]\w*)\s*"
+            r"(?:(?:==|!=|<=|>=|<|>)\s*(0x[0-9A-Fa-f]+|[1-9]\d*)|"
+            r"(?<!&)&(?!&)\s*(0x[0-9A-Fa-f]+|[1-9]\d*)|"
+            r"(?<!\|)\|(?!\|)\s*(0x[0-9A-Fa-f]+|[1-9]\d*))",
+            line,
+        )
+        if host_active and scalar_member and scalar_member.group(1) in POINTER_MEMBER_NAMES:
+            add("P1","pointer-member-used-as-scalar",path,i,raw,
+                "A declared pointer member is compared/combined with a nonzero scalar; classify intentional token/tag union vs native pointer.")
+
         # Pointer tag/flag tests are architecture-sensitive. They may be
         # intentional tagged-pointer ABI, but ordinary heap/module pointers
         # also naturally contain these bits on modern hosts. Keep them visible
