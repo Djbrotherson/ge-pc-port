@@ -86,6 +86,28 @@ It reports:
 
 The HUD is diagnostic, not a release feature.
 
+## Port Control overlay
+
+The Dam branch also carries the redesigned `F10` **ARM-GE // PORT CONTROL**
+overlay. It preserves the historical toggle binding and existing keyboard,
+mouse and controller navigation, but replaces the old flat settings list with
+five capability pages:
+
+- **Video** — fullscreen, resolution, VSync, frame cap/FPS display, MSAA,
+  filtering, anisotropy, mip/wrap fixes, FOV and draw/LOD distance controls.
+- **Audio** — mute, master volume, queue limit and device buffer controls plus a
+  live queue-depth gauge.
+- **Input** — mouse/pad/aim sensitivity, response, smoothing, deadzone,
+  inversion and menu/hip-fire tuning.
+- **Game** — gameplay/access toggles already owned by the host config layer.
+- **System** — input logging plus read-only Dam runtime telemetry: CPU, FPS,
+  process/system memory, audio queue depth, stage, room, STAN state, position
+  and anomaly flags.
+
+The System and Audio diagnostics intentionally read existing runtime state only;
+they do not alter GoldenEye gameplay state. This makes the overlay usable as a
+real-device debugging surface while the separate always-on Dam HUD continues to
+provide crash-frontier visibility.
 ## Structured trace
 
 The lab writes `damlab.log` in the game working directory.
