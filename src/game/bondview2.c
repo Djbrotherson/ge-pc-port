@@ -7044,7 +7044,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
                 g_EnterTankAudioState = TANK_RUN_STATE_RUNNING;
                 if ((g_TankSfxState[0] == NULL) && (lvlGetControlsLockedFlag() == 0))
                 {
-                    sndPlaySfx(g_musicSfxBufferPtr, TRUCK_START_SFX, &g_TankSfxState[0]);
+                    sndPlaySfxToSlot(g_musicSfxBufferPtr, TRUCK_START_SFX, &g_TankSfxState[0]);
                 }
 
                 sndCreatePostEvent(g_TankSfxState[0], 8, 0x61A8);
@@ -7090,7 +7090,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
                     {
                         if (lvlGetControlsLockedFlag() == 0)
                         {
-                            sndPlaySfx((struct ALBankAlt_s *) g_musicSfxBufferPtr, TANK_SFX, &g_TankSfxState[1]);
+                            sndPlaySfxToSlot((struct ALBankAlt_s *) g_musicSfxBufferPtr, TANK_SFX, &g_TankSfxState[1]);
                         }
                     }
 
@@ -7126,7 +7126,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
                 {
                     if (lvlGetControlsLockedFlag() == 0)
                     {
-                        sndPlaySfx((struct ALBankAlt_s *) g_musicSfxBufferPtr, TRUCK_RUN_SFX, &g_TankSfxState[0]);
+                        sndPlaySfxToSlot((struct ALBankAlt_s *) g_musicSfxBufferPtr, TRUCK_RUN_SFX, &g_TankSfxState[0]);
                     }
                 }
 

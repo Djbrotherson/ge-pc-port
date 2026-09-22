@@ -135,7 +135,7 @@ void audioPlayFromProp(s32 slot, s16 soundIndex)
         }
 #endif
     }
-    sndPlaySfx(g_musicSfxBufferPtr, soundIndex, sfx);
+    sndPlaySfxToSlot(g_musicSfxBufferPtr, soundIndex, &sfx->state);
 }
 
 /**

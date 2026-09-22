@@ -1244,6 +1244,13 @@ ALSoundState *sndPlaySfx(struct ALBankAlt_s *soundBank, s16 soundIndex, ALSoundS
     return nextState;
 }
 
+#ifdef PORT
+ALSoundState *sndPlaySfxToSlot(struct ALBankAlt_s *soundBank, s16 soundIndex, ALSoundState **slot)
+{
+    return sndPlaySfx(soundBank, soundIndex, (ALSoundState *)slot);
+}
+#endif
+
 /**
  * 9C20    70009020
  *     decativates sound effect

@@ -188,6 +188,15 @@ void sndDeactivate(ALSoundState *state);
 void sndDeactivateAllSfxByFlag_1(void);
 void sndCreatePostEvent(ALSoundState *state, s16 eventType, s32 arg2);
 ALSoundState *sndPlaySfx(struct ALBankAlt_s *soundBank, s16 soundIndex, ALSoundState *pendingState);
+#ifdef PORT
+/* Host-safe form for the legacy owner-slot convention. The original API
+ * treats an ALSoundState** storage slot as an ALSoundState because ALLink.next
+ * is field zero. Keep that ABI trick isolated here instead of at every caller. */
+ALSoundState *sndPlaySfxToSlot(struct ALBankAlt_s *soundBank, s16 soundIndex, ALSoundState **slot);
+#else
+#define sndPlaySfxToSlot(soundBank, soundIndex, slot) \
+    sndPlaySfx((soundBank), (soundIndex), (ALSoundState *)(slot))
+#endif
 u16 sndGetSfxSlotFirstNaturalVolume(void);
 void sndApplyVolumeAllSfxSlot(u16 arg0);
 void sndSetScalerApplyVolumeAllSfxSlot(f32 arg0);

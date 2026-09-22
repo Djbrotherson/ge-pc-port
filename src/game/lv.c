@@ -1237,7 +1237,7 @@ void lvlManageMpGame(void)
             if ((sp180 >= (g_MpTime - 0x258)) && (g_MpSoundStateRelated == 0) && (lvlGetControlsLockedFlag() == 0))
 #endif
             {
-                sndPlaySfx(g_musicSfxBufferPtr, ALARM1_SFX, &g_MpSoundStateRelated);
+                sndPlaySfxToSlot(g_musicSfxBufferPtr, ALARM1_SFX, &g_MpSoundStateRelated);
             }
 
             // stop alarm

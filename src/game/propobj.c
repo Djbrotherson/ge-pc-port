@@ -2360,7 +2360,7 @@ void objUpdateThrowKnifeSound(ObjectRecord *obj)
 
         if (!lvlGetControlsLockedFlag()) 
         {
-            sndPlaySfx(g_musicSfxBufferPtr, Throwing_knife_SFX[sfxindex], &obj->projectile->sounds[slot]);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, Throwing_knife_SFX[sfxindex], &obj->projectile->sounds[slot]);
 
             chrobjSndCreatePostEventDefault(obj->projectile->sounds[slot], &obj->prop->pos);
 
@@ -5536,7 +5536,7 @@ s32 objTick(struct PropRecord *prop)
 			{
 				if (((poTruck->Sound == NULL) || (sndGetPlayingState(poTruck->Sound) == 0)) && (lvlGetControlsLockedFlag() == 0))
 				{
-					sndPlaySfx((struct ALBankAlt_s *) g_musicSfxBufferPtr, TRUCK_RUN_SFX, &poTruck->Sound);
+					sndPlaySfxToSlot((struct ALBankAlt_s *) g_musicSfxBufferPtr, TRUCK_RUN_SFX, &poTruck->Sound);
 				}
 
 				if (poTruck->Sound != NULL)
@@ -5808,7 +5808,7 @@ s32 objTick(struct PropRecord *prop)
 			{
 				if (((render_pad2F4->Sound == NULL) || (sndGetPlayingState(render_pad2F4->Sound) == 0)) && (lvlGetControlsLockedFlag() == 0))
 				{
-					sndPlaySfx((struct ALBankAlt_s *) g_musicSfxBufferPtr, HELI_RUN_SFX, &render_pad2F4->Sound);
+					sndPlaySfxToSlot((struct ALBankAlt_s *) g_musicSfxBufferPtr, HELI_RUN_SFX, &render_pad2F4->Sound);
 				}
 
 				if (render_pad2F4->Sound != NULL)
@@ -6344,12 +6344,12 @@ s32 objTick(struct PropRecord *prop)
 
 					if (autogun->unkC4 == NULL)
 					{
-						sndPlaySfx((struct ALBankAlt_s *) g_musicSfxBufferPtr, GUN_B9_CANNON_SHORT_SFX, &autogun->unkC4);
+						sndPlaySfxToSlot((struct ALBankAlt_s *) g_musicSfxBufferPtr, GUN_B9_CANNON_SHORT_SFX, &autogun->unkC4);
 						chrobjSndCreatePostEventDefault(autogun->unkC4, &prop->pos);
 					}
 					else if (autogun->unkC8 == NULL)
 					{
-						sndPlaySfx((struct ALBankAlt_s *) g_musicSfxBufferPtr, GUN_B9_CANNON_SHORT_SFX, &autogun->unkC8);
+						sndPlaySfxToSlot((struct ALBankAlt_s *) g_musicSfxBufferPtr, GUN_B9_CANNON_SHORT_SFX, &autogun->unkC8);
 						chrobjSndCreatePostEventDefault(autogun->unkC8, &prop->pos);
 					}
 
@@ -14531,7 +14531,7 @@ void handle_alarm_gas_timer_calldamage(void)
     {
         if ((ptr_alarm_sfx == 0) && (lvlGetControlsLockedFlag() == 0))
         {
-            sndPlaySfx(g_musicSfxBufferPtr, ALARM3_SFX, &ptr_alarm_sfx);
+            sndPlaySfxToSlot(g_musicSfxBufferPtr, ALARM3_SFX, &ptr_alarm_sfx);
         }
 
         alarm_timer = alarm_timer + g_ClockTimer;

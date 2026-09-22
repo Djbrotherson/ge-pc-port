@@ -3323,11 +3323,11 @@ void gunTickHandState(enum GUNHAND hand, s32 triggerOn)
                         {
                             if (handptr->audioHandle == NULL)
                             {
-                                sndPlaySfx((struct ALBankAlt_s *) g_musicSfxBufferPtr, bondwalkItemGetSound(var_s1), (struct ALSoundState *) &handptr->audioHandle);
+                                sndPlaySfxToSlot((struct ALBankAlt_s *) g_musicSfxBufferPtr, bondwalkItemGetSound(var_s1), &handptr->audioHandle);
                             }
                             else if ((struct ALSoundState *)handptr->field_A48 == 0)
                             {
-                                sndPlaySfx((struct ALBankAlt_s *) g_musicSfxBufferPtr, bondwalkItemGetSound(var_s1), (struct ALSoundState *) &handptr->field_A48);
+                                sndPlaySfxToSlot((struct ALBankAlt_s *) g_musicSfxBufferPtr, bondwalkItemGetSound(var_s1), &handptr->field_A48);
                             }
 
                             handptr->field_A50 = g_GlobalTimer;
@@ -4808,10 +4808,10 @@ void gunTickGameplay(s32 triggerOn)
             {
                 if (lvlGetControlsLockedFlag() == 0)
                 {
-                    sndPlaySfx(
+                    sndPlaySfxToSlot(
                         (struct ALBankAlt_s *) g_musicSfxBufferPtr,
                         MAGNETIC_HUM_SFX,
-                        (struct ALSoundState *) &hand_right->audioHandle);
+                        &hand_right->audioHandle);
                 }
             }
         }
