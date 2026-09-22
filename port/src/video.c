@@ -66,7 +66,9 @@ static int cfgPerfHud = 1;
 static int cfgVSync         = 1;   /* swap interval: 0 = off, 1 = on            */
 static int cfgFpsCap        = 0;   /* frame cap in fps; 0 = uncapped (vsync)    */
 static int cfgMSAA          = 4;   /* 1/2/4/8 samples; default 4 (modern ports ship AA on; snaps down to the highest supported level) */
-static int cfgTexFilter     = 1;   /* 0 = nearest, 1 = bilinear (default), 2 = N64 3-point + trilinear */
+static int cfgTexFilter     = 1;   /* 0 = nearest, 1 = bilinear (default), 2 = N64 3-point */
+static int cfgMipmapFilter  = 3;   /* 0 off, 1 nearest, 2 trilinear, 3 auto (legacy behavior) */
+static int cfgFramebufferEffects = 1; /* fast3d render-target effects; restart-bound */
 static int cfgFixMipTex     = 1;   /* RC2: clip mip-contaminated texture uploads to base height */
 static int cfgWrapFix       = 0;   /* D74 sub-tile UV pre-wrap + RC3/D167 non-PoT mask-period wrap (opt-in; GE_WRAPFIX env overrides) */
 static int cfgFovScale      = 100; /* D211: percent of the original vertical FOV; 100 = unchanged (byte-identical) */
@@ -232,6 +234,8 @@ PD_CONSTRUCTOR static void videoConfigInit(void)
     configRegisterInt("Video.FpsCap",        &cfgFpsCap,     0, 1000);
     configRegisterInt("Video.MSAA",          &cfgMSAA,       1, 8);
     configRegisterInt("Video.TextureFilter", &cfgTexFilter,  0, 2);
+    configRegisterInt("Video.MipmapFilter",  &cfgMipmapFilter, 0, 3);
+    configRegisterInt("Video.FramebufferEffects", &cfgFramebufferEffects, 0, 1);
     configRegisterInt("Video.FixMipTextures", &cfgFixMipTex, 0, 1);
     configRegisterInt("Video.WrapFix", &cfgWrapFix, 0, 1);
     configRegisterInt("Video.FovScale", &cfgFovScale, 50, 150);
@@ -285,15 +289,23 @@ static void videoApplyImageOptions(void)
 
 static void videoApplyTexFilter(void)
 {
-    if (cfgTexFilter >= 2) {
-        gfx_set_texture_filter(FILTER_THREE_POINT);
-        gfx_set_mipmap_filter(MIPMAP_LINEAR);
-    } else if (cfgTexFilter == 1) {
-        gfx_set_texture_filter(FILTER_LINEAR);
+    enum FilteringMode filter;
+    if (cfgTexFilter >= 2) filter = FILTER_THREE_POINT;
+    else if (cfgTexFilter == 1) filter = FILTER_LINEAR;
+    else filter = FILTER_NONE;
+    gfx_set_texture_filter(filter);
+
+    /* Auto preserves the behavior this port had before the setting existed:
+     * nearest textures use nearest mip selection; bilinear/3-point use linear
+     * mip blending. Explicit modes let advanced users override that policy. */
+    if (cfgMipmapFilter == 0) {
+        gfx_set_mipmap_filter(MIPMAP_DISABLED);
+    } else if (cfgMipmapFilter == 1) {
+        gfx_set_mipmap_filter(MIPMAP_NEAREST);
+    } else if (cfgMipmapFilter == 2) {
         gfx_set_mipmap_filter(MIPMAP_LINEAR);
     } else {
-        gfx_set_texture_filter(FILTER_NONE);
-        gfx_set_mipmap_filter(MIPMAP_NEAREST);
+        gfx_set_mipmap_filter(filter == FILTER_NONE ? MIPMAP_NEAREST : MIPMAP_LINEAR);
     }
 }
 
@@ -403,7 +415,10 @@ int videoInit(void)
     gfx_current_native_viewport.width = GE_NATIVE_W;
     gfx_current_native_viewport.height = GE_NATIVE_H;
     gfx_current_native_aspect = (float)GE_NATIVE_W / (float)GE_NATIVE_H;
-    gfx_framebuffers_enabled = true;
+    gfx_framebuffers_enabled = cfgFramebufferEffects != 0;
+    /* GoldenEye has no true detail textures; enabling this fast3d path selects
+     * the wrong mip tile for GE room GDLs (D107), so it is intentionally not
+     * user-exposed. */
     gfx_detail_textures_enabled = false;
 
     /* MSAA: snap the requested sample count down to a supported power of two. */
