@@ -4052,6 +4052,35 @@ struct SetupIntroCredits
 #define IntroWatch(hours, minutes)                                            CharArrayFrom32(INTROTYPE_WATCH), CharArrayFrom32(hours), CharArrayFrom32(minutes)
 #define IntroCredits(unk04)                                                   CharArrayFrom32(INTROTYPE_CREDITS), CharArrayFrom32(unk04)
 
+#ifdef PORT
+#if defined(__cplusplus)
+#define GE_LAYOUT_ASSERT(cond, msg) static_assert((cond), msg)
+#else
+#define GE_LAYOUT_ASSERT(cond, msg) _Static_assert((cond), msg)
+#endif
+
+/*
+ * Serialized / fixed-stride host ABI contracts.
+ *
+ * These records are consumed with N64-defined byte strides. A silent LP64
+ * size change is data corruption, not a harmless host-layout difference.
+ */
+GE_LAYOUT_ASSERT(sizeof(Vertex) == 0x10, "Vertex must remain the 16-byte N64/gSPVertex stride");
+GE_LAYOUT_ASSERT(sizeof(SetupIntroEmpty) == 0x04, "SetupIntroEmpty serialized size");
+GE_LAYOUT_ASSERT(sizeof(SetupIntroSpawn) == 0x0c, "SetupIntroSpawn serialized size");
+GE_LAYOUT_ASSERT(sizeof(struct SetupIntroItem) == 0x10, "SetupIntroItem serialized size");
+GE_LAYOUT_ASSERT(sizeof(struct SetupIntroAmmo) == 0x10, "SetupIntroAmmo serialized size");
+GE_LAYOUT_ASSERT(sizeof(struct SetupIntroSwirl) == 0x20, "SetupIntroSwirl serialized size");
+GE_LAYOUT_ASSERT(sizeof(struct SetupIntroAnim) == 0x08, "SetupIntroAnim serialized size");
+GE_LAYOUT_ASSERT(sizeof(struct SetupIntroCuff) == 0x08, "SetupIntroCuff serialized size");
+GE_LAYOUT_ASSERT(sizeof(SetupIntroCamera) == 0x28, "SetupIntroCamera serialized size");
+GE_LAYOUT_ASSERT(sizeof(struct SetupIntroWatch) == 0x0c, "SetupIntroWatch serialized size");
+GE_LAYOUT_ASSERT(sizeof(CreditsEntry) == 0x0c, "CreditsEntry serialized size");
+GE_LAYOUT_ASSERT(sizeof(struct SetupIntroCredits) == 0x08, "SetupIntroCredits serialized size");
+
+#undef GE_LAYOUT_ASSERT
+#endif
+
 #pragma endregion Intro
 
 #pragma region Objectives

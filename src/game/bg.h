@@ -169,6 +169,16 @@ typedef struct bg_room_data
     coord3d pos;
 } bg_room_data;
 
+#ifdef PORT
+#if defined(__cplusplus)
+static_assert(sizeof(RoomVtxBatchBounds) == 0x1c, "RoomVtxBatchBounds serialized size");
+static_assert(sizeof(bg_room_data) == 0x18, "bg_room_data serialized stride");
+#else
+_Static_assert(sizeof(RoomVtxBatchBounds) == 0x1c, "RoomVtxBatchBounds serialized size");
+_Static_assert(sizeof(bg_room_data) == 0x18, "bg_room_data serialized stride");
+#endif
+#endif
+
 typedef struct s_specialportal
 {
     u8 levelid;
