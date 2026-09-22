@@ -830,7 +830,10 @@ void fileUnlockStageInFolderAtDifficulty(s32 foldernum, LEVEL_SOLO_SEQUENCE stag
             }
         }
 
-        fileOverwriteSaveSlotWithNewSave(&save[0], &new_save);
+        /* save may legitimately be NULL when this folder has no existing
+         * record. fileOverwriteSaveSlotWithNewSave() already accepts NULL;
+         * do not form &save[0] through a NULL pointer on the host. */
+        fileOverwriteSaveSlotWithNewSave(save, &new_save);
     }
 }
 
