@@ -1305,6 +1305,7 @@ Gfx *optionsOverlayEmit(void)
             gdl = drawText(gdl, 20, y0 + 3, qtxt,
                            qf > 0.85 ? 0xe2b768ff : 0x8cebd1ff);
         }
+#if !defined(DAM_SHOWCASE)
     } else if (s_page == PAGE_SYSTEM) {
         const DamLabSnapshot *d = damLabGetSnapshot();
         const int y0 = OV_BODY_Y + 2 * OV_LINE;
@@ -1349,6 +1350,7 @@ Gfx *optionsOverlayEmit(void)
                            (d && d->anomaly_flags) ? 0xe2b768ff : 0x91f1c9ff);
         }
     }
+#endif
 
     {
         char perf[112];
