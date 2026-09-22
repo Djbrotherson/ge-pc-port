@@ -724,7 +724,7 @@ StandTile *stanFindFloorTileBelowY(f32 x, f32 maxY, f32 z, f32 radius)
     StandTile *tile;
     s32 temp;
 
-    tile = (StandTilePoint *)stan_prefix->ptr_firstroom;
+    tile = (StandTile *)stan_prefix->ptr_firstroom;
 
     while (*(u32 *)tile != 0)
     {

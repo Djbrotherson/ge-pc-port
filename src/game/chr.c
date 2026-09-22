@@ -2093,7 +2093,7 @@ bool chrCanUseDKModeScaling(s32 bodynum, s32 headnum)
 /**
  * Address: 7F02083C
  */
-void chrHandleJointPositioned(enum CHR_RENDER_PART bodypart, Mtxf *matrix)
+void chrHandleJointPositioned(s32 bodypart, Mtxf *matrix)
 {
     f32 scale;
     f32 xrot;
