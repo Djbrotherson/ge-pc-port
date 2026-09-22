@@ -61,7 +61,9 @@ the cumulative shift from growth ahead of them in the file):
   - PadRecord/BoundPadRecord.plink, pname.p: NUL-terminated C strings --
     byte passthrough, no swap.
   - AIListRecord.ailist: raw AI opcode byte stream -- byte passthrough, no
-    swap (opcode args' endianness is unaudited; deferred, D88.4).
+    offline swap. This is intentional: chrai.c reads the packed big-endian
+    multibyte fields through ntohs/ntohl at runtime. The semantic gate audits
+    every u16/s16/u32/s32 Ai*Record field use against that contract.
   - `intro` (SetupIntroXxx polymorphic records): DOES need bswap (the type
     discriminant is a full s32, unlike propDefs' u8) but no resize --
     SetupIntroCamera's prev/lang1c.lang_ptr/lang20.lang_ptr fields were
