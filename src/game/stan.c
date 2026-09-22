@@ -292,7 +292,7 @@ void stanBuildRoomData(void)
 #ifdef PORT
     tile = (StandTile *)stan_prefix->ptr_firstroom;
 #else
-    tile = (StandTilePoint *)stan_prefix->ptr_firstroom;
+    tile = (StandTile *)stan_prefix->ptr_firstroom;
 #endif
 
 #if defined(PORT)
@@ -3182,7 +3182,7 @@ struct StandTilePoint *stanMatchTileName(const char *id)
 
     stanPackId(id, &stanIdHi, &stanIdLo);
 
-    tile = stan_prefix->ptr_firstroom;
+    tile = (StandTilePoint *)stan_prefix->ptr_firstroom;
 
 #ifdef PORT
     if (getenv("GE_D88")) {
