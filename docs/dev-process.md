@@ -1,71 +1,74 @@
 # Development Process
 
-This project is run as a speedrun with quality constraints.
-
-The objective is not maximum commit count or maximum activity. The objective
-is maximum **verified progress per expensive action** while turning GoldenEye
-port discoveries into reusable N64 porting infrastructure.
+The project is optimized for maximum verified progress per expensive action.
 
 ## Core loop
 
 ```
 observe
-→ classify
-→ search the whole semantic class
+→ classify semantic class
+→ search the whole class
 → batch proven fixes
-→ encode the invariant
+→ encode invariant
 → run cheap proof
 → review
 → run one target proof
-→ device test only when needed
-→ document the reusable rule
+→ device test only when required
+→ document reusable rule
 → repeat
 ```
 
-## Decision rule for every action
+## Action filter
 
-Before changing code, ask:
+A change should do at least one of:
 
-1. Does this remove a whole failure class?
-2. Does it strengthen automated proof?
-3. Does it move the real R36S runtime frontier?
-4. Does it make the next N64 decomp cheaper to port?
+1. remove a meaningful failure class,
+2. strengthen automated proof,
+3. move the R36S runtime frontier,
+4. make the next N64 project cheaper to port.
 
-If the answer is no to all four, the work is low priority.
-
-## Class before instance
-
-A crash site is evidence, not the task.
-
-Examples:
-
-- one sign-extended pointer → audit every 32-bit token→pointer boundary,
-- one `count * 4` pointer array → audit pointer-array allocation/copy/indexing,
-- one struct-size mismatch → audit converter/runtime/native ABI agreement,
-- one stale renderer object after reload → audit host resource lifetime against
-  game lifecycle boundaries.
-
-Fixing one line while leaving the class open is not considered complete.
+Low-signal cleanup that does none of these is deprioritized.
 
 ## ABI classification
 
-Every suspicious value must be classified before modification:
+Before modifying an address-like value, classify it as:
 
 1. native host pointer,
 2. N64/ROM/segmented address token,
 3. fixed-width serialized/layout field,
 4. scalar.
 
-Only category 1 widens automatically on LP64.
+Only native pointers widen automatically on LP64.
 
-This prevents the two common bad strategies:
+## Product boundary
 
-- blindly widening all `s32/u32`,
-- preserving 32-bit storage for values that became native host pointers.
+### Reusable
+
+New generic capabilities belong in `portkit/`:
+
+- discovery,
+- semantic classification,
+- validation,
+- ABI/layout contracts,
+- host capability contracts,
+- backend/target resolution,
+- adapter generation,
+- reusable binary primitives,
+- warning topology.
+
+### Repository integration
+
+`tools/` contains GoldenEye-repository CI glue, integration contracts and
+shared helpers that have not yet graduated into Portkit.
+
+### GoldenEye-specific
+
+`tools_pc/`, project adapters and integration manifests may contain
+GoldenEye-specific binary knowledge.
 
 ## Validation tiers
 
-### Tier 0 — cheap and continuous
+### Tier 0
 
 ```sh
 python3 tools/n64_port.py doctor
@@ -73,144 +76,82 @@ python3 tools/n64_port.py selftest
 python3 tools/n64_port.py audit
 ```
 
-This tier should reject:
+### Tier 1
 
-- invalid project profiles,
-- broken reusable binary helpers,
-- semantic LP64 hazards,
-- stale converter/native ABI relationships,
-- known GLES incompatibilities,
-- missing lifecycle invariants.
+Focused host compile/layout/converter/headless tests.
 
-### Tier 1 — host
+### Tier 2
 
-Use focused compilation, layout probes, converter tests, headless rendering,
-and deterministic regression tools where available.
+One deliberate AArch64 cross-build for a coherent reviewed batch.
 
-### Tier 2 — AArch64
+### Tier 3
 
-The full cross-build is a batch proof.
+R36S testing only for questions earlier tiers cannot answer.
 
-It is deliberately not the normal edit/feedback loop.
-
-### Tier 3 — R36S
-
-Use real hardware for:
-
-- driver/GLES behavior,
-- timing/performance,
-- controller behavior,
-- PortMaster packaging/runtime libraries,
-- bugs that require actual game interaction.
-
-If Tier 3 catches a static ABI error, add a cheaper invariant afterward.
+If the device rediscovers a static ABI problem, add an earlier invariant.
 
 ## Fix + invariant
 
-A runtime fix should usually produce two outputs:
+A compatibility fix should usually produce both:
 
-1. the runtime correction,
-2. a reusable prevention mechanism.
+- runtime correction,
+- regression prevention.
 
-Prevention can be:
+Prevention may be:
 
-- compile-time `sizeof`/`offsetof` assertion,
-- semantic audit rule,
-- project ABI manifest entry,
+- compile-time assertion,
+- semantic rule,
+- profile/ABI contract,
 - converter/runtime cross-check,
-- ROM-free unit test,
-- lifecycle contract,
+- selftest,
+- lifecycle invariant,
 - generated table.
 
-## Binary format work
+## Binary formats
 
-Treat each binary format as a formal contract.
+Treat binary conversion as a formal ABI:
 
-For every record family, track:
-
-- N64 byte width,
-- host byte width,
 - byte order,
+- N64 width,
+- host width,
 - alignment,
-- pointer/token interpretation,
+- token/pointer meaning,
 - relocation,
-- terminator semantics,
-- runtime walker stride.
+- terminators,
+- runtime stride.
 
-The preferred direction is:
-
-```
-machine-readable ABI manifest
-→ converter validation
-→ C compile-time assertions
-→ runtime contract
-```
-
-Avoid maintaining the same size constant independently in three places.
-
-## Reusable tool boundary
-
-Generic code belongs under:
-
-- `tools/n64_port.py`,
-- `tools/n64_port_audit.py`,
-- `tools/n64_portlib/`.
-
-GoldenEye-specific data belongs in:
-
-- project profiles,
-- ABI manifests,
-- converter adapters,
-- the GoldenEye contract suite.
-
-A second decomp should be able to run the generic scanner without GoldenEye
-files.
+Prefer one manifest or generated source of truth over duplicated constants.
 
 ## Commit discipline
 
-Prefer a small number of coherent commits over a long sequence of exploratory
-ones.
+Prefer coherent batches over exploratory commit churn.
 
-Good batch boundaries include:
+Useful batch boundaries:
 
 - one semantic failure class,
-- one converter/ABI contract family,
-- one reusable tool capability,
-- one runtime fix plus its invariant.
+- one binary-format contract,
+- one reusable Portkit capability,
+- one runtime correction plus invariant.
 
-Do not make no-op commits just to run CI. The branch has an explicit build
-trigger for deliberate target proofs.
+Do not create commits only to trigger CI.
 
-## Documentation discipline
+## Documentation
 
-Three documentation layers are maintained:
+Current public/project state:
 
-### Current public state
+- `README.md`,
+- `portkit/README.md`,
+- `portkit/ARCHITECTURE.md`,
+- `docs/README.md`.
 
-- root `README.md`,
-- `docs/README.md`,
-- `docs/PORTING-TOOLSET.md`.
-
-These must stay concise and current.
-
-### Reusable engineering rules
+Reusable engineering rules:
 
 - `docs/porting-notes.md`.
 
-When a bug reveals a general N64→host rule, distill it here.
+Current runtime evidence/backlog:
 
-### Evidence/history
+- `docs/dev/LEVEL-STATUS.md`,
+- `docs/dev/GRAPHICS-BACKLOG.md`,
+- `docs/dev/findings.md`.
 
-- `docs/dev/`.
-
-Detailed finding logs and investigation records are retained as evidence, but
-they do not define current project status.
-
-## End state
-
-The GoldenEye port is one successful consumer.
-
-The toolchain is successful when a second N64 decomp can be onboarded using a
-small project profile and a limited set of format adapters, with the generic
-tools automatically identifying ABI hazards, validating layouts, building a
-target, and producing actionable failures.
+Closed investigations belong in git history, not the working tree.
