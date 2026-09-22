@@ -274,6 +274,56 @@
       "path": "src/game/stan.c",
       "type": "struct StanPrefixRecord",
       "bytes": 16
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "SetupIntroEmpty",
+      "bytes": 4
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "SetupIntroSpawn",
+      "bytes": 12
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "struct SetupIntroItem",
+      "bytes": 16
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "struct SetupIntroAmmo",
+      "bytes": 16
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "struct SetupIntroSwirl",
+      "bytes": 32
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "struct SetupIntroAnim",
+      "bytes": 8
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "struct SetupIntroCuff",
+      "bytes": 8
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "SetupIntroCamera",
+      "bytes": 40
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "struct SetupIntroWatch",
+      "bytes": 12
+    },
+    {
+      "path": "src/bondtypes.h",
+      "type": "struct SetupIntroCredits",
+      "bytes": 8
     }
   ]
 }

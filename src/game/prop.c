@@ -56,6 +56,36 @@ void sub_GAME_7F00324C(struct BoundPadRecord *arg0, s32 *arg1, s32 *arg2, struct
 void setupDoor(s32 arg0, struct DoorRecord *door, s32 arg2);
 
 
+#ifdef PORT
+static s32 portResolvePadStan(struct PadRecord *pad, const char *plink, StandTile **stan)
+{
+    s32 result = init_pathtable_something(pad, plink, stan);
+
+    if (*stan == NULL)
+    {
+        f32 x = pad->pos.x;
+        f32 y = pad->pos.y;
+        f32 z = pad->pos.z;
+        StandTile *fallback = sub_GAME_7F0AFB78(&x, &y, &z, 30.0f);
+
+        if (fallback != NULL)
+        {
+            *stan = fallback;
+            osSyncPrintf("PORT STAN RECOVERY plink=%s pos=(%.1f,%.1f,%.1f) stan=%p\n",
+                plink ? plink : "(null)", pad->pos.x, pad->pos.y, pad->pos.z,
+                (void *)fallback);
+            return 2;
+        }
+
+        osSyncPrintf("PORT STAN MISSING plink=%s pos=(%.1f,%.1f,%.1f)\n",
+            plink ? plink : "(null)", pad->pos.x, pad->pos.y, pad->pos.z);
+    }
+
+    return result;
+}
+#endif
+
+
 s32 load_proptype(PROPDEF_TYPE type)
 {
     PropDefHeaderRecord *propdef = (PropDefHeaderRecord *) g_CurrentSetup.propDefs;
@@ -1385,7 +1415,11 @@ void proplvreset2(enum LEVELID stageId)
                     }
                 }
 #else
+#ifdef PORT
+                portResolvePadStan(pad, pad->plink, &pad->stan);
+#else
                 init_pathtable_something(pad, pad->plink, &pad->stan);
+#endif
 #endif
 #ifdef PORT
                 if (getenv("GE_D90")) {
@@ -1439,7 +1473,11 @@ void proplvreset2(enum LEVELID stageId)
                     }
                 }
 #else
+#ifdef PORT
+                portResolvePadStan((struct PadRecord *)vol, vol->plink, &vol->stan);
+#else
                 init_pathtable_something((struct PadRecord *) vol, vol->plink, &vol->stan);
+#endif
 #endif
 
                 if (1);

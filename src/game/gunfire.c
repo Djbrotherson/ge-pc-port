@@ -1795,6 +1795,8 @@ Gfx *set_enviro_fog_for_items_in_solo_watch_menu(Gfx *gdl, ITEM_IDS itemid, Mtxf
     modelrwdata = bodymodel->numRecords > 0
         ? (u32 *)dynAllocate(bodymodel->numRecords * sizeof(u32))
         : NULL;
+    if (bodymodel->numRecords > 0 && modelrwdata == NULL)
+        goto earlyreturn;
     modelInit((Model *) &model, bodymodel, modelrwdata);
 #else
     modelInit((Model *) &model, bodymodel, (u32 *)spb8);
@@ -2071,6 +2073,8 @@ Gfx* watchRenderController(Gfx* gdl, Mtxf* basemtx, s32 envcolour, bool animateb
     rwdata = objheader->numRecords > 0
         ? (u32 *)dynAllocate(objheader->numRecords * sizeof(u32))
         : NULL;
+    if (objheader->numRecords > 0 && rwdata == NULL)
+        return gdl;
 #endif
 
     if (objheader);
@@ -5829,6 +5833,8 @@ void sub_GAME_7F068EC4(CasingRecord *casing, Gfx **gdl)
     model_rwdata = model_header->numRecords > 0
         ? (u32 *)dynAllocate(model_header->numRecords * sizeof(u32))
         : NULL;
+    if (model_header->numRecords > 0 && model_rwdata == NULL)
+        return;
     modelInit((Model *)&model, model_header, model_rwdata);
 #else
     modelInit((Model *)&model, model_header, NULL);

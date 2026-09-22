@@ -76,6 +76,31 @@ u32 weaponLoadProjectileModels(ITEM_IDS modelid)
     return 0;
 }
 
+#ifdef PORT
+static s32 portSetupPadCount(void)
+{
+    s32 count = 0;
+    if (g_CurrentSetup.pads == NULL)
+        return 0;
+    while (count < 16384 && g_CurrentSetup.pads[count].plink != NULL)
+        count++;
+    return count;
+}
+
+static StandTile *portRecoverSpawnStan(PadRecord *pad)
+{
+    f32 x, y, z;
+    if (pad == NULL || pad->stan != NULL)
+        return pad ? pad->stan : NULL;
+    x = pad->pos.x; y = pad->pos.y; z = pad->pos.z;
+    pad->stan = sub_GAME_7F0AFB78(&x, &y, &z, 30.0f);
+    if (pad->stan != NULL)
+        osSyncPrintf("PORT SPAWN STAN RECOVERY pos=(%.1f,%.1f,%.1f) stan=%p\n",
+            pad->pos.x, pad->pos.y, pad->pos.z, (void *)pad->stan);
+    return pad->stan;
+}
+#endif
+
 void bondviewLoadSetupIntroSection(void)
 {
 
@@ -190,8 +215,27 @@ void bondviewLoadSetupIntroSection(void)
                     if (g_CurrentSetup.pads != NULL
                         && (check_ramrom_flags() == ((struct SetupIntroSpawn*)intro_record)->is_demo_playback))
                     {
-                        g_Startpad[startpadcount] = &g_CurrentSetup.pads[((struct SetupIntroSpawn*)intro_record)->index];
+                        s32 spawnIndex = ((struct SetupIntroSpawn*)intro_record)->index;
+#ifdef PORT
+                        s32 padCount = portSetupPadCount();
+                        if (padCount <= 0)
+                        {
+                            osSyncPrintf("PORT SPAWN: setup has no valid pads\n");
+                        }
+                        else
+                        {
+                            if (spawnIndex < 0 || spawnIndex >= padCount)
+                            {
+                                osSyncPrintf("PORT SPAWN INDEX INVALID index=%d pads=%d; using 0\n",
+                                    spawnIndex, padCount);
+                                spawnIndex = 0;
+                            }
+                            g_Startpad[startpadcount++] = &g_CurrentSetup.pads[spawnIndex];
+                        }
+#else
+                        g_Startpad[startpadcount] = &g_CurrentSetup.pads[spawnIndex];
                         startpadcount++;
+#endif
                     }
 
                     intro_record = (struct SetupIntroEmpty*)((uintptr_t)intro_record + sizeof(struct SetupIntroSpawn));
@@ -426,6 +470,8 @@ void bondviewLoadSetupIntroSection(void)
 
         start_stan = g_Startpad[rand_pad_index]->stan;
 #ifdef PORT
+        if (start_stan == NULL)
+            start_stan = portRecoverSpawnStan(g_Startpad[rand_pad_index]);
         osSyncPrintf("R36S SPAWN stage=%d padidx=%d pos=(%.3f,%.3f,%.3f) look=(%.3f,%.3f,%.3f) stan=%p\\n",
             (int)bossGetStageNum(), (int)rand_pad_index,
             g_Startpad[rand_pad_index]->pos.f[0],
