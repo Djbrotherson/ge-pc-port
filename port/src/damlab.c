@@ -99,6 +99,10 @@ static void damReadMemory(void)
 
 static void damLog(const char *kind)
 {
+#if defined(DAM_SHOWCASE)
+    (void)kind;
+    return;
+#else
     if (!g_log)
         return;
 
@@ -115,6 +119,7 @@ static void damLog(const char *kind)
         g_dam.fps, g_dam.cpu_percent, g_dam.rss_kb,
         g_dam.mem_available_kb, g_dam.anomaly_flags);
     fflush(g_log);
+#endif
 }
 
 void damLabInit(void)
@@ -123,6 +128,9 @@ void damLabInit(void)
     g_dam.room = -1;
     g_dam.spawn_index = -1;
     g_dam.stage = -1;
+#if defined(DAM_SHOWCASE)
+    g_log = NULL;
+#else
     g_log = fopen("damlab.log", "w");
     if (g_log) {
         fprintf(g_log,
@@ -132,6 +140,7 @@ void damLabInit(void)
             9);
         fflush(g_log);
     }
+#endif
     g_last_host_time = damNow();
     g_last_proc_ticks = damReadProcTicks();
 }
@@ -143,6 +152,7 @@ void damLabRecordSpawn(int spawn_index, float x, float y, float z,
     g_dam.pos_x = x; g_dam.pos_y = y; g_dam.pos_z = z;
     g_dam.stan = stan;
 
+#if !defined(DAM_SHOWCASE)
     if (spawn_index != 33 ||
         damAbs(x - 4719.0f) > 0.01f ||
         damAbs(y - (-18.0f)) > 0.01f ||
@@ -152,6 +162,9 @@ void damLabRecordSpawn(int spawn_index, float x, float y, float z,
         damAbs(lz - (-0.000643f)) > 0.01f) {
         g_dam.anomaly_flags |= DAMLAB_ANOM_SPAWN;
     }
+#else
+    (void)lx; (void)ly; (void)lz;
+#endif
     if (!stan)
         g_dam.anomaly_flags |= DAMLAB_ANOM_STAN_NULL;
 
@@ -240,6 +253,11 @@ const DamLabSnapshot *damLabGetSnapshot(void)
 void damLabFormatOverlay(char *dst, unsigned dst_size)
 {
     if (!dst || !dst_size) return;
+#if defined(DAM_SHOWCASE)
+    snprintf(dst, dst_size,
+        "DAM SHOWCASE\nFPS %03d",
+        (int)(g_dam.fps + 0.5f));
+#else
     snprintf(dst, dst_size,
         "DAM LAB\nFPS %03d CPU %03d\nRAM %04luM\nPOS %d %d %d\nROOM %03d STAN %s\nFLAGS %02X",
         (int)(g_dam.fps + 0.5f),
@@ -248,15 +266,20 @@ void damLabFormatOverlay(char *dst, unsigned dst_size)
         (int)g_dam.pos_x, (int)g_dam.pos_y, (int)g_dam.pos_z,
         g_dam.room, g_dam.stan ? "YES" : "NO",
         g_dam.anomaly_flags & 0xffu);
+#endif
 }
 
 void damLabShutdown(void)
 {
+#if defined(DAM_SHOWCASE)
+    g_log = NULL;
+#else
     if (g_log) {
         damLog("END");
         fclose(g_log);
         g_log = NULL;
     }
+#endif
 }
 
 #else
