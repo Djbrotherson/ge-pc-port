@@ -204,6 +204,11 @@ struct tvcmd {
     u32 arg2;
 };
 
+#ifdef PORT
+_Static_assert(sizeof(struct tvcmd) == 12,
+               "monitor animation command ABI must remain three u32 words");
+#endif
+
 // Forward declarations.
 
 s32 updateDoorDisplacement(DoorRecord* door);
