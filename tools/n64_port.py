@@ -161,7 +161,7 @@ def main() -> int:
         )
         if compile_rc:
             return compile_rc
-        return subprocess.call(
+        unit_rc = subprocess.call(
             [
                 sys.executable,
                 "-m",
@@ -172,6 +172,12 @@ def main() -> int:
                 "-p",
                 "test_*.py",
             ],
+            cwd=ROOT,
+        )
+        if unit_rc:
+            return unit_rc
+        return subprocess.call(
+            [sys.executable, str(ROOT / "portkit" / "selftest.py")],
             cwd=ROOT,
         )
     if args.command == "audit":
