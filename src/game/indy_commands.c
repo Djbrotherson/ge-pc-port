@@ -118,7 +118,7 @@ s32 indycmdSendCommand(u8 *buffer, u32 size)
 
 
 
-s32 send2indyresourcecommands(indy_resource_entry_header * entry1, u32 size1, indy_resource_entry_header * entry2, u32 size2)
+s32 send2indyresourcecommands(const void *entry1, u32 size1, const void *entry2, u32 size2)
 {
     indycmdSendCommand((u8 *)entry1, size1);
     indycmdSendCommand((u8 *)entry2, size2);
@@ -247,7 +247,7 @@ void indyrescmdSendFileLoad(u32 rsize,u32 wsize,u8 *filename,u32 size)
 }
 
 
-void post_type8_indyrescmd_log_recieved(s32 rsize,s32 wsize,u32 data1,u32 data2,u32 cmd2size,struct indy_resource_entry_type8 *cmd2)
+void post_type8_indyrescmd_log_recieved(s32 rsize, s32 wsize, u32 data1, u32 data2, u32 cmd2size, const void *cmd2)
 {
    indy_resource_entry_type8 cmd;
   
@@ -266,7 +266,7 @@ void post_type8_indyrescmd_log_recieved(s32 rsize,s32 wsize,u32 data1,u32 data2,
 }
 
 
-void indyrescmdSendDump(s32 rsize,s32 wsize,char *strptr,u32 size2,struct indy_resource_entry3 *cmd2)
+void indyrescmdSendDump(s32 rsize, s32 wsize, char *strptr, u32 size2, const void *cmd2)
 {
   indy_resource_entry_type9 cmd;
 
@@ -485,7 +485,7 @@ s32 post_indyrescmd_1_8_2(u32 data1,u32 data2,u32 size2,struct indy_resource_ent
 }
 
 
-s32 indycmdSendDump(char *string, u32 size, struct indy_resource_entry_header *data)
+s32 indycmdSendDump(char *string, u32 size, const void *data)
 {
     indyrescmdStartCmdSeq((size + 3 & 0xfffffffc) + sizeof(indy_resource_entry_type9),sizeof(indy_resource_entry_type9));
     indyrescmdSendDump(sizeof(s_indyResCmd02End),sizeof(s_indyResCmd02End),string,size,data);
@@ -1003,7 +1003,7 @@ s32 response_indyrescmd_1_4_2(u8 *response)
 }
 
 
-s32 indycmdAckHostCheckFileExists(u8 *response1,u8 *response2)
+s32 indycmdAckHostCheckFileExists(u32 *response1, u32 *response2)
 {
     indyrescmdResponseSize(0x1c,0x1c);
     indyrescmdResponseFileExists(0x14,0x14,response1,response2);
@@ -1013,7 +1013,7 @@ s32 indycmdAckHostCheckFileExists(u8 *response1,u8 *response2)
 }
 
 
-s32 indycmdReceiveFile(u8 *response1,u8 *response2,u32 *childsize,u8 *child)
+s32 indycmdReceiveFile(u32 *response1, u32 *response2, u32 *childsize, void *child)
 {
     indyrescmdResponseSize(0,0x20);
     indyrescmdResponseRecieveFile(0x14,0x14,response1,response2,childsize,child);
@@ -1023,7 +1023,7 @@ s32 indycmdReceiveFile(u8 *response1,u8 *response2,u32 *childsize,u8 *child)
 }
 
 
-s32 indycmdAckSendDump(u8 *param_1)
+s32 indycmdAckSendDump(u32 *param_1)
 {
     indyrescmdResponseSize(0x18,0x18);
     indyrescmdResponseSendDump(0x14,0x14,param_1);
@@ -1043,7 +1043,7 @@ s32 indycmdReceiveRamRom(u32 *param_1,u32 *param_2,u32 *param_3)
 }
 
 
-s32 indycmdAckHostExportFile(u8 *response)
+s32 indycmdAckHostExportFile(u32 *response)
 {
     indyrescmdResponseSize(0x18,0x18);
     indyrescmdResponseHostExportFile(0x14,0x14,response);
@@ -1053,7 +1053,7 @@ s32 indycmdAckHostExportFile(u8 *response)
 }
 
 
-s32 indycmdAckHostCmdPacket(u8 *response)
+s32 indycmdAckHostCmdPacket(u32 *response)
 {
     indyrescmdResponseSize(0x18,0x18);
     indyrescmdResponseHostCmdPacket(0x14,0x14,response);

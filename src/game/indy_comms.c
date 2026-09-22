@@ -28,26 +28,26 @@ void indycommHostinit(void) {
 
 void indycommHostLoadFile(char *filename, u8 *targetloc)
 {
-    u8 response1 [8];
-    u8 response2 [4];
+    u32 response1;
+    u32 response2;
     u32 size;
   
     if (indy_ready)
     {
         indycmdSendLoadFile(filename,0x400000);
-        indycmdReceiveFile(response1,response2,&size,targetloc);
+        indycmdReceiveFile(&response1, &response2, &size, targetloc);
     }
     return;
 }
 
 void indycommHostSendDump(char *filename, u8 *data, u32 size)
 {
-    u8 auStack4 [4];
+    u32 response;
   
     if (indy_ready) 
     {
         indycmdSendDump(filename, size, data);
-        indycmdAckSendDump(auStack4);
+        indycmdAckSendDump(&response);
     }
     return;
 }
@@ -68,38 +68,46 @@ void indycommHostRamRomLoad(char *filename, u8 *target, s32 size)
 
 void indycommHostSaveFile(char *filename, s32 size, u8 * data)
 {
-    u8 auStack4 [4];
+    u32 response;
   
     if (indy_ready)
     {
         indycmdSendHostExportFile(filename,data,size);
-        indycmdAckHostExportFile(auStack4);
+        indycmdAckHostExportFile(&response);
     }
 }
 
 u8 * indycommHostCheckFileExists(char *name, s32 *size)
 {
-    u8 *response;  
+    u32 response = 0;
+    u32 wire_size = 0;
+
     if (!indy_ready) {
         return NULL;
-    } else {
-        indycmdSendHostCheckFileExists(name);
-        indycmdAckHostCheckFileExists(&response,size);
     }
-    return response;
+
+    indycmdSendHostCheckFileExists(name);
+    indycmdAckHostCheckFileExists(&response, &wire_size);
+
+    if (size != NULL) {
+        *size = (s32)wire_size;
+    }
+
+    return (u8 *)(uintptr_t)response;
 }
 
 u8 *indycommHostSendCmd(u8 *cmdstr)
 {
-    u8 *local_4;  
+    u32 response = 0;
+
     if (!indy_ready) {
         return NULL;
     }
-    else {
-        indycmdSendHostCmdPacket(cmdstr);
-        indycmdAckHostCmdPacket(&local_4);
-    }
-    return local_4;
+
+    indycmdSendHostCmdPacket(cmdstr);
+    indycmdAckHostCmdPacket(&response);
+
+    return (u8 *)(uintptr_t)response;
 }
 
 void indycommHost7F0D0124(void) {
