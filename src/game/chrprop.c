@@ -2055,7 +2055,7 @@ void chraiGetPropRoomIds(PropRecord *self, s32 *roomids)
  *
  * Address 0x7F03CC20.
 */
-void chraiGetCollisionBounds(PropRecord *prop, struct rect4f **polygon, s32 *edges, f32 *top, f32 *bottom)
+void chraiGetCollisionBounds(PropRecord *prop, coord2d **polygon, s32 *edges, f32 *top, f32 *bottom)
 {
     *polygon = NULL;
     *edges = 0;
@@ -2101,7 +2101,7 @@ void chraiGetCollisionBounds(PropRecord *prop, struct rect4f **polygon, s32 *edg
  *
  * Address 0x7F03CCB0.
 */
-void chraiGetCollisionBoundsWithoutY(PropRecord *prop, struct rect4f **polygon, s32 *edges)
+void chraiGetCollisionBoundsWithoutY(PropRecord *prop, coord2d **polygon, s32 *edges)
 {
     f32 sp24;
     f32 sp20;
@@ -2120,7 +2120,7 @@ void chraiGetCollisionBoundsWithoutY(PropRecord *prop, struct rect4f **polygon, 
  * @param edges: Number of edges to iterate in polygon.
  * Address 0x7F03CCD8.
 */
-s32 chrpropTestPointInPolygon(coord3d *point, struct rect4f *polygon, s32 edges)
+s32 chrpropTestPointInPolygon(coord3d *point, coord2d *polygon, s32 edges)
 {
     /**
      * Stack overflow:
@@ -2156,8 +2156,8 @@ s32 chrpropTestPointInPolygon(coord3d *point, struct rect4f *polygon, s32 edges)
     for (i=0; i<edges; i++)
     {
         // curse you compiler loop unroller
-        diff = (    (polygon->points[(i+1) % edges].f[1] - polygon->points[i].f[1]) * (point->f[0] - polygon->points[i].f[0]))
-                 - ((polygon->points[(i+1) % edges].f[0] - polygon->points[i].f[0]) * (point->f[2] - polygon->points[i].f[1]));
+        diff = (    (polygon[(i+1) % edges].f[1] - polygon[i].f[1]) * (point->f[0] - polygon[i].f[0]))
+                 - ((polygon[(i+1) % edges].f[0] - polygon[i].f[0]) * (point->f[2] - polygon[i].f[1]));
 
         if (diff != 0.0f)
         {
@@ -3884,7 +3884,7 @@ ObjectRecord *scan_position_data_table_for_normal_object_at_preset(s32 PadId) {
 ObjectRecord * sub_GAME_7F03FAB0(struct coord3d *pos, s32 RoomID)
 {
     s32 unused;
-    rect4f * polygon;
+    coord2d *polygon;
     s32 edges;
     PropRecord * prop;
 

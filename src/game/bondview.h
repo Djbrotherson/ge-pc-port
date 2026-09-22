@@ -2868,7 +2868,7 @@ int bondviewGetIfCurrentPlayerHealthShowTime(void);
 u8 bondviewGetCurrentPlayersRoom(void);
 coord3d *bondviewGetCurrentPlayersPosition(void);
 void bondviewUpdateGuardTankFlagsRelated(PropRecord *prop, s32 flag);
-void bondviewGetPropHeightRelatedValues(PropRecord *arg0, struct rect4f **field_B0, s32 *arg2, f32 *height_related, f32 *collision);
+void bondviewGetPropHeightRelatedValues(PropRecord *arg0, coord2d **field_B0, s32 *arg2, f32 *height_related, f32 *collision);
 void bondviewAddCurrentPlayerArmor(f32 arg0);
 void bondviewResetIntroCameraMessageDialogs(void);
 void hudmsgsSetOn(s32 flag);

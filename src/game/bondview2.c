@@ -2583,7 +2583,7 @@ void bondviewCalcUpdatePlayerCollision(struct coord3d *offset, s32 allow_scoot)
     struct coord3d next_pos; // spb4
     struct coord3d collision1_pt0; // spa8
     struct coord3d collision1_pt1; // sp9c
-    struct rect4f *polygon; // sp98
+    coord2d *polygon; // sp98
     s32 edges; // sp94
     struct TankRecord *tank_objrecord; // no stack
     struct ObjectRecord *obj;
@@ -2633,7 +2633,7 @@ void bondviewCalcUpdatePlayerCollision(struct coord3d *offset, s32 allow_scoot)
             temp_f2 = (farr5[4] - farr5[3]) * obj->model->scale;
 
             if (g_PlayerIsInTank == 1
-                || (chrpropTestPointInPolygon(&g_CurrentPlayer->field_488.collision_position, &tank_objrecord->rect,
+                || (chrpropTestPointInPolygon(&g_CurrentPlayer->field_488.collision_position, tank_objrecord->rect.points,
 #ifdef PORT
                     tank_objrecord->collision
 #else
@@ -7707,7 +7707,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
                     sp6C = prop->chr;
                     chrpropGetCollisionBounds(prop, &sp80_collision_radius, &sp88_collision_bound_height, &sp84_collision_bound_z);
 
-                    if (chrpropTestPointInPolygon(&prop->pos, &spB4_tank_collision_bounds, 4))
+                    if (chrpropTestPointInPolygon(&prop->pos, spB4_tank_collision_bounds.points, 4))
                     {
                         sp7C = 0;
 
@@ -7733,7 +7733,7 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
                         }
                     }
 
-                    if (sp7C && (chrobjTestPointPolygonCollision(&prop->pos, sp80_collision_radius, &spB4_tank_collision_bounds, 4)))
+                    if (sp7C && (chrobjTestPointPolygonCollision(&prop->pos, sp80_collision_radius, spB4_tank_collision_bounds.points, 4)))
                     {
                         sp7C = 0;
                     }
@@ -7749,11 +7749,11 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
                 }
                 else if (prop->type == PROP_TYPE_OBJ)
                 {
-                    struct rect4f *polygon;
+                    coord2d *polygon;
                     s32 edges;
 
                     chraiGetCollisionBoundsWithoutY(prop, &polygon, &edges);
-                    if ((edges > 0) && chrobjTestPolygonsTouchingOrOverlap2D(polygon, edges, &spB4_tank_collision_bounds, 4))
+                    if ((edges > 0) && chrobjTestPolygonsTouchingOrOverlap2D(polygon, edges, spB4_tank_collision_bounds.points, 4))
                     {
                         // Explode destroyable props when the tank touches them
                         maybe_detonate_object_and_its_children(prop, 10000.0f, &prop->obj->runtime_pos, 0x20, get_cur_playernum());
@@ -9768,7 +9768,7 @@ void bondviewUpdateGuardTankFlagsRelated(PropRecord *prop, s32 flag)
 /**
  * Address 0x7F08A0B0.
  */
-void bondviewGetPropHeightRelatedValues(PropRecord *arg0, struct rect4f **field_B0, s32 *arg2, f32 *height_related, f32 *collision)
+void bondviewGetPropHeightRelatedValues(PropRecord *arg0, coord2d **field_B0, s32 *arg2, f32 *height_related, f32 *collision)
 {
     s32 temp_v0;
 
@@ -9781,7 +9781,7 @@ void bondviewGetPropHeightRelatedValues(PropRecord *arg0, struct rect4f **field_
             if (g_playerPointers[temp_v0]->cameramode != 1)
             {
                 *arg2 = 4;
-                *field_B0 = &g_playerPointers[temp_v0]->collision_bounds;
+                *field_B0 = g_playerPointers[temp_v0]->collision_bounds.points;
                 *collision = g_playerPointers[temp_v0]->field_70;
                 *height_related = *collision + bondviewGetPlayerDuckingHeightRelated(g_playerPointers[temp_v0]) + 10.0f;
 

@@ -209,7 +209,7 @@ struct tvcmd {
 s32 updateDoorDisplacement(DoorRecord* door);
 s32 objGetShotsTaken(ObjectRecord *);
 void sub_GAME_7F04AC20(PropRecord *prop, ModelRenderData *, s32 arg2);
-bool chrobjSeparatingAxisTheorem(rect4f* rect1, s32 numvertices0, rect4f* rect2, s32 numvertices1);
+bool chrobjSeparatingAxisTheorem(coord2d *rect1, s32 numvertices0, coord2d *rect2, s32 numvertices1);
 void chrobjSndCreatePostEvent(ALSoundState *state, coord3d *pos, f32 low, f32 high);
 void remove_obj_from_temp_proxmine_table(WeaponObjRecord* proxy);
 void add_obj_to_temp_proxmine_table(WeaponObjRecord* proxy);
@@ -1181,7 +1181,7 @@ bool projectileLineTestModel(ObjectRecord *obj, coord3d *modelRayOrigin, coord3d
 
 bool sub_GAME_7F041400(PropRecord *prop, coord3d *rayStart, coord3d *rayEnd, coord3d *rayDir, coord3d *hitPos, coord3d *hitNormal, f32 *hitDist)
 {
-    struct rect4f *polygon;
+    coord2d *polygon;
     s32 numedges;
     f32 ymax;
     f32 ymin;
@@ -1215,12 +1215,12 @@ bool sub_GAME_7F041400(PropRecord *prop, coord3d *rayStart, coord3d *rayEnd, coo
             for (i = 0; i < numedges; i++)
             {
                 next = (i + 1) % numedges;
-                if (doSegmentsIntersect(rayStart->x, rayStart->z, rayEnd->x, rayEnd->z, polygon->points[i].x, polygon->points[i].y, polygon->points[next].x, polygon->points[next].y))
+                if (doSegmentsIntersect(rayStart->x, rayStart->z, rayEnd->x, rayEnd->z, polygon[i].x, polygon[i].y, polygon[next].x, polygon[next].y))
                 {
-                    edgeStart2d.x = polygon->points[i].x;
-                    edgeStart2d.y = polygon->points[i].y;
-                    edgeEnd2d.x = polygon->points[next].x;
-                    edgeEnd2d.y = polygon->points[next].y;
+                    edgeStart2d.x = polygon[i].x;
+                    edgeStart2d.y = polygon[i].y;
+                    edgeEnd2d.x = polygon[next].x;
+                    edgeEnd2d.y = polygon[next].y;
                     dist = calculateSegmentIntersectionFraction(&rayStart2d, &rayEnd2d, &edgeStart2d, &edgeEnd2d);
 
                     if (dist < bestfrac)
@@ -1233,12 +1233,12 @@ bool sub_GAME_7F041400(PropRecord *prop, coord3d *rayStart, coord3d *rayEnd, coo
             if (bestedge > 0)
             {
                 next = (bestedge + 1) % numedges;
-                edgeStart3d.x = polygon->points[bestedge].x;
+                edgeStart3d.x = polygon[bestedge].x;
                 edgeStart3d.y = 0.0f;
-                edgeStart3d.z = polygon->points[bestedge].y;
-                edgeEnd3d.x = polygon->points[next].x;
+                edgeStart3d.z = polygon[bestedge].y;
+                edgeEnd3d.x = polygon[next].x;
                 edgeEnd3d.y = 0.0f;
-                edgeEnd3d.z = polygon->points[next].y;
+                edgeEnd3d.z = polygon[next].y;
 
                 chrlvLineLineIntersection(&edgeStart3d, &edgeEnd3d, rayStart, rayDir, &intersection);
                 dist = (rayDir->z * (intersection.z - rayStart->z)) + (((intersection.x - rayStart->x) * rayDir->x) + ((intersection.y - rayStart->y) * rayDir->y));
@@ -3679,7 +3679,7 @@ void sub_GAME_7F0442DC(PropRecord* prop)
  * Return true if both blocks are not intersecting on the X/Z plane.
  * PD: cdBlockExcludesBlockLaterally
  */
-bool chrobjSeparatingAxisTheorem(rect4f* rect1, s32 numvertices0, rect4f* rect2, s32 numvertices1)
+bool chrobjSeparatingAxisTheorem(coord2d *rect1, s32 numvertices0, coord2d *rect2, s32 numvertices1)
 {
     f64 diff2;
     f64 diff1;
@@ -3695,14 +3695,14 @@ bool chrobjSeparatingAxisTheorem(rect4f* rect1, s32 numvertices0, rect4f* rect2,
     for (i = 0; i < numvertices0; i++)
     {
         next = (i + 1) % numvertices0;
-        diff1 = rect1->points[next].y - (f64)rect1->points[i].y;
-        diff2 = rect1->points[i].x - (f64)rect1->points[next].x;
+        diff1 = rect1[next].y - (f64)rect1[i].y;
+        diff2 = rect1[i].x - (f64)rect1[next].x;
 
         if (diff1 == 0.0f && diff2 == 0.0f)
         {
-            tmp.x = rect1->points[i].x;
+            tmp.x = rect1[i].x;
             tmp.y = 0.0f;
-            tmp.z = rect1->points[i].y;
+            tmp.z = rect1[i].y;
             if (chrpropTestPointInPolygon(&tmp, rect2, numvertices1))
             {
                 return FALSE;
@@ -3710,12 +3710,12 @@ bool chrobjSeparatingAxisTheorem(rect4f* rect1, s32 numvertices0, rect4f* rect2,
         }
         else
         {
-            sum1 = rect1->points[i].x * diff1 + rect1->points[i].y * diff2;
+            sum1 = rect1[i].x * diff1 + rect1[i].y * diff2;
             j = (next + 1) % numvertices0;
 
             while (j != i)
             {
-                sum2 = rect1->points[j].x * diff1 + rect1->points[j].y * diff2;
+                sum2 = rect1[j].x * diff1 + rect1[j].y * diff2;
 
                 if (sum2 != sum1) { break; }
 
@@ -3724,7 +3724,7 @@ bool chrobjSeparatingAxisTheorem(rect4f* rect1, s32 numvertices0, rect4f* rect2,
 
             for (k = 0; k < numvertices1; k++)
             {
-                sum3 = rect2->points[k].x * diff1 + rect2->points[k].y * diff2;
+                sum3 = rect2[k].x * diff1 + rect2[k].y * diff2;
 
                 if (sum2 == sum1)
                 {
@@ -3762,7 +3762,7 @@ bool chrobjSeparatingAxisTheorem(rect4f* rect1, s32 numvertices0, rect4f* rect2,
  *
  * So they fixed a bug, but didn't do it the right way so it wouldn't affect performance.
 */
-s32 chrobjTestPolygonsTouchingOrOverlap2D(struct rect4f *arg0, s32 arg1, struct rect4f *arg2, s32 arg3)
+s32 chrobjTestPolygonsTouchingOrOverlap2D(coord2d *arg0, s32 arg1, coord2d *arg2, s32 arg3)
 {
 #if defined(VERSION_JP) || defined(VERSION_EU)
     s32 i;
@@ -3770,9 +3770,9 @@ s32 chrobjTestPolygonsTouchingOrOverlap2D(struct rect4f *arg0, s32 arg1, struct 
 
     for (i=0; i<arg1; i++)
     {
-        sp48.f[0] = arg0->points[i].f[0];
+        sp48.f[0] = arg0[i].f[0];
         sp48.f[1] = 0.0f;
-        sp48.f[2] = arg0->points[i].f[1];
+        sp48.f[2] = arg0[i].f[1];
 
         if (chrpropTestPointInPolygon(&sp48, arg2, arg3) != 0)
         {
@@ -3782,9 +3782,9 @@ s32 chrobjTestPolygonsTouchingOrOverlap2D(struct rect4f *arg0, s32 arg1, struct 
 
     for (i=0; i<arg3; i++)
     {
-        sp48.f[0] = arg2->points[i].f[0];
+        sp48.f[0] = arg2[i].f[0];
         sp48.f[1] = 0.0f;
-        sp48.f[2] = arg2->points[i].f[1];
+        sp48.f[2] = arg2[i].f[1];
 
         if (chrpropTestPointInPolygon(&sp48, arg0, arg1) != 0)
         {
@@ -3820,7 +3820,7 @@ s32 chrobjTestPolygonsTouchingOrOverlap2D(struct rect4f *arg0, s32 arg1, struct 
  *
  * Address 0x7F044718.
 */
-s32 chrobjTestPointPolygonCollision(struct coord3d *point, f32 collision_radius, struct rect4f *polygon, s32 edges)
+s32 chrobjTestPointPolygonCollision(struct coord3d *point, f32 collision_radius, coord2d *polygon, s32 edges)
 {
     f32 temp_f0;
     f32 temp_f26;
@@ -3835,22 +3835,22 @@ s32 chrobjTestPointPolygonCollision(struct coord3d *point, f32 collision_radius,
 
     for (i=0; i<edges; i++)
     {
-        temp_s0 = &polygon->points[(i+1) % edges];
+        temp_s0 = &polygon[(i+1) % edges];
 
-        temp_f0 = stanGetSignedPointLineDistance(polygon->points[i].f[0], polygon->points[i].f[1], temp_s0->f[0], temp_s0->f[1], px, pz);
+        temp_f0 = stanGetSignedPointLineDistance(polygon[i].f[0], polygon[i].f[1], temp_s0->f[0], temp_s0->f[1], px, pz);
 
         if (temp_f0 < 0.0f)
         {
             temp_f0 = -temp_f0;
         }
 
-        temp_f26 = distBetweenPoints2d(polygon->points[i].f[0], polygon->points[i].f[1], px, pz);
+        temp_f26 = distBetweenPoints2d(polygon[i].f[0], polygon[i].f[1], px, pz);
         temp_f30 = distBetweenPoints2d(temp_s0->f[0], temp_s0->f[1], px, pz);
 
         if ((temp_f0 < collision_radius)
             && ((temp_f26 < collision_radius)
                 || (temp_f30 < collision_radius)
-                || stanPointProjectsOntoEdge(polygon->points[i].f[0], polygon->points[i].f[1], temp_s0->f[0], temp_s0->f[1], px, pz)
+                || stanPointProjectsOntoEdge(polygon[i].f[0], polygon[i].f[1], temp_s0->f[0], temp_s0->f[1], px, pz)
             )
         )
         {
@@ -3868,7 +3868,7 @@ s32 chrobjTestPointPolygonCollision(struct coord3d *point, f32 collision_radius,
 s32 sub_GAME_7F0448A8(struct PropRecord *argProp)
 {
     s32 var_s0;
-    struct rect4f *polygon2;
+    coord2d *polygon2;
     s32 edges2;
     f32 chrTop;
     f32 chrBottom;
@@ -3880,7 +3880,7 @@ s32 sub_GAME_7F0448A8(struct PropRecord *argProp)
     f32 ground;
     PropRecord *propss;
     ObjectRecord *temp_v0_2;
-    struct rect4f *polygon;
+    coord2d *polygon;
     s32 edges;
     f32 top;
     f32 bottom;
@@ -8308,7 +8308,7 @@ void objDestroySupportedObjects(PropRecord* tableprop, s32 playernum)
     ObjectRecord* obj;
     ObjectRecord* tableobj;
     PropRecord* prop;
-    rect4f* rect;
+    coord2d *rect;
     s32 edges;
     u8 room;
 
@@ -9943,7 +9943,7 @@ void sub_GAME_7F04F218(PropRecord* prop, s32 arg1) {
 }
 
 
-void sub_GAME_7F04F244(PropRecord* prop, rect4f** polygon, s32* edges, f32* top, f32* bottom)
+void sub_GAME_7F04F244(PropRecord* prop, coord2d **polygon, s32* edges, f32* top, f32* bottom)
 {
     ObjectRecord* obj;
     obj = prop->obj;
@@ -9951,7 +9951,7 @@ void sub_GAME_7F04F244(PropRecord* prop, rect4f** polygon, s32* edges, f32* top,
     if ((obj->ptr_allocated_collisiondata_block != NULL) && (obj->flags & PROPFLAG_00000100) && !(obj->state & PROPSTATE_20))
     {
         *edges = obj->ptr_allocated_collisiondata_block->edges;
-        *polygon = &obj->ptr_allocated_collisiondata_block->polygon;
+        *polygon = obj->ptr_allocated_collisiondata_block->polygon;
         *bottom = obj->ptr_allocated_collisiondata_block->bottom;
         *top = obj->ptr_allocated_collisiondata_block->top;
         return;

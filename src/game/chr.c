@@ -3903,7 +3903,7 @@ PropRecord *chrGetEquippedWeaponPropWithCheck(ChrRecord *self, GUNHAND hand)
  *
  * Address 0x7F02308C.
  */
-void chrUpdateCollisionBounds(PropRecord *prop, rect4f **polygon, s32 *edges, f32 *y_out, f32 *ground)
+void chrUpdateCollisionBounds(PropRecord *prop, coord2d **polygon, s32 *edges, f32 *y_out, f32 *ground)
 {
     ChrRecord *chr;
 
@@ -3917,7 +3917,7 @@ void chrUpdateCollisionBounds(PropRecord *prop, rect4f **polygon, s32 *edges, f3
         )
     {
         *edges = 4;
-        *polygon = &chr->collision_bounds;
+        *polygon = chr->collision_bounds.points;
 
         //collision box is a diamond around chr
 
