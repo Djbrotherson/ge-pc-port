@@ -121,6 +121,19 @@ def scan_file(path:Path):
             add("P0","animation-offset-legacy-cast",path,i,raw,
                 "ANIM_DATA_* is an N64 animation offset token; use the generated PTR_ANIM_* constant on the host path.")
 
+        # Pointer tag/flag tests are architecture-sensitive. They may be
+        # intentional tagged-pointer ABI, but ordinary heap/module pointers
+        # also naturally contain these bits on modern hosts. Keep them visible
+        # for manual classification rather than silently inheriting N64-era
+        # assumptions.
+        if host_active and re.search(
+            r"\(\s*uintptr_t\s*\)\s*[^;\n]+(?:->|\.)[A-Za-z_]\w*\s*&\s*"
+            r"(?:\(\s*uintptr_t\s*\)\s*)?0x[0-9A-Fa-f]+",
+            line,
+        ):
+            add("P1","pointer-tag-bit-test",path,i,raw,
+                "Native pointer bits are used as flags; prove an intentional tagged-pointer contract or move the flag to scalar state.")
+
         # Explicit pointer-width integer conversion is a semantic boundary,
         # not proof of truncation. Keep it in the report as P1 so it remains
         # auditable, but reserve P0 for unreviewed direct narrowing.
