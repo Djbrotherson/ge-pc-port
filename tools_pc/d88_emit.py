@@ -85,7 +85,18 @@ Output: appended to the SAME data/pccg-<region>/pccg.bin + manifest.csv
 produced by d69_emit.py (run d69_emit.py first, or this script alone if the
 existing sidecar+manifest are present -- it loads and extends them).
 """
-import csv, struct, zlib, os, re, sys
+import csv, zlib, os, re, sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from tools.n64_portlib.binary import (
+    be_s16 as bs16,
+    be_s32 as bs32,
+    be_u16 as bu16,
+    be_u32 as be32,
+    le_s32_bytes as bswap32_bytes_s,
+    le_u16_bytes as bswap16_bytes,
+    le_u32_bytes as bswap32_bytes,
+)
 from d88_propdefs import convert_stream as convert_propdefs, PropDefError
 
 REGION = "ntsc-final"
@@ -113,13 +124,6 @@ for r in rows:
     if base.endswith(".bin"):
         base = base[:-4]
     fl_by_base[base] = (int(r[0]), int(r[1]))
-
-def be32(b, o): return struct.unpack_from(">I", b, o)[0]
-def bs32(b, o): return struct.unpack_from(">i", b, o)[0]
-def bs16(b, o): return struct.unpack_from(">h", b, o)[0]
-def bswap32_bytes(v): return struct.pack("<I", v & 0xFFFFFFFF)
-def bswap16_bytes(v): return struct.pack("<H", v & 0xFFFF)
-def bswap32_bytes_s(v): return struct.pack("<i", v)
 
 FIELD_NAMES = ["pathwaypoints", "waypointgroups", "intro", "propDefs",
                "patrolpaths", "ailists", "pads", "boundpads", "padnames",
@@ -421,12 +425,12 @@ def convert_usetup(name, src):
             elif fn == "patrolpaths":
                 wpv = be32(src, so + 0)
                 idb = src[so + 4]; isLoop = src[so + 5]
-                length = struct.unpack_from(">H", src, so + 6)[0]
+                length = bu16(src, so + 6)
                 out[do:do + 4] = bswap32_bytes(reloc(wpv)) if wpv else b"\x00\x00\x00\x00"
                 out[do + 4:do + 8] = b"\x00\x00\x00\x00"
                 out[do + 8] = idb
                 out[do + 9] = isLoop
-                out[do + 10:do + 12] = struct.pack("<H", length)
+                out[do + 10:do + 12] = bswap16_bytes(length)
                 out[do + 12:do + 16] = b"\x00\x00\x00\x00"
             elif fn == "ailists":
                 al = be32(src, so + 0); ID = be32(src, so + 4)
