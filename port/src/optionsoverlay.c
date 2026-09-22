@@ -49,6 +49,7 @@
 #include "audio.h"
 #include "input.h"
 #include "optionsoverlay.h"
+#include "damlab.h"
 
 /* ---- game symbols (rendering/UI only; see input.c for the same pattern) ---- */
 struct font;
@@ -71,6 +72,14 @@ enum { PAGE_GRAPHICS, PAGE_AUDIO, PAGE_INPUT, PAGE_GAMEPLAY, PAGE_SYSTEM, PAGE_C
 
 static const char *const kPageNames[PAGE_COUNT] = {
     "VIDEO", "AUDIO", "INPUT", "GAME", "SYSTEM"
+};
+
+static const char *const kPageHints[PAGE_COUNT] = {
+    "DISPLAY / RENDER / FOV",
+    "MIXER / LATENCY / OUTPUT",
+    "MOUSE / PAD / AIM",
+    "GAMEPLAY / ACCESS",
+    "RUNTIME / DAM LAB"
 };
 
 static const char *const kOnOff[]     = { "OFF", "ON", NULL };
@@ -901,13 +910,82 @@ Gfx *optionsOverlayEmit(void)
         }
     }
 
+    /* Page-specific live instrumentation. These panels are deliberately
+     * read-only: they expose runtime health without adding another state
+     * machine or allowing diagnostics to mutate game behavior. */
+    if (s_page == PAGE_AUDIO) {
+        const int q = audioGetSamplesBuffered();
+        const int qMax = 2880; /* fresh-config target from audio.c */
+        double qf = qMax > 0 ? (double)q / (double)qMax : 0.0;
+        if (qf < 0.0) qf = 0.0;
+        if (qf > 1.0) qf = 1.0;
+        const int y0 = OV_BODY_Y + 5 * OV_LINE;
+        if (y0 + 30 < H - 22) {
+            char qtxt[64];
+            gdl = fillRect(gdl, 14, y0, W - 14, y0 + 26, 12, 24, 31, 230);
+            gdl = fillRect(gdl, 20, y0 + 15, W - 20, y0 + 19, 39, 50, 58, 255);
+            gdl = fillRect(gdl, 20, y0 + 15,
+                           20 + (s32)((W - 40) * qf), y0 + 19,
+                           qf > 0.85 ? 217 : 91,
+                           qf > 0.85 ? 167 : 241,
+                           qf > 0.85 ? 88 : 201, 255);
+            snprintf(qtxt, sizeof(qtxt), "QUEUE %d / %d FRAMES", q, qMax);
+            gdl = microcode_constructor(gdl);
+            gdl = drawText(gdl, 20, y0 + 3, qtxt,
+                           qf > 0.85 ? 0xe2b768ff : 0x8cebd1ff);
+        }
+    } else if (s_page == PAGE_SYSTEM) {
+        const DamLabSnapshot *d = damLabGetSnapshot();
+        const int y0 = OV_BODY_Y + 2 * OV_LINE;
+        if (y0 + 78 < H - 22) {
+            char a[96], b[96], c[96], e[96];
+            double cpu = d ? d->cpu_percent : 0.0;
+            if (cpu < 0.0) cpu = 0.0;
+            if (cpu > 100.0) cpu = 100.0;
+
+            gdl = fillRect(gdl, 14, y0, W - 14, y0 + 74, 10, 22, 29, 235);
+            gdl = fillRect(gdl, 20, y0 + 18, W - 20, y0 + 21, 38, 49, 57, 255);
+            gdl = fillRect(gdl, 20, y0 + 18,
+                           20 + (s32)((W - 40) * cpu / 100.0), y0 + 21,
+                           cpu > 90.0 ? 217 : 91,
+                           cpu > 90.0 ? 167 : 241,
+                           cpu > 90.0 ? 88 : 201, 255);
+
+            snprintf(a, sizeof(a), "CPU %3.0f%%   FPS %3.0f   AUDIO Q %d",
+                     d ? d->cpu_percent : 0.0,
+                     d ? d->fps : 0.0,
+                     audioGetSamplesBuffered());
+            snprintf(b, sizeof(b), "RAM %luM   FREE %luM",
+                     d ? d->rss_kb / 1024ul : 0ul,
+                     d ? d->mem_available_kb / 1024ul : 0ul);
+            snprintf(c, sizeof(c), "STAGE %d  ROOM %d  STAN %s",
+                     d ? d->stage : -1,
+                     d ? d->room : -1,
+                     (d && d->stan) ? "OK" : "NULL");
+            snprintf(e, sizeof(e), "POS %d %d %d   FLAGS %02X",
+                     d ? (int)d->pos_x : 0,
+                     d ? (int)d->pos_y : 0,
+                     d ? (int)d->pos_z : 0,
+                     d ? (unsigned)(d->anomaly_flags & 0xffu) : 0u);
+
+            gdl = microcode_constructor(gdl);
+            gdl = drawText(gdl, 20, y0 + 3, "LIVE RUNTIME", 0x62f4c7ff);
+            gdl = drawText(gdl, 20, y0 + 26, a, 0xd8e4e9ff);
+            gdl = drawText(gdl, 20, y0 + 38, b, 0xb7c8d0ff);
+            gdl = drawText(gdl, 20, y0 + 50, c,
+                           (d && d->stan) ? 0x8cebd1ff : 0xe2b768ff);
+            gdl = drawText(gdl, 20, y0 + 62, e,
+                           (d && d->anomaly_flags) ? 0xe2b768ff : 0x91f1c9ff);
+        }
+    }
+
     {
-        char perf[96];
-        snprintf(perf,sizeof(perf),"%s   AUDIO Q %d   PAGE %d/%d",
+        char perf[112];
+        snprintf(perf,sizeof(perf),"%s   Q %d   %s",
                  s_fpsText[0]?s_fpsText:"-- FPS",
-                 audioGetSamplesBuffered(),s_page+1,PAGE_COUNT);
+                 audioGetSamplesBuffered(), kPageHints[s_page]);
         gdl=drawText(gdl,14,H-18,perf,0x7fdcc4ff);
-        gdl=drawTextR(gdl,W-14,H-18,"L/R TAB   F10 CLOSE",0x7f929cff);
+        gdl=drawTextR(gdl,W-14,H-18,"LB/RB TAB   F10 CLOSE",0x7f929cff);
     }
 
     gDPPipeSync(gdl++);
