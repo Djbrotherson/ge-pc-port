@@ -184,3 +184,16 @@ The Dam lab is considered successful when:
 
 Once Dam is behaviorally trustworthy, the same telemetry method becomes the
 template for representative-level regression across the rest of the game.
+
+## GoldenEye dream settings
+
+Port Control now treats GoldenEye's original runtime options and cheats as first-class settings rather than duplicating their behavior in the host layer.
+
+- Original game controls: auto-aim, hold/toggle aim, sight/crosshair, look-ahead, ammo HUD and N64 vertical-look inversion.
+- Original audio controls: GoldenEye music and SFX volumes, alongside host master volume and latency controls.
+- Graphics presets: N64, Crisp, Enhanced and R36S, plus the full manual renderer surface.
+- Audio latency presets: Low Latency, Balanced and Safe.
+- Original cheat page: Invincibility, All Guns, Infinite Ammo, Invisibility, DK Mode, Tiny Bond, Paintball, Turbo, Line Mode, Enemy Rockets, Max Ammo and Disable All.
+- R36S capability reporting is explicit: MSAA remains forced off on the handheld direct-framebuffer GLES path rather than presenting a setting that silently does nothing.
+
+The rule is that a visible control must either drive an existing GoldenEye setting, a verified host/fast3d capability, or clearly state when the target forces a value. Experimental renderer paths that are known to corrupt GoldenEye visuals remain hidden.
