@@ -175,7 +175,14 @@ OBJECTIVESTATUS get_status_of_objective(s32 objectiveNum) //#MATCH
 
     if (objectiveNum < 10)
     {
+#ifdef PORT
+        /* Host build: test the table slot itself. Taking the address of a
+         * member through a NULL base is undefined behavior and does not
+         * provide a valid NULL check on LP64 hosts. */
+        if (objective_ptrs[objectiveNum] == NULL)
+#else
         if (!&objective_ptrs[objectiveNum]->id)
+#endif
         {
             status = objectiveStatuses[objectiveNum];
         }
