@@ -29,11 +29,31 @@ def main() -> None:
 
     profile_path = Path(args.profile)
     profile = json.loads(profile_path.read_text())
+    if profile.get("schema_version") != 1:
+        raise SystemExit(f"{profile_path}: unsupported schema_version {profile.get('schema_version')!r}")
+    if not isinstance(profile.get("project"), str) or not profile["project"].strip():
+        raise SystemExit(f"{profile_path}: project must be a non-empty string")
+
     roots = profile.get("source_roots", [])
     excludes = profile.get("exclude_path_parts", [])
+    if not isinstance(roots, list) or not roots or not all(isinstance(x, str) and x for x in roots):
+        raise SystemExit(f"{profile_path}: source_roots must be a non-empty string list")
+    if not isinstance(excludes, list) or not all(isinstance(x, str) and x for x in excludes):
+        raise SystemExit(f"{profile_path}: exclude_path_parts must be a string list")
 
-    if not roots:
-        raise SystemExit(f"{profile_path}: source_roots must not be empty")
+    missing = [p for p in roots if not Path(p).exists()]
+    if missing:
+        raise SystemExit(f"{profile_path}: missing source roots: {', '.join(missing)}")
+
+    for group in ("binary_adapters", "verification"):
+        entries = profile.get(group, {})
+        if entries is not None and not isinstance(entries, dict):
+            raise SystemExit(f"{profile_path}: {group} must be an object")
+        for name, rel in (entries or {}).items():
+            if not isinstance(rel, str) or not rel:
+                raise SystemExit(f"{profile_path}: {group}.{name} must be a path string")
+            if not Path(rel).exists():
+                raise SystemExit(f"{profile_path}: {group}.{name} path not found: {rel}")
 
     os.environ["N64_PORT_AUDIT_PROFILE"] = str(profile_path)
     os.environ["N64_PORT_AUDIT_PROJECT"] = str(profile.get("project", profile_path.stem))
