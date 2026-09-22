@@ -261,7 +261,7 @@ void joyCheckStatus(void)
         {
             // This seems like a typo in the original, doing a bitwise AND
             // between a logical test on the left and a bitshift on the right.
-            if ((!(g_ControllerStates) & (1 << i)) || (g_ContRumblePakInitState[i] < RUMBLEPAKINITSTATE_READY))
+            if (!(g_ControllerStates & (1 << i)) || (g_ContRumblePakInitState[i] < RUMBLEPAKINITSTATE_READY))
             {
                 joyRumblePakInit(i);
             }
