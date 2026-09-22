@@ -709,6 +709,11 @@ def check_model_sidecar_layout_contract():
         # model pointer surface, not individual historical bugs.
         runtime=Path("src/game/model.c")
         rtext=runtime.read_text(errors="replace")
+        promote_start=rtext.find("void modelPromoteNodeOffsetsToPointers")
+        promote_end=rtext.find("\nvoid sub_GAME_7F075A90", promote_start)
+        if promote_start < 0 or promote_end < 0:
+            raise ValueError("modelPromoteNodeOffsetsToPointers() body not found")
+        promote_text=rtext[promote_start:promote_end]
         promotion_contract={
             "MODELNODE_OPCODE_HEADER": ("FirstGroup",),
             "MODELNODE_OPCODE_GROUP": ("ChildGroup",),
@@ -726,7 +731,7 @@ def check_model_sidecar_layout_contract():
         for opname,fields in promotion_contract.items():
             m=re.search(
                 rf"case\s+{opname}\s*:(.*?)(?=\n\s*case\s+MODELNODE_OPCODE_|\n\s*default\s*:)",
-                rtext,re.S,
+                promote_text,re.S,
             )
             if not m:
                 add("P0","model-runtime-promotion-contract",runtime,1,
@@ -741,7 +746,7 @@ def check_model_sidecar_layout_contract():
                         "Runtime model pointer promotion drifted from the sidecar converter's widened pointer fields.")
         op17_body=re.search(
             r"case\s+MODELNODE_OPCODE_OP17\s*:(.*?)(?=\n\s*case\s+MODELNODE_OPCODE_|\n\s*default\s*:)",
-            rtext,re.S,
+            promote_text,re.S,
         )
         if op17_body and "ModelRoData_Op17Record" not in op17_body.group(1):
             add("P0","model-op17-type-contract",runtime,1,
