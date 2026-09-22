@@ -213,3 +213,43 @@ jobs:
             build-pc/ge007.disasm.txt
             build-pc/ge007.elf-header.txt
           if-no-files-found: error
+
+      - name: Relink Dam showcase profile
+        run: |
+          # Reuse the proven cross-build and ccache. DAM_SHOWCASE only changes
+          # three source files (damlab/options overlay/file stage forcing).
+          cmake -S . -B build-pc -DDAM_SHOWCASE=ON
+          cmake --build build-pc -j$(nproc)
+          cp build-pc/ge007.aarch64 build-pc/ge007.dam-showcase.aarch64
+
+      - name: Strip and verify Dam showcase
+        run: |
+          set -euxo pipefail
+          aarch64-linux-gnu-strip --strip-all build-pc/ge007.dam-showcase.aarch64
+          file build-pc/ge007.dam-showcase.aarch64
+          aarch64-linux-gnu-readelf -h build-pc/ge007.dam-showcase.aarch64 | tee build-pc/ge007.dam-showcase.elf-header.txt
+          grep -q "Machine:.*AArch64" build-pc/ge007.dam-showcase.elf-header.txt
+
+          # Distribution binary must not carry DWARF/symbol-table research data.
+          if aarch64-linux-gnu-readelf -S build-pc/ge007.dam-showcase.aarch64 | grep -Eq '\\.debug_|\\.symtab'; then
+            echo "showcase binary still contains debug/symbol sections" >&2
+            exit 1
+          fi
+
+          # Unique Dam-lab oracle/telemetry strings must not survive this profile.
+          if strings build-pc/ge007.dam-showcase.aarch64 | grep -E             'DAMLAB_BEGIN|oracle_pos|oracle_look|DAMLAB kind=|DAMLAB force-stage|LIVE RUNTIME'; then
+            echo "showcase binary leaked Dam-lab research strings" >&2
+            exit 1
+          fi
+
+          sha256sum build-pc/ge007.dam-showcase.aarch64 | tee build-pc/ge007.dam-showcase.sha256
+
+      - name: Upload stripped Dam showcase
+        uses: actions/upload-artifact@v4
+        with:
+          name: ge007-dam-showcase-stripped
+          path: |
+            build-pc/ge007.dam-showcase.aarch64
+            build-pc/ge007.dam-showcase.sha256
+            build-pc/ge007.dam-showcase.elf-header.txt
+          if-no-files-found: error
