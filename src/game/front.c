@@ -6585,11 +6585,7 @@ void set_briefing_page(WATCH_BRIEFING_PAGE page)
 {
     short new_var;
 
-    // could be a dev typo
-    if (current_menu_briefing_page = page)
-    {
-        // maybe previous code was optimized out
-    }
+    current_menu_briefing_page = page;
 }
 
 
