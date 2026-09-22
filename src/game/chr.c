@@ -1683,7 +1683,7 @@ f32 chrGetArmor(ChrRecord *chr)
 }
 
 
-PropRecord *init_GUARDdata_with_set_values(PropRecord *arg0, Model *arg1, struct coord3d *arg2, f32 arg3, StandTile *arg4, struct AIListRecord *arg5)
+PropRecord *init_GUARDdata_with_set_values(PropRecord *arg0, Model *arg1, struct coord3d *arg2, f32 arg3, StandTile *arg4, AIRecord *arg5)
 {
     ChrRecord *var_s0;
     s32 var_v0;
@@ -1776,7 +1776,7 @@ PropRecord *init_GUARDdata_with_set_values(PropRecord *arg0, Model *arg1, struct
     var_s0->prevpos.f[2] = arg2->f[2];
     var_s0->actiontype = 0;
     var_s0->sleep = 0;
-    var_s0->ailist = (AIRecord *) arg5;
+    var_s0->ailist = arg5;
     var_s0->aioffset = 0;
     var_s0->aireturnlist = -1;
     var_s0->morale = 0;
@@ -1824,7 +1824,7 @@ PropRecord *init_GUARDdata_with_set_values(PropRecord *arg0, Model *arg1, struct
  */
 #ifdef PORT
 /* D92: see chr.h -- arg4 must stay a pointer or the ailist is truncated. */
-PropRecord * chrAllocate( Model * arg0, coord3d * arg1, f32 arg2,  StandTile * arg3, struct AIListRecord *arg4)
+PropRecord * chrAllocate( Model * arg0, coord3d * arg1, f32 arg2,  StandTile * arg3, AIRecord *arg4)
 #else
 PropRecord * chrAllocate( Model * arg0, coord3d * arg1, f32 arg2,  StandTile * arg3, s32 arg4)
 #endif

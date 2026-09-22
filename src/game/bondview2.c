@@ -7695,8 +7695,8 @@ void MoveBond(s8 stick_x, s8 stick_y, u16 buttons, u16 oldbuttons)
             {
                 if (prop->type == PROP_TYPE_CHR)
                 {
-                    s32 sp88_collision_bound_height;
-                    s32 sp84_collision_bound_z;
+                    f32 sp88_collision_bound_height;
+                    f32 sp84_collision_bound_z;
                     f32 sp80_collision_radius;
                     s32 sp7C;
                     struct coord3d sp70;

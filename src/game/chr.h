@@ -280,11 +280,11 @@ void        chrDetectRooms(ChrRecord *);
 void        chrSetMoving(ChrRecord *guard,s32 param_2);
 f32         getAnimationRate(void);
 void        setAnimationRate(f32);
-PropRecord *init_GUARDdata_with_set_values(PropRecord *, Model *, coord3d *, f32 arg2, StandTile * arg3, struct AIListRecord *arg4);
+PropRecord *init_GUARDdata_with_set_values(PropRecord *, Model *, coord3d *, f32 arg2, StandTile * arg3, AIRecord *arg4);
 #ifdef PORT
-/* D92: arg4 is an AIListRecord* (ailistFindById's return); declaring it s32
- * truncates the 64-bit pointer on PC. */
-PropRecord *chrAllocate(struct Model * arg0, coord3d * arg1, f32 arg2, StandTile * arg3, struct AIListRecord *arg4);
+/* D92: arg4 is an AI bytecode pointer (ailistFindById's return); keep it
+ * pointer-width on host rather than truncating it through s32. */
+PropRecord *chrAllocate(struct Model * arg0, coord3d * arg1, f32 arg2, StandTile * arg3, AIRecord *arg4);
 #else
 PropRecord *chrAllocate(struct Model * arg0, coord3d * arg1, f32 arg2, StandTile * arg3, s32 arg4);
 #endif

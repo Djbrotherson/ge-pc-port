@@ -161,7 +161,7 @@ s32 chrResolveId                              (ChrRecord *self, s32 id);
 s32 sub_GAME_7F033780                         (waypoint *arg0, coord3d *arg1, f32 angle);
 s32 chrlvFindPathNeighborRelated              (coord3d *bondpos, StandTile *stan, f32 rot, u8 quadrant);
 s32 chrIsPosOffScreen                         (coord3d *arg0, StandTile *arg1);
-PropRecord *chrSpawnAtCoord(s32 bodynum, s32 headnum, coord3d *pos, StandTile *stan, f32 angle, AIListRecord *ailist, s32 spawnflags);
+PropRecord *chrSpawnAtCoord(s32 bodynum, s32 headnum, coord3d *pos, StandTile *stan, f32 angle, AIRecord *ailist, s32 spawnflags);
 void chrlvInitActAttack                       (ChrRecord *self, struct anim_group_info ** arg1, s32 arg2, point2d *arg3, s32 attack_type, s32 arg5, s32 arg6);
 s32 chrlvPatrolCalculateStep                  (ChrRecord *self, bool *forward, s32 numsteps);
 bool chrlvIsPosClearOfObjectBounds            (coord3d *pos, StandTile *stan);
@@ -3463,7 +3463,7 @@ void chrlvTravelTickMagic(ChrRecord *self, struct waydata *arg1, f32 arg2, coord
             if (self->actiontype == ACT_PATROL)
             {
                 chrlvAdvancePatrolStep(self);
-                chrlvSetGoposSegDistTotal(self, arg1, chrlvGetNextPatrolStepPad(self));
+                chrlvSetGoposSegDistTotal(self, arg1, &chrlvGetNextPatrolStepPad(self)->pos);
             }
             else if (self->actiontype == ACT_GOPOS)
             {
@@ -6862,7 +6862,7 @@ void chrlvFireWeaponRelated(ChrRecord *self, s32 hand)
                             sp258.f[1] = player_prop->pos.f[1];
                             sp258.f[2] = player_prop->pos.f[2];
                             sp254 = player_prop->stan;
-                            recall_joy2_hits_edit_detail_edit_flag(PUN_ATTACK_ITEM(prop_selfchr, act_attack), &player_prop->type, -1);
+                            recall_joy2_hits_edit_detail_edit_flag(PUN_ATTACK_ITEM(prop_selfchr, act_attack), player_prop, -1);
                         }
                         else
                         {
@@ -6885,7 +6885,7 @@ void chrlvFireWeaponRelated(ChrRecord *self, s32 hand)
 
                             if (stanSavedColl_posData != NULL)
                             {
-                                recall_joy2_hits_edit_detail_edit_flag(PUN_ATTACK_ITEM(prop_selfchr, act_attack), &stanSavedColl_posData->type, -1);
+                                recall_joy2_hits_edit_detail_edit_flag(PUN_ATTACK_ITEM(prop_selfchr, act_attack), stanSavedColl_posData, -1);
 
                                 if (stanSavedColl_posData->type == PROP_TYPE_CHR)
                                 {
@@ -10771,7 +10771,7 @@ PropRecord *chrSpawnAtCoord(s32 bodynum, s32 headnum, coord3d *pos, StandTile *s
 /**
  * Address 0x7F034258.
 */
-PropRecord *chrSpawnAtPad(ChrRecord *self, s32 bodynum, s32 headnum, s32 padid, AIListRecord *ailist, s32 flags)
+PropRecord *chrSpawnAtPad(ChrRecord *self, s32 bodynum, s32 headnum, s32 padid, AIRecord *ailist, s32 flags)
 {
     PadRecord *pad;
     padid = chrResolvePadId(self, padid);
@@ -10795,7 +10795,7 @@ PropRecord *chrSpawnAtPad(ChrRecord *self, s32 bodynum, s32 headnum, s32 padid, 
 /**
  * Address 0x7F034308.
  */
-PropRecord *chrSpawnAtChr(ChrRecord *self, s32 bodynum, s32 headnum, s32 chrnum, AIListRecord *ailist, s32 flags)
+PropRecord *chrSpawnAtChr(ChrRecord *self, s32 bodynum, s32 headnum, s32 chrnum, AIRecord *ailist, s32 flags)
 {
     ChrRecord *chr;
     chr = chrFindById(self, chrnum);

@@ -2404,7 +2404,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
 
                         if (obj->model)
                         {
-                            matrix_scalar_multiply(obj->model->scale, &matrix);
+                            matrix_scalar_multiply(obj->model->scale, matrix.m[0]);
                         }
                         sub_GAME_7F04088C(obj, &pad->pos, &matrix, pad->stan, &pad->pos);
                         setupUpdateObjectRoomPosition(obj);
@@ -3601,7 +3601,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                     AiTRYCloningChrRecord *ai       = (AiTRYCloningChrRecord *)(AiListp + Offset);
                     // int zero                        = 0; //on stack in xbla, but matches without
                     u16                    ailistid = ntohs(ai->AI_LIST_ID);
-                    u8                    *ailist   = ailistFindById((u16)ailistid);
+                    AIRecord              *ailist   = ailistFindById((u16)ailistid);
                     ChrRecord             *chr      = chrFindById(ChrEntityp, ai->CHR_NUM);
                     bool                   pass     = FALSE; // 564
                     int                    chrnum;
