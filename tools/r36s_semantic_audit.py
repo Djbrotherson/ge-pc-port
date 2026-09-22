@@ -462,6 +462,44 @@ def check_ai_command_layout_contract():
             "Could not prove generated AI bytecode record/length agreement.")
 
 
+def check_stage_setup_layout_contract():
+    """Cross-check d88 growing-table widths against native setup structs."""
+    converter=Path("tools_pc/d88_emit.py")
+    if not converter.exists():
+        return
+    try:
+        text=converter.read_text(errors="replace")
+        expected={
+            "pads":(44,56),
+            "boundpads":(68,80),
+            "waypointgroups":(12,24),
+            "pathwaypoints":(16,24),
+            "patrolpaths":(8,16),
+            "ailists":(8,16),
+            "padnames":(4,8),
+            "boundpadnames":(4,8),
+        }
+        found={}
+        for name,oldsz,newsz in re.findall(
+            r"\(\s*\"([A-Za-z0-9_]+)\"\s*,[^\n]*?,\s*(\d+)\s*,\s*(\d+)\s*\)",
+            text,
+        ):
+            if name in expected:
+                found[name]=(int(oldsz),int(newsz))
+        if found != expected:
+            add("P0","stage-setup-growth-contract",converter,1,
+                f"found={found}",
+                "d88 setup-table growth sizes drifted from the compile-time ABI contract in bondtypes.h.")
+        m=re.search(r"cum\s*=\s*(0x[0-9A-Fa-f]+|\d+)\s*#\s*header grows",text)
+        if not m or int(m.group(1),0) != 0x28:
+            add("P0","stage-setup-header-growth",converter,1,
+                m.group(0) if m else "missing header growth seed",
+                "d88 stage header growth must account for 40-byte N64 to 80-byte host stagesetup.")
+    except Exception as exc:
+        add("P0","stage-setup-audit-error",converter,1,str(exc),
+            "Could not prove d88 stage setup table/native ABI agreement.")
+
+
 def check_model_sidecar_layout_contract():
     """Cross-check d43 model sidecar native record widths."""
     converter=Path("tools_pc/d43_emit.py")
@@ -660,6 +698,7 @@ def main():
     collect_pointer_member_names()
     for f in iter_files(): scan_file(f)
     check_propdef_stride_contract()
+    check_stage_setup_layout_contract()
     check_model_sidecar_layout_contract()
     check_stan_layout_contract()
     check_ai_command_layout_contract()
