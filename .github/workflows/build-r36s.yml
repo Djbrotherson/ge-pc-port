@@ -6,6 +6,11 @@ on:
   # covered by the cheap semantic gate. Run this only after a reviewed batch
   # is ready for AArch64 proof, or when validating a PR into main.
   workflow_dispatch:
+  push:
+    branches:
+      - r36s-first-frame-noaudio
+    paths:
+      - '.github/r36s-build-trigger'
   pull_request:
     branches:
       - main
