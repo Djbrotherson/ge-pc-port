@@ -1,63 +1,115 @@
-# AGENTS.md — GoldenEye 007 PC Port
+# AGENTS.md — ARM-GE / N64 Portkit
 
-## What this is
+## Mission
 
-- `n64decomp/007`: WIP decompilation of GoldenEye 007 (N64), byte-matches US/EU/JP ROMs.
-- Active work: **PC port** modelled on the Perfect Dark PC port (same Rare "Indy" engine family).
-- **Reference docs:** `docs/internals.md` — architecture, GE-specific RSP deltas, phased plan (§1–§10). `docs/dev/findings.md` — the `Dxx` finding log (§F + §H, indexed at the top of §F); read the entry you need, don't linear-read. `docs/porting-notes.md` — the recurring N64→PC bug classes (dense; skim the headers, read what's relevant).
-- **Current status:** the README "Status" section, and `docs/dev/LEVEL-STATUS.md` for the per-level sweep. Current task + environment: `docs/HANDOFF.md` (a rolling local working file — may be absent in a fresh clone; fall back to the README "Status" section).
-- **Dispatching subagents?** `docs/dev-process.md` — task budgets/deadlines, file partitioning, pre-flight, the standard brief template. Every investigation subagent reads `docs/porting-notes.md` first and appends to it.
+This repository has two coupled goals:
 
-## Non-negotiables
+1. keep the GoldenEye 007 ARM64/GLES R36S port working and measurable;
+2. turn every reusable portability lesson into N64 Portkit infrastructure.
 
-1. **N64 build untouched.** `Makefile`, `tools/`, `rsp/`, `ld/` belong to the N64 build. Never modify them for the PC port.
-2. **Game logic is unmodified.** The decomp's control flow and behavior are ground truth for 1:1 fidelity — never change them. All N64 *hardware* dependencies are satisfied by the `port/` layer; if a game file seems to need a behavioral change, stop — the fix belongs in `port/`. **Narrow exception (ABI/layout only):** the 32→64-bit transition forces a small class of mechanical, semantics-preserving edits that cannot be isolated in `port/` — chiefly pointer-width reconciliation in ROM-serialized structs (a struct with a 32-bit-pointer field misaligns when read as 64-bit). These follow the PD ground-truth pattern (store the embedded address as `u32`, cast to a real pointer at the use site), change no logic or behavior, and are each documented in `docs/dev/findings.md` §F/D3x. No other game-code edits are permitted.
-3. **Region macros mirror the Makefile.** `CMakeLists.txt` `REGION_DEFS` must match the N64 Makefile's per-region macro set exactly (finding A1). Divergence = silent branch divergence + link failures.
-4. **`src/libultrare/Makefile.libultrare` is ground truth** for original-vs-Rare libultra files (finding B3). The PC build compiles: `libultra/audio`, `libultrare/audio` (drvrNew/env/reverb), `libultra/gu`, and `libultrare/io/vitbl.c` only. All other `io/` + `os/` files are excluded and shimmed in `port/src/libultra.c`.
-5. **`rsp/graphics/gmain.s` is the RSP ground truth** — the authoritative reference for which GBI commands GE emits (modified fast3d, 1545 lines). We do not run it on PC; `port/fast3d/` replaces it. Use it to validate the software RSP's command decoding and the custom CC/RM modes.
+The game port is the reference integration. Portkit is the reusable product.
 
-## Critical files
+## Canonical development line
 
-| File | Role |
-|---|---|
-| `docs/internals.md` | Architecture + RSP deltas + phased plan (§1–§10). Reference, not a linear read. |
-| `docs/dev/findings.md` | The `Dxx` finding log (§F/§H, indexed at top of §F). |
-| `CMakeLists.txt` | PC build (parallel to the N64 Makefile). Source list + `REGION_DEFS` live here. |
-| `port/src/` | Shims: `libultra.c` (OS API), `gesched.c` (scheduler), `n64stubs.c` (boot/TLB/FPU/rmon), `random.c` (PRNG ported verbatim from `random.s`), `ucode.c` (microcode segment markers), `main.c`, `video.c`, … |
-| `port/fast3d/` | Software RSP (adapted from the PD port). The main Phase 2 work. |
-| `rsp/graphics/gmain.s` | GE's RSP ucode — ground truth for GBI/CC/RM. |
-| A local **Perfect Dark PC port** checkout ([fgsfdsfgs/perfect_dark](https://github.com/fgsfdsfgs/perfect_dark)) | **Standing reference** — consult it whenever a work item has a PD analogue (same Rare engine family): port-layer ground truth (`port/fast3d/`, crash/system/video), plus copy candidates `port/src/preprocess/` (N64→PC asset conversion; `filemodel.c` is the D43 near-analogue) and `mixer.c`/`input.c`/`fs.c`. Port-layer files only; same family ≠ identical format — validate per field. Full audit: `docs/internals.md` §2.4. |
+- `main` is the only canonical development branch.
+- Work in reviewed batches, not one-crash-one-commit loops.
+- Prefer the smallest number of high-information builds and device tests.
+- Preserve legal attribution in `NOTICE.md`; do not copy historical project documentation into new front-facing docs.
 
-## Build
+## Speedrun rule
+
+For every action, ask:
+
+1. What uncertainty does this remove?
+2. Can the same evidence eliminate an entire bug class instead of one symptom?
+3. Can this be proven statically or on host before spending an AArch64 build or R36S test?
+4. Can the result become a reusable detector, contract, adapter, test, or generator?
+
+Do not spend device time rediscovering static ABI, layout, pointer-width, or renderer-capability errors.
+
+## Required validation ladder
+
+Run the cheapest useful tier first.
+
+### Tier 0 — semantic gate
 
 ```sh
-./build-pc.sh ntsc-final   # or pal-final / jpn-final
+python3 tools/n64_port.py doctor
+python3 tools/n64_port.py selftest
+python3 tools/n64_port.py audit
 ```
 
-Needs CMake + SDL2 + zlib + OpenGL, and must run from the MSYS2 MINGW64 shell
-(see `build-pc.sh` header and `docs/building.md`). ROM goes in `./data/`
-(not distributed); assets must be extracted from it first (`docs/building.md`).
+### Tier 1 — host evidence
 
-## Verification ritual (after any build-affecting change)
+Use focused compile/layout/converter/headless checks for the subsystem being changed.
 
-1. **Undefined symbols.** Every symbol referenced by the compiled set (see `CMakeLists.txt`: `SRC_GAME`, `SRC_ENGINE`, `SRC_LIBAUDIO`, `SRC_LIBULTRARE_AUDIO`, `SRC_LIBULTRARE_DATA`, `SRC_GU`, `SRC_PORT*`) must be defined exactly once in the compiled set or in `port/`. Symbols that live in EXCLUDED files (`libultra/io/*`, `libultrare/io/*` except `vitbl.c`, `libultra/os/*`, `libultrare/os/*`, `sched.c`, `rmon.c`, `vi.c`, `src/*.s`) must be provided by `port/src/libultra.c`, `gesched.c`, `n64stubs.c`, `random.c`, or `ucode.c`.
-2. **Duplicates.** No symbol defined twice across the compiled set (watch `sp_*` stacks, `rmon*`, `os*` shims, segment markers).
-3. **Syntax.** Every touched file must parse; `./build-pc.sh` is the final word.
+### Tier 2 — AArch64 proof
 
-Run `/linkcheck` for this sweep. Record new findings in `docs/dev/findings.md` §F/§H style (next `Dxx` label after the last used) and add the label to the §F index.
+Use the deliberate R36S cross-build only after a coherent reviewed batch. Avoid trigger-only commits.
 
-## Phase status (summary — see README + `docs/dev/findings.md` for detail)
+### Tier 3 — R36S
 
-- **Phase 0–1.5:** done. Build system, boot chain, OS-shim layer, fast3d
-  integration, first frames, full intro rendering.
-- **Phase 2 (rendering):** in progress. All 21 solo levels load + render +
-  survive an unattended window; front end (menu → mission select → briefing →
-  start) is functional; file-backed EEPROM saves work. Cosmetic defects are
-  parked in `docs/dev/GRAPHICS-BACKLOG.md`.
-- **Phase 3 (audio + input):** input layer done (`port/src/input.c`); polish
-  bugs open (D118* mouse-look residuals; interactive feel-checks owed). Audio
-  mixer done (libaudio → SDL software mixer, D198–D201); D204 tempo drift
-  fixed + measured; D202 stuck door loop root-caused with a port-side
-  expiration (M-66b) awaiting by-ear verification.
-- **Phase 4 (saves + polish):** file-backed EEPROM done; widescreen, config,
-  rebinding UI outstanding.
+Use real hardware only for runtime behavior that cannot be settled earlier.
+
+## Porting invariants
+
+Classify every suspicious value before editing it:
+
+1. native host pointer;
+2. 32-bit N64/ROM/segmented address token;
+3. serialized offset or binary field;
+4. fixed-width integer/data value.
+
+Never mechanically widen every `s32`/`u32` to `uintptr_t`.
+
+Keep serialized layouts fixed-width. Convert tokens to host pointers only at explicit boundaries. Keep converter/runtime strides and structure contracts paired and tested.
+
+For graphics, the target capability is SDL2 + GLES 3. Desktop GL behavior must not leak into the GLES path. Prefer capability adapters and renderer-state lifecycle fixes over title-specific call-site patches.
+
+## Where changes belong
+
+| Area | Responsibility |
+|---|---|
+| `portkit/` | reusable scanners, schemas, backends, targets, classifiers, generators |
+| `tools/n64_port.py`, `tools/n64_portlib/` | repository integration and semantic gate |
+| `tools_pc/` | GoldenEye-specific converters and verification |
+| `port/` | host runtime, SDL/GLES, audio, input, filesystem and platform shims |
+| `src/`, `include/` | game source plus narrowly justified host ABI/layout adaptations |
+| `cmake/`, `CMakeLists.txt` | target/build contracts |
+| `docs/dev/` | current runtime evidence and active findings |
+| `docs/` | current architecture and durable operating rules |
+
+If a GoldenEye fix exposes a general N64 portability rule, capture the generic rule in `portkit/` or the semantic gate instead of leaving it as folklore.
+
+## Batch workflow
+
+1. identify a semantic class or runtime frontier;
+2. census the whole relevant source path;
+3. classify findings;
+4. patch the class in one coherent batch;
+5. add a detector/assertion/test/contract where practical;
+6. run Tier 0;
+7. run the minimum higher tier needed;
+8. record only durable current documentation;
+9. commit once the batch is internally consistent.
+
+Do not accumulate temporary probes, scratch reports, generated binaries, ROM data, extracted assets, or machine-specific setup files in the repository.
+
+## Documentation
+
+Start with:
+
+- `README.md`
+- `docs/README.md`
+- `portkit/README.md`
+- `portkit/ARCHITECTURE.md`
+- `docs/R36S-BUILD.md`
+- `docs/porting-notes.md`
+
+Detailed live evidence belongs under `docs/dev/`. Closed investigations should disappear from the working tree once their reusable rule or permanent test has been captured; Git history is the archive.
+
+## Legal boundary
+
+Do not commit ROMs, extracted proprietary game assets, credentials, private runner configuration, or generated ROM-derived artifacts.
+
+Keep required third-party copyright/license notices intact. See `LICENSE` and `NOTICE.md`.
