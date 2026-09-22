@@ -4094,6 +4094,8 @@ GE_LAYOUT_ASSERT(sizeof(ModelRoData_BoundingBoxRecord) == 28, "model op10 host r
 GE_LAYOUT_ASSERT(sizeof(ModelRoData_GunfireRecord) == 48, "model op12 host rodata size");
 GE_LAYOUT_ASSERT(sizeof(ModelRoData_ShadowRecord) == 48, "model op13 host rodata size");
 GE_LAYOUT_ASSERT(sizeof(ModelRoData_InterlinkageRecord) == 28, "model op15 host rodata size");
+GE_LAYOUT_ASSERT(sizeof(ModelRoData_Op17Record) == 40, "model op17 host rodata size");
+GE_LAYOUT_ASSERT(offsetof(ModelRoData_Op17Record, othernode) == 24, "model op17 othernode host offset");
 GE_LAYOUT_ASSERT(sizeof(ModelRoData_SwitchRecord) == 16, "model op18 host rodata size");
 GE_LAYOUT_ASSERT(sizeof(ModelRoData_GroupSimpleRecord) == 20, "model op21 host rodata size");
 GE_LAYOUT_ASSERT(sizeof(ModelRoData_DisplayListPrimaryRecord) == 32, "model op22 host rodata size");

@@ -108,7 +108,7 @@ N64_REC = {1: 0x1C, 2: 0x1C, 3: 0x1C, 4: 0x14, 8: 0x10, 9: 0x24, 10: 0x1C,
            12: 0x28, 13: 0x20, 15: 0x1C, 17: 0x20, 18: 0x08, 21: 0x14,
            22: 0x10, 23: 0x02, 24: 0x20}
 PC_REC = {1: 24, 2: 40, 3: 40, 4: 40, 8: 24, 9: 48, 10: 28, 12: 48,
-          13: 48, 15: 28, 18: 16, 21: 20, 22: 32, 23: 2, 24: 64}
+          13: 48, 15: 28, 17: 40, 18: 16, 21: 20, 22: 32, 23: 2, 24: 64}
 PC_NODE = 48
 # GDL w1 remap set: only these opcodes carry file-relative seg-5 addresses in
 # w1. Verified against the ROM (all 512 files): G_VTX w1 is 0x04xxxxxx (seg 4 =
@@ -122,6 +122,13 @@ ADDR_OPS = {0x04, 0xFD}
 def round8(x): return align_up(x, 8)
 def round16(x): return align_up(x, 16)
 def round64(x): return align_up(x, 64)
+
+# Every N64 record class admitted by the converter must have a native-PC
+# footprint. This catches exactly the historical opcode-17 hole before any ROM
+# is processed.
+_missing_pc_rec = sorted(set(N64_REC) - set(PC_REC))
+if _missing_pc_rec:
+    raise RuntimeError(f"model converter missing PC record layouts: {_missing_pc_rec}")
 
 # ------------------------------------------------- node map + visit sim ----
 class N:
@@ -579,6 +586,13 @@ def process(name):
             for i in range(3): put_f32(r + 4 * i, d + 4 * i)
             for i in range(3): put_f32(r + 12 + 4 * i, d + 0xC + 4 * i)
             put_f32(r + 24, d + 0x18)
+        elif op == 17:   # Op17Record: hit sphere + related node
+            put_u32(r, be32r(src, d))
+            put_f32(r + 4, d + 4)
+            for i in range(3): put_f32(r + 8 + 4 * i, d + 8 + 4 * i)
+            put_ptr(r + 24, be32o(src, d + 0x14))
+            put_f32(r + 32, d + 0x18)
+            put_f32(r + 36, d + 0x1C)
         elif op == 18:   # SwitchRecord
             put_ptr(r, be32o(src, d))
             put_u16(r + 8, bu16(src, d + 4))

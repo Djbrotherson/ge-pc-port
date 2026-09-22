@@ -80,6 +80,11 @@ int main(void)
     P_OFF(ModelRoData_InterlinkageRecord, pos); P_OFF(ModelRoData_InterlinkageRecord, pos2);
     P_OFF(ModelRoData_InterlinkageRecord, Scale);
 
+    P_SZ(ModelRoData_Op17Record);
+    P_OFF(ModelRoData_Op17Record, hitpart); P_OFF(ModelRoData_Op17Record, radiusSq);
+    P_OFF(ModelRoData_Op17Record, pos); P_OFF(ModelRoData_Op17Record, othernode);
+    P_OFF(ModelRoData_Op17Record, scale1); P_OFF(ModelRoData_Op17Record, scale2);
+
     P_SZ(ModelRoData_SwitchRecord);
     P_OFF(ModelRoData_SwitchRecord, Controls); P_OFF(ModelRoData_SwitchRecord, RwDataIndex);
 
