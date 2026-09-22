@@ -2018,7 +2018,7 @@ Gfx *constructor_menu04_goldeneyelogo(Gfx *DL)
     DL = viFillScreen(DL);
 
     logoLookAt = (LookAt *)dynAllocateLights(2);
-    guLookAtReflect(&logoReflectMtx, logoLookAt, 0.0f, 0.0f, 4000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+    guLookAtReflectF(logoReflectMtx.m, logoLookAt, 0.0f, 0.0f, 4000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
     // Lights macro? These need to be on one line.
     gSPNumLights(DL++, 1); \
@@ -2034,7 +2034,7 @@ Gfx *constructor_menu04_goldeneyelogo(Gfx *DL)
 
     matrix_scalar_multiply(1.2f, logoMatrix.m[0]);
     matrix_4x4_copy(&logoMatrix, gelogo.mtxlist);
-    logoinst->render_pos = (union RenderPosView*)gelogo.mtxlist;
+    logoinst->render_pos = (RenderPosView *)gelogo.mtxlist;
 
     modelUpdateNodeRelations(logoinst);
 
@@ -2175,7 +2175,7 @@ void load_walletbond(void)
             Gfx *arg0;
 
             b = (struct ModelNode *)mnode;
-            srecord = b->Data;
+            srecord = (ModelRoData_DisplayList_CollisionRecord *)b->Data;
 
             arg0 = (Gfx *)((u8 *)srecord->BaseAddr + ((uintptr_t)srecord->Primary & 0x00ffffffu));
             bgApplyDynamicCCRMLUT(arg0, NULL, CCRMLUT_WALLETBOND);
@@ -2968,7 +2968,7 @@ Gfx *frontSetupMenuBackground(Gfx *DL)
 
     matrix_4x4_copy(&sp88, sp10C.mtxlist);
 
-    walletinst[0]->render_pos = (union RenderPosView*)sp10C.mtxlist;
+    walletinst[0]->render_pos = (RenderPosView *)sp10C.mtxlist;
 
     sp10C.flags = 3;
     sp10C.zbufferenabled = FALSE;
@@ -3279,7 +3279,7 @@ void interface_menu07_missionsel(void)
         temp_s4 = (struct ModelRoData_DisplayList_CollisionRecord *)mnode->Data;
 
         temp_s1 = (struct ModelRwData_DisplayList_CollisionRecord *)modelGetNodeRwData(walletinst[0], mnode);
-        temp_s1->Vertices = dynAllocateVertices(temp_s4->numVertices);
+        temp_s1->Vertices = (Vertex *)dynAllocateVertices(temp_s4->numVertices);
 
         for (i = 0; i < temp_s4->numVertices; i++)
         {
@@ -5174,7 +5174,7 @@ Gfx *frontRenderCharacterPortrait(Gfx *DL, s32 arg1, s32 arg2, s32 arg3, s32 arg
 
     spD4 = dynAllocateMatrix();
     spD0 = dynAllocateMatrix();
-    spCC = dynAllocateVertices(16);
+    spCC = (Vertex *)dynAllocateVertices(16);
     DL = microcode_constructor(DL);
 
     guOrtho(spD4, 0.0f, 440.0f, 0.0f, 330.0f, 1.0f, 10.0f, 1.0f);

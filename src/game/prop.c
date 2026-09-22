@@ -1984,7 +1984,7 @@ void proplvreset2(enum LEVELID stageId)
                             pdef_safe->item = safe_item;
                             pdef_safe->safe = safe;
                             pdef_safe->door = door;
-                            initSetLevelLoadPropSafeItem((struct ObjectRecord *) pdef_safe);
+                            initSetLevelLoadPropSafeItem(pdef_safe);
                             safe_item->flags2 |= PROPFLAG2_LINKEDTOSAFE;
                             door->flags2 |= PROPFLAG2_LINKEDTOSAFE;
                         }

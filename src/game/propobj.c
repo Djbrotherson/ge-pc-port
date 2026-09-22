@@ -213,7 +213,7 @@ bool chrobjSeparatingAxisTheorem(coord2d *rect1, s32 numvertices0, coord2d *rect
 void chrobjSndCreatePostEvent(ALSoundState *state, coord3d *pos, f32 low, f32 high);
 void remove_obj_from_temp_proxmine_table(WeaponObjRecord* proxy);
 void add_obj_to_temp_proxmine_table(WeaponObjRecord* proxy);
-s32 sub_GAME_7F042EB4(struct ObjectRecord *arg0, f32 *arg1, struct coord3d *arg2, struct coord3d *arg3, s32 arg4, s32 arg5);
+s32 sub_GAME_7F042EB4(struct ObjectRecord *arg0, coord3d *arg1, struct coord3d *arg2, struct coord3d *arg3, s32 arg4, s32 arg5);
 s32 objTryMovePropWithCollision(ObjectRecord *obj, coord3d *arg1, coord3d *arg2, coord3d *arg3, s32 arg4);
 s32 handles_projectile_motion(struct ObjectRecord *arg0, coord3d *arg1, coord3d *arg2, coord3d *arg3, s32 arg4, s32 arg5);
 void objSettle(struct ObjectRecord *arg0, struct coord3d *arg1);
