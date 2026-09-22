@@ -57,6 +57,7 @@ def main() -> None:
 
     os.environ["N64_PORT_AUDIT_PROFILE"] = str(profile_path)
     os.environ["N64_PORT_AUDIT_PROJECT"] = str(profile.get("project", profile_path.stem))
+    os.environ["N64_PORT_AUDIT_CONTRACT_SUITE"] = str(profile.get("contract_suite", ""))
     os.environ["N64_PORT_AUDIT_ROOTS"] = os.pathsep.join(str(x) for x in roots)
     os.environ["N64_PORT_AUDIT_EXCLUDES"] = os.pathsep.join(str(x) for x in excludes)
 
