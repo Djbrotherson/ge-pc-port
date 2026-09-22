@@ -1,4 +1,5 @@
 #include <ultra64.h>
+#include <string.h>
 #include "indy_commands.h"
 #include <PR/os.h>
 #include <PR/region.h>
@@ -995,8 +996,13 @@ s32 indyrescmdResponseHostCmdPacket(s32 readsize, s32 writesize, u32 *response)
 
 s32 response_indyrescmd_1_4_2(u8 *response)
 {
+    u32 value = 0;
+
     indyrescmdResponseSize(0x18,0x18);
-    post_indyrescmd_istype4_correctvalue(0x14,0x14,response);
+    post_indyrescmd_istype4_correctvalue(0x14,0x14,&value);
+    if (response != NULL) {
+        memcpy(response, &value, sizeof(value));
+    }
     indyrescmdResponseEnd(0,0);
 
     return TRUE;
