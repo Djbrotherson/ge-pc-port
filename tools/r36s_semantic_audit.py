@@ -328,6 +328,23 @@ def scan_file(path:Path):
                         "Pointer-array byte offset uses an N64 4-byte stride; verify PORT uses sizeof(pointer) or token-array storage.")
                     break
 
+        # Pointer storage type-punned through a 32-bit integer lvalue can
+        # truncate or overwrite half of a native pointer without an explicit
+        # cast at the write site. Surface these aliases on host-active paths.
+        if (host_active and re.search(
+            r"\(\s*(?:s32|u32)\s*\*\s*\)\s*&\s*"
+            r"[^;\n]+(?:->|\.)([A-Za-z_]\w*)\b",
+            line,
+        )):
+            m_alias=re.search(
+                r"\(\s*(?:s32|u32)\s*\*\s*\)\s*&\s*"
+                r"[^;\n]+(?:->|\.)([A-Za-z_]\w*)\b",
+                line,
+            )
+            if m_alias and m_alias.group(1) in POINTER_MEMBER_NAMES:
+                add("P1","pointer-storage-aliased-as-u32",path,i,raw,
+                    "Declared pointer storage is aliased through s32*/u32*; verify this is an N64 token slot rather than native pointer storage.")
+
         # Native pointer-array storage must scale by sizeof(pointer), not
         # the N64 element width. These patterns are especially dangerous
         # because they often corrupt several entries before the crash site.
