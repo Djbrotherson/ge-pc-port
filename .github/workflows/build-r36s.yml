@@ -1,16 +1,9 @@
 name: GoldenEye AArch64 R36S GLES Build
-# CI trigger: standard-hosted AArch64 cross-validation (forced retrigger 2026-09-20 13:xx AEST)
-
 on:
   # Expensive cross-builds are intentional. Active development pushes are
   # covered by the cheap semantic gate. Run this only after a reviewed batch
   # is ready for AArch64 proof, or when validating a PR into main.
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/r36s-build-trigger'
   pull_request:
     branches:
       - main
@@ -44,14 +37,14 @@ jobs:
       - name: Archive exact source snapshot
         if: github.event_name == 'workflow_dispatch'
         run: |
-          git archive --format=tar.gz --output=ge-pc-port-source.tar.gz HEAD
+          git archive --format=tar.gz --output=arm-ge-source.tar.gz HEAD
 
       - name: Upload exact source snapshot
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: ge-pc-port-source-snapshot
-          path: ge-pc-port-source.tar.gz
+          name: arm-ge-source-snapshot
+          path: arm-ge-source.tar.gz
           if-no-files-found: error
 
       - name: Run 64-bit pointer regression
