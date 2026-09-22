@@ -1,3 +1,7 @@
+> **Legacy desktop reference.** This document is retained for inherited PC-port
+> implementation context. It is not the current R36S/AArch64 build guide.
+> For this branch, use [R36S-BUILD.md](R36S-BUILD.md) and the root README.
+
 ---
 title: Building
 description: Full build and asset-extraction guide for the GoldenEye 007 PC port, covering Windows (MSYS2) and Linux.
