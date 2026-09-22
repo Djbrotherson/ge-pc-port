@@ -100,10 +100,18 @@ enum {
     GE_CHEAT_INVISIBILITY = 10,
     GE_CHEAT_INFINITE_AMMO = 11,
     GE_CHEAT_DK_MODE = 12,
+    GE_CHEAT_EXTRA_WEAPONS = 13,
     GE_CHEAT_TINY_BOND = 14,
     GE_CHEAT_PAINTBALL = 15,
+    GE_CHEAT_10X_HEALTH = 16,
+    GE_CHEAT_MAGNUM = 17,
+    GE_CHEAT_LASER = 18,
+    GE_CHEAT_GOLDEN_GUN = 19,
     GE_CHEAT_TURBO_MODE = 24,
-    GE_CHEAT_ENEMY_ROCKETS = 28
+    GE_CHEAT_ENEMY_ROCKETS = 28,
+    GE_CHEAT_2X_ROCKET_LAUNCHER = 29,
+    GE_CHEAT_2X_GRENADE_LAUNCHER = 30,
+    GE_CHEAT_2X_RCP90 = 31
 };
 
 /* GoldenEye's original cheat machinery. Port Control invokes the same
@@ -266,6 +274,14 @@ static struct Row rows[] = {
     { PAGE_CHEATS, "__CheatLineMode",            "Line mode",            ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
     { PAGE_CHEATS, "__CheatEnemyRockets",        "Enemy rockets",        ROW_TOGGLE, 1, kOnOff, 0, 0, 0, 0,0,0,0,0 },
     { PAGE_CHEATS, "__CheatMaxAmmo",             "Give max ammo",        ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatExtraWeapons",        "Give extra weapons",   ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatGoldenGun",           "Give Golden Gun",      ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatLaser",               "Give laser",           ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__CheatMagnum",              "Give magnum",          ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__Cheat10xHealth",           "Give 10x health",      ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__Cheat2xRL",                "Dual rocket launchers",ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__Cheat2xGL",                "Dual grenade launchers",ROW_ACTION,0, NULL,   0, 0, 0, 0,0,0,0,0 },
+    { PAGE_CHEATS, "__Cheat2xRCP90",             "Dual RCP90s",          ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
     { PAGE_CHEATS, "__CheatClearAll",            "Disable all cheats",   ROW_ACTION, 0, NULL,   0, 0, 0, 0,0,0,0,0 },
 
     /* System / diagnostics */
@@ -635,6 +651,30 @@ static void rowSet(struct Row *r, double v)
     if (strcmp(r->key, "__CheatMaxAmmo") == 0) {
         cheatButtonTurnOnCheatForPlayers(GE_CHEAT_MAXAMMO);
         return;
+    }
+    if (strcmp(r->key, "__CheatExtraWeapons") == 0) {
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_EXTRA_WEAPONS); return;
+    }
+    if (strcmp(r->key, "__CheatGoldenGun") == 0) {
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_GOLDEN_GUN); return;
+    }
+    if (strcmp(r->key, "__CheatLaser") == 0) {
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_LASER); return;
+    }
+    if (strcmp(r->key, "__CheatMagnum") == 0) {
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_MAGNUM); return;
+    }
+    if (strcmp(r->key, "__Cheat10xHealth") == 0) {
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_10X_HEALTH); return;
+    }
+    if (strcmp(r->key, "__Cheat2xRL") == 0) {
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_2X_ROCKET_LAUNCHER); return;
+    }
+    if (strcmp(r->key, "__Cheat2xGL") == 0) {
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_2X_GRENADE_LAUNCHER); return;
+    }
+    if (strcmp(r->key, "__Cheat2xRCP90") == 0) {
+        cheatButtonTurnOnCheatForPlayers(GE_CHEAT_2X_RCP90); return;
     }
     if (strcmp(r->key, "__CheatClearAll") == 0) {
         cheatDisableAllCheats();
