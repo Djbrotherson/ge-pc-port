@@ -261,6 +261,24 @@ def scan_file(path:Path):
                         "Pointer-array byte offset uses an N64 4-byte stride; verify PORT uses sizeof(pointer) or token-array storage.")
                     break
 
+        # Native pointer-array storage must scale by sizeof(pointer), not
+        # the N64 element width. These patterns are especially dangerous
+        # because they often corrupt several entries before the crash site.
+        window="\n".join(raw_lines[max(0,i-4):min(len(raw_lines),i+5)])
+        ptr_array_names=re.findall(
+            r"\b[A-Za-z_]\w*(?:\s+const)?\s*\*\s*\*\s*([A-Za-z_]\w*)",
+            window,
+        )
+        if ptr_array_names and re.search(r"\b(?:memcpy|memmove|memset)\s*\(", line):
+            if re.search(r"(?:\*\s*4\b|<<\s*2\b|\b4\s*\*)", window):
+                add("P1","lp64-pointer-array-bulk-4byte-size",path,i,raw,
+                    "Bulk operation near a native pointer array uses a hard-coded 4-byte element size; verify sizeof(pointer).")
+
+        if ptr_array_names and re.search(r"\b(?:malloc|calloc|realloc|mempAlloc\w*|gfxAllocate\w*|fileAllocate\w*)\s*\(", line):
+            if re.search(r"(?:\*\s*4\b|<<\s*2\b|\b4\s*\*)", window):
+                add("P1","lp64-pointer-array-allocation-4byte-size",path,i,raw,
+                    "Allocation near a native pointer array uses a hard-coded 4-byte element size; verify sizeof(pointer).")
+
         if re.search(r"\b(?:Gfx|Vtx|Mtx)\s*\*",line):
             window=" ".join(raw_lines[max(0,i-3):min(len(raw_lines),i+3)])
             if re.search(r"(?:\+=|-=|Alloc\w*\()\s*0x(?:40|80|100|180|200|400|800)\b",window):
