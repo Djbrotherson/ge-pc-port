@@ -71,6 +71,22 @@ extern u32 get_screen_ratio(void);
 extern void set_screen_ratio(u32 ratio);
 extern u32 cur_player_get_screen_setting(void);
 extern void cur_player_set_screen_setting(u32 value);
+extern u32 get_cur_player_look_vertical_inverted(void);
+extern void set_cur_player_look_vertical_inverted(u32 value);
+extern s32 cur_player_get_autoaim(void);
+extern void cur_player_set_autoaim(u32 value);
+extern u32 cur_player_get_aim_control(void);
+extern void cur_player_set_aim_control(u32 value);
+extern u32 cur_player_get_sight_onscreen_control(void);
+extern void cur_player_set_sight_onscreen_control(u32 value);
+extern u32 cur_player_get_lookahead(void);
+extern void cur_player_set_lookahead(u32 value);
+extern u32 cur_player_get_ammo_onscreen_setting(void);
+extern void cur_player_set_ammo_onscreen_setting(u32 value);
+extern u16 get_mTrack2Vol(void);
+extern void set_mTrack2Vol(u16 value);
+extern u16 call_sndGetSfxSlotFirstNaturalVolume(void);
+extern void sub_GAME_7F0A91A0(u16 value);
 
 /* ------------------------------------------------------------------------ */
 
@@ -94,6 +110,9 @@ static const char *const kTexFilter[]    = { "NEAREST", "BILINEAR", "3-POINT", N
 static const char *const kMipmapFilter[] = { "OFF", "NEAREST", "TRILINEAR", "AUTO", NULL };
 static const char *const kScreenMode[]   = { "FULL", "WIDE", "CINEMA", NULL };
 static const char *const kScreenRatio[]  = { "NORMAL", "16:9", NULL };
+static const char *const kAimControl[]    = { "HOLD", "TOGGLE", NULL };
+static const char *const kGraphicsPreset[]= { "CUSTOM", "N64", "CRISP", "ENHANCED", "R36S", NULL };
+static const char *const kAudioPreset[]   = { "CUSTOM", "LOW LATENCY", "BALANCED", "SAFE", NULL };
 static const int         kMsaaSeq[]   = { 1, 2, 4, 8 };
 
 /* Windowed-mode resolution presets. Filtered at init to those that fit the
@@ -134,6 +153,7 @@ struct Row {
 
 static struct Row rows[] = {
     /* Graphics */
+    { PAGE_GRAPHICS, "__GraphicsPreset",          "Graphics preset",     ROW_ENUM,   1,    kGraphicsPreset, 0, 0,   4,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.Fullscreen",         "Fullscreen",          ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "__Resolution",             "Resolution",          ROW_RES,    0,    NULL,       0, 0,   0,   0,0,0,0,0 },
     { PAGE_GRAPHICS, "Video.VSync",              "VSync",               ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
@@ -154,8 +174,11 @@ static struct Row rows[] = {
     { PAGE_GRAPHICS, "Video.LodDistance",        "LOD distance",        ROW_SLIDER, 25,   NULL,       0, 25, 400,   0,0,0,0,0, "Video.LodDistanceAutoFov" },
 
     /* Audio */
+    { PAGE_AUDIO, "__AudioPreset",                "Latency preset",      ROW_ENUM,   1,    kAudioPreset, 0, 0, 3,   0,0,0,0,0 },
     { PAGE_AUDIO, "Audio.Mute",                  "Mute",                 ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_AUDIO, "Audio.MasterVolume",          "Master volume",       ROW_SLIDER, 5,    NULL,       0, 0, 100,   0,0,0,0,0 },
+    { PAGE_AUDIO, "__MusicVolume",                "Music volume",        ROW_SLIDER, 5,    NULL,       0, 0, 100,   0,0,0,0,0 },
+    { PAGE_AUDIO, "__SfxVolume",                  "SFX volume",          ROW_SLIDER, 5,    NULL,       0, 0, 100,   0,0,0,0,0 },
     { PAGE_AUDIO, "Audio.QueueLimit",            "Queue limit",         ROW_SLIDER, 128,  NULL,       0, 512,8192,  0,0,0,0,0 },
     { PAGE_AUDIO, "Audio.BufferSize",            "Device buffer",       ROW_SLIDER, 64,   NULL,       1, 128,4096,  0,0,0,0,0 },
 
@@ -182,6 +205,12 @@ static struct Row rows[] = {
     { PAGE_INPUT, "Input.PadLookInvertY",        "Invert pad Y",        ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
 
     /* Gameplay */
+    { PAGE_GAMEPLAY, "__AutoAim",                 "Auto-aim",             ROW_TOGGLE, 1,    kOnOff,      0, 0, 0,   0,0,0,0,0 },
+    { PAGE_GAMEPLAY, "__AimControl",              "Aim control",          ROW_ENUM,   1,    kAimControl,  0, 0, 1,   0,0,0,0,0 },
+    { PAGE_GAMEPLAY, "__SightOnscreen",           "Crosshair / sight",    ROW_TOGGLE, 1,    kOnOff,      0, 0, 0,   0,0,0,0,0 },
+    { PAGE_GAMEPLAY, "__LookAhead",               "Look-ahead",           ROW_TOGGLE, 1,    kOnOff,      0, 0, 0,   0,0,0,0,0 },
+    { PAGE_GAMEPLAY, "__AmmoOnscreen",            "Ammo HUD",             ROW_TOGGLE, 1,    kOnOff,      0, 0, 0,   0,0,0,0,0 },
+    { PAGE_GAMEPLAY, "__LookInvert",              "N64 look inversion",   ROW_TOGGLE, 1,    kOnOff,      0, 0, 0,   0,0,0,0,0 },
     { PAGE_GAMEPLAY, "Game.ScreenShakeIntensity","Screen shake",        ROW_SLIDER, 0.25, NULL,       0, 0, 2.0,   0,0,0,0,0 },
     { PAGE_GAMEPLAY, "Game.SkipIntro",           "Skip intro",           ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
     { PAGE_GAMEPLAY, "Game.NoHitFlash",          "Disable hit flash",   ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
@@ -205,6 +234,8 @@ static int  s_page = PAGE_GRAPHICS;        /* selection, index into s_visIdx (vi
 static int  s_visIdx[NUM_ROWS];
 static int  s_visN = 0;
 static int  s_scroll = 0;
+static int  s_graphicsPreset = 0;
+static int  s_audioPreset = 0;
 
 /* D213: optional on-screen FPS readout (PD parity: Video.DisplayFPS). Drawn
  * top-right whenever enabled, independent of the F10 panel. Config-only knob
@@ -362,7 +393,8 @@ static void overlayInit(void)
     for (int i = 0; i < NUM_ROWS; i++) {
         if (rows[i].kind == ROW_RES ||
             strcmp(rows[i].key, "__ScreenMode") == 0 ||
-            strcmp(rows[i].key, "__ScreenRatio") == 0) {
+            strcmp(rows[i].key, "__ScreenRatio") == 0 ||
+            strncmp(rows[i].key, "__", 2) == 0) {
             rows[i].found = 1;   /* special live rows, not config-backed */
             continue;
         }
@@ -423,6 +455,16 @@ static double rowGet(const struct Row *r)
 {
     if (strcmp(r->key, "__ScreenMode") == 0) return (double)cur_player_get_screen_setting();
     if (strcmp(r->key, "__ScreenRatio") == 0) return (double)get_screen_ratio();
+    if (strcmp(r->key, "__GraphicsPreset") == 0) return (double)s_graphicsPreset;
+    if (strcmp(r->key, "__AudioPreset") == 0) return (double)s_audioPreset;
+    if (strcmp(r->key, "__AutoAim") == 0) return (double)cur_player_get_autoaim();
+    if (strcmp(r->key, "__AimControl") == 0) return (double)cur_player_get_aim_control();
+    if (strcmp(r->key, "__SightOnscreen") == 0) return (double)cur_player_get_sight_onscreen_control();
+    if (strcmp(r->key, "__LookAhead") == 0) return (double)cur_player_get_lookahead();
+    if (strcmp(r->key, "__AmmoOnscreen") == 0) return (double)cur_player_get_ammo_onscreen_setting();
+    if (strcmp(r->key, "__LookInvert") == 0) return (double)get_cur_player_look_vertical_inverted();
+    if (strcmp(r->key, "__MusicVolume") == 0) return (double)get_mTrack2Vol() * 100.0 / 32767.0;
+    if (strcmp(r->key, "__SfxVolume") == 0) return (double)call_sndGetSfxSlotFirstNaturalVolume() * 100.0 / 32767.0;
     if (!r->found || !r->ptr) {
         return 0.0;
     }
@@ -795,6 +837,10 @@ static void valueText(const struct Row *r, char *out, int n)
     if (r->kind == ROW_MSAA) {
         if ((int)lround(v) <= 1) snprintf(out, n, "OFF");
         else                     snprintf(out, n, "%dx", (int)lround(v));
+        return;
+    }
+    if (strcmp(r->key, "__MusicVolume") == 0 || strcmp(r->key, "__SfxVolume") == 0) {
+        snprintf(out, n, "%d%%", (int)lround(v));
         return;
     }
     if (r->kind == ROW_SLIDER && r->type == CONFIG_OPT_FLOAT) {
