@@ -98,7 +98,7 @@ extern void cheatDisableAllCheats(void);
 
 /* ------------------------------------------------------------------------ */
 
-enum { ROW_TOGGLE, ROW_SLIDER, ROW_ENUM, ROW_MSAA, ROW_RES, ROW_ACTION };
+enum { ROW_TOGGLE, ROW_SLIDER, ROW_ENUM, ROW_MSAA, ROW_RES, ROW_ACTION, ROW_BIND };
 enum { PAGE_GRAPHICS, PAGE_AUDIO, PAGE_INPUT, PAGE_GAMEPLAY, PAGE_CHEATS, PAGE_SYSTEM, PAGE_COUNT };
 
 static const char *const kPageNames[PAGE_COUNT] = {
@@ -212,6 +212,18 @@ static struct Row rows[] = {
     { PAGE_INPUT, "Input.PadDeadzone",           "Pad deadzone",        ROW_SLIDER, 1000, NULL,       0, 0,30000,  0,0,0,0,0 },
     { PAGE_INPUT, "Input.PadTriggerPct",         "Trigger threshold",   ROW_SLIDER, 5,    NULL,       0, 1,  99,   0,0,0,0,0 },
     { PAGE_INPUT, "Input.PadLookInvertY",        "Invert pad Y",        ROW_TOGGLE, 1,    kOnOff,     0, 0,   0,   0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.Forward",        "Bind forward",       ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.Back",           "Bind back",          ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.StrafeLeft",     "Bind strafe left",   ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.StrafeRight",    "Bind strafe right",  ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.TurnLeft",       "Bind turn left",     ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.TurnRight",      "Bind turn right",    ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.Fire",           "Bind fire key",      ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.Aim",            "Bind aim key",       ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.Action",         "Bind action",        ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.Cancel",         "Bind cancel",        ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.LeanLeft",       "Bind lean/Q",        ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
+    { PAGE_INPUT, "Input.Bind.Start",          "Bind start/pause",   ROW_BIND, 0, NULL, 0, 0,0, 0,0,0,0,0 },
 
     /* Gameplay */
     { PAGE_GAMEPLAY, "__AutoAim",                 "Auto-aim",             ROW_TOGGLE, 1,    kOnOff,      0, 0, 0,   0,0,0,0,0 },
@@ -259,6 +271,8 @@ static int  s_visN = 0;
 static int  s_scroll = 0;
 static int  s_graphicsPreset = 0;
 static int  s_audioPreset = 0;
+static int  s_bindCaptureRow = -1;
+static int  s_bindWaitRelease = 0;
 
 /* D213: optional on-screen FPS readout (PD parity: Video.DisplayFPS). Drawn
  * top-right whenever enabled, independent of the F10 panel. Config-only knob
@@ -633,6 +647,10 @@ static void rowAdjust(struct Row *r, int dir)
     case ROW_ACTION:
         rowSet(r, 1.0);
         break;
+    case ROW_BIND:
+        s_bindCaptureRow = (int)(r - rows);
+        s_bindWaitRelease = 1;
+        break;
     case ROW_RES: {
         if (s_resFitN <= 0 || videoIsFullscreen()) {
             break;   /* resolution is windowed-only */
@@ -658,6 +676,8 @@ void optionsOverlayToggle(void)
     s_open = !s_open;
     sysLogPrintf(LOG_INFO, "optionsoverlay: %s", s_open ? "opened" : "closed");
     if (!s_open) {
+        s_bindCaptureRow = -1;
+        s_bindWaitRelease = 0;
         configSave();
     }
 }
@@ -735,6 +755,44 @@ void optionsOverlayHandleInput(void)
     overlayUpdateScroll();
 
     const Uint8 *ks = SDL_GetKeyboardState(NULL);
+
+    /* Live keyboard-bind capture. Enter/A starts capture on a bind row; once
+     * the initiating key is released, the next keyboard scancode replaces
+     * that action's primary bind and the existing input parser is rebuilt.
+     * Escape cancels. F10 remains reserved for the overlay itself. */
+    if (s_bindCaptureRow >= 0) {
+        int any = 0;
+        for (int sc = 0; sc < SDL_NUM_SCANCODES; ++sc) {
+            if (ks[sc]) { any = 1; break; }
+        }
+        if (s_bindWaitRelease) {
+            if (!any) s_bindWaitRelease = 0;
+        } else {
+            if (ks[SDL_SCANCODE_ESCAPE]) {
+                s_bindCaptureRow = -1;
+            } else {
+                for (int sc = 0; sc < SDL_NUM_SCANCODES; ++sc) {
+                    if (!ks[sc] || sc == SDL_SCANCODE_F10) continue;
+                    struct Row *br = &rows[s_bindCaptureRow];
+                    if (br->ptr && br->type == CONFIG_OPT_STR) {
+                        const char *name = SDL_GetScancodeName((SDL_Scancode)sc);
+                        if (name && *name) {
+                            strncpy((char *)br->ptr, name, 63);
+                            ((char *)br->ptr)[63] = 0;
+                            inputRefreshBinds();
+                            configSave();
+                        }
+                    }
+                    s_bindCaptureRow = -1;
+                    break;
+                }
+            }
+        }
+        /* While listening, swallow normal menu navigation so the captured key
+         * cannot also move the selection or change another option. */
+        if (s_bindCaptureRow >= 0) return;
+    }
+
     int mx = 0, my = 0;
     Uint32 mb = SDL_GetMouseState(&mx, &my);
     int lmb = (mb & SDL_BUTTON(SDL_BUTTON_LEFT))  ? 1 : 0;
@@ -867,6 +925,21 @@ static void valueText(const struct Row *r, char *out, int n)
     double v = rowGet(r);
     if (r->kind == ROW_ACTION) {
         snprintf(out, n, "RUN");
+        return;
+    }
+    if (r->kind == ROW_BIND) {
+        if (s_bindCaptureRow >= 0 && &rows[s_bindCaptureRow] == r) {
+            snprintf(out, n, "PRESS KEY...");
+        } else if (r->ptr && r->type == CONFIG_OPT_STR) {
+            const char *src = (const char *)r->ptr;
+            const char *comma = strchr(src, ',');
+            int len = comma ? (int)(comma - src) : (int)strlen(src);
+            if (len > n - 1) len = n - 1;
+            memcpy(out, src, (size_t)len);
+            out[len] = 0;
+        } else {
+            snprintf(out, n, "UNBOUND");
+        }
         return;
     }
     if (r->kind == ROW_RES) {
