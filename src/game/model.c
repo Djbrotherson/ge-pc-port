@@ -1750,7 +1750,14 @@ void process_02_position(ModelRenderData *arg0, Model *model, ModelNode *node)
     }
     else
     {
-        modelBuildGroupMatrices(arg0, model, node, &rot1);
+        Mtxf *parentMtx = arg0->basemtx;
+        ModelGroupMtxBuildArg mgm = {
+            .flags = node->Opcode,
+            .pad = 0,
+            .group = &node->Data->Group,
+            .parentnode = node->Parent,
+        };
+        modelBuildGroupMatrices(&parentMtx, model, &mgm, &rot1);
     }
 }
 
@@ -1959,11 +1966,11 @@ void process_15_subposition(ModelRenderData* arg0, Model *model, ModelNode *node
     if (sp68)
     {
         matrix_4x4_set_identity_and_position(&rodata->GroupSimple.Origin, &sp28);
-        matrix_4x4_multiply_homogeneous(sp68, &sp28, &matrices[mtxindex]);
+        matrix_4x4_multiply_homogeneous(sp68, &sp28, &matrices[mtxindex].pos);
     }
     else
     {
-        matrix_4x4_set_identity_and_position(&rodata->GroupSimple.Origin, &matrices[mtxindex]);
+        matrix_4x4_set_identity_and_position(&rodata->GroupSimple.Origin, &matrices[mtxindex].pos);
     }
 }
 

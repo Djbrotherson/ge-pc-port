@@ -6058,13 +6058,13 @@ s32 objTick(struct PropRecord *prop)
 			}
 			else if (obj->type == PROPDEF_RACK)
 			{
-				matrix_4x4_set_identity_and_position(model->obj->Switches[0]->Data, &mtxs[1]);
+				matrix_4x4_set_identity_and_position((coord3d *)model->obj->Switches[0]->Data, &mtxs[1]);
 				matrix_4x4_multiply_homogeneous_in_place(&mtxs[0], &mtxs[1]);
-				matrix_4x4_set_identity_and_position(model->obj->Switches[1]->Data, &mtxs[2]);
+				matrix_4x4_set_identity_and_position((coord3d *)model->obj->Switches[1]->Data, &mtxs[2]);
 				matrix_4x4_multiply_homogeneous_in_place(&mtxs[0], &mtxs[2]);
-				matrix_4x4_set_identity_and_position(model->obj->Switches[2]->Data, &mtxs[3]);
+				matrix_4x4_set_identity_and_position((coord3d *)model->obj->Switches[2]->Data, &mtxs[3]);
 				matrix_4x4_multiply_homogeneous_in_place(&mtxs[0], &mtxs[3]);
-				matrix_4x4_set_identity_and_position(model->obj->Switches[3]->Data, &mtxs[4]);
+				matrix_4x4_set_identity_and_position((coord3d *)model->obj->Switches[3]->Data, &mtxs[4]);
 				matrix_4x4_multiply_homogeneous_in_place(&mtxs[0], &mtxs[4]);
 			}
 			else if (obj->type == PROPDEF_VEHICHLE)

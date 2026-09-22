@@ -2254,9 +2254,9 @@ void gunUpdateAttachedRocket(s32 handIndex)
     rocketModel->render_pos = dynAllocate((s32)rocketModel->obj->numMatrices << 6);
 
     matrix_4x4_copy(&attachedRocket->transform, &worldMtx);
-    matrix_4x4_set_position((Mtxf *)&attachedRocket->position, &worldMtx);
+    matrix_4x4_set_position(&attachedRocket->position, &worldMtx);
 
-    matrix_4x4_multiply_homogeneous(camGetWorldToScreenMtxf(), &worldMtx, rocketModel->render_pos);
+    matrix_4x4_multiply_homogeneous(camGetWorldToScreenMtxf(), &worldMtx, &rocketModel->render_pos->pos);
     modelUpdateRelationsQuick(rocketModel, rocketModel->obj->RootNode);
 
     attachmentChild->flags1 |= 2;

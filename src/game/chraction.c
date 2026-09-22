@@ -2090,7 +2090,7 @@ void triggered_on_shot_hit(ChrRecord *self, coord3d *arg1, f32 arg2, s32 req_ani
     f32 impact_force; // ?
     s32 animation_something_index; // 136
     s32 flag1; // 132
-    u8 *sp80 = NULL; // ?
+    ModelAnimation *sp80 = NULL; // animation selected by CHRLV_ANIM_PTR
     struct ChrHitReaction *something_ani = NULL; // ?
     f32 fa;
     f32 fb;
