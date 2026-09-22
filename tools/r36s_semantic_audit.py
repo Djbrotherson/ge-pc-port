@@ -174,15 +174,13 @@ def scan_file(path:Path):
         # Expressions such as `flags & MASK > 0` parse as
         # `flags & (MASK > 0)`, while `avail & MASK == 0` can become a
         # constant-zero mask. Require the intended mask operation explicitly.
-        bitop = r"(?:(?<!&)\&(?!&)|(?<!\|)\|(?!\|))"
-        if re.search(r"\b(?:if|while)\s*\([^\n;]*"+bitop+r"[^\n;]*(?:==|!=|>|<)", line):
-            explicit_mask_compare = re.search(
-                r"\(\s*[^()\n;]+"+bitop+r"[^()\n;]+\)\s*(?:==|!=|>|<)",
-                line
-            )
-            if not explicit_mask_compare:
-                add("P0","bitmask-comparison-precedence",path,i,raw,
-                    "Bitwise mask mixed with comparison without explicit grouping; verify (flags & MASK) comparison semantics.")
+        if re.search(
+            r"\b(?:if|while)\s*\([^\n;]*(?:(?<!&)\&(?!&)|(?<!\|)\|(?!\|))"
+            r"\s*[A-Za-z_]\w*\s*(?:==|!=|>|<)",
+            line,
+        ):
+            add("P0","bitmask-comparison-precedence",path,i,raw,
+                "Bitmask is compared without grouping; use (flags & MASK) comparison semantics.")
 
         # A logical-not is 0/1 before a following bitwise AND. This exact
         # pattern caused controller-state checks to fail for controller bits
