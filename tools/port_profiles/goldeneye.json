@@ -28,5 +28,6 @@
     "native_harness": "tools_pc/verify.sh",
     "target_workflow": ".github/workflows/build-r36s.yml"
   },
-  "contract_suite": "goldeneye"
+  "contract_suite": "goldeneye",
+  "abi_contract": "tools/port_profiles/goldeneye_abi.json"
 }
