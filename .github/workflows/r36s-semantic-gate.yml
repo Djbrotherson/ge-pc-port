@@ -28,6 +28,9 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Validate N64 port profile
+        run: python3 tools/n64_port.py doctor
+
       - name: Run semantic host-port gate
         run: |
           set -o pipefail
