@@ -103,7 +103,7 @@ enum {
     GE_CHEAT_TINY_BOND = 14,
     GE_CHEAT_PAINTBALL = 15,
     GE_CHEAT_TURBO_MODE = 24,
-    GE_CHEAT_ENEMY_ROCKETS = 29
+    GE_CHEAT_ENEMY_ROCKETS = 28
 };
 
 /* GoldenEye's original cheat machinery. Port Control invokes the same
