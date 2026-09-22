@@ -369,6 +369,48 @@ def scan_file(path:Path):
                 add("P1","fixed-n64-typed-reserve",path,i,raw,
                     "Typed graphics object is near a fixed byte reserve; verify sizeof/stride on LP64.")
 
+def check_ai_command_endian_contract():
+    """Prove packed BE AI bytecode multibyte fields are swapped at use sites."""
+    header=Path("src/aicommands2.h")
+    interp=Path("src/game/chrai.c")
+    if not (header.exists() and interp.exists()):
+        return
+    try:
+        htext=header.read_text(errors="replace")
+        ctext=interp.read_text(errors="replace")
+        multi={}
+        for m in re.finditer(
+            r"typedef\s+struct\s+(Ai[A-Za-z0-9_]+Record)\s*\{(.*?)\}"
+            r"\s*\1\s*;",
+            htext,re.S,
+        ):
+            fields=[]
+            for fm in re.finditer(r"\b(u16|s16|u32|s32)\s+([A-Za-z_]\w*)\b",m.group(2)):
+                fields.append((fm.group(1),fm.group(2)))
+            if fields:
+                multi[m.group(1)]=fields
+
+        for rec,fields in sorted(multi.items()):
+            decl=re.compile(re.escape(rec)+r"\s*\*\s*([A-Za-z_]\w*)")
+            for dm in decl.finditer(ctext):
+                var=dm.group(1)
+                tail=ctext[dm.start():dm.start()+3000]
+                nxt=re.search(r"\n\s*case\s+AI_[A-Za-z0-9_]+\s*:",tail)
+                block=tail[:nxt.start()] if nxt else tail
+                for ftype,fname in fields:
+                    use=re.compile(r"\b"+re.escape(var)+r"->"+re.escape(fname)+r"\b")
+                    for um in use.finditer(block):
+                        ls=block.rfind("\n",0,um.start())+1
+                        le=block.find("\n",um.start())
+                        line=block[ls:(len(block) if le<0 else le)]
+                        if "ntohs(" not in line and "ntohl(" not in line:
+                            add("P0","ai-bytecode-unswapped-field",interp,1,line.strip(),
+                                f"{rec}.{fname} is {ftype} in big-endian AI bytecode and is read without ntohs/ntohl.")
+    except Exception as exc:
+        add("P0","ai-bytecode-endian-audit-error",interp,1,str(exc),
+            "Could not prove AI bytecode multibyte field endian handling.")
+
+
 def check_ai_command_layout_contract():
     """Prove generated AI bytecode structs match their encoded byte lengths."""
     header=Path("src/aicommands2.h")
@@ -702,6 +744,7 @@ def main():
     check_model_sidecar_layout_contract()
     check_stan_layout_contract()
     check_ai_command_layout_contract()
+    check_ai_command_endian_contract()
     findings.sort(key=lambda x:(0 if x[0]=="P0" else 1,x[2],x[3],x[1]))
     out=Path("semantic-audit-out"); out.mkdir(exist_ok=True)
     with (out/"semantic-findings.tsv").open("w") as fp:
