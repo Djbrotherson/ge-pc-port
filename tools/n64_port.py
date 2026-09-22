@@ -148,6 +148,19 @@ def main() -> int:
     if args.command == "doctor":
         return doctor(profile_path, profile)
     if args.command == "selftest":
+        compile_rc = subprocess.call(
+            [
+                sys.executable,
+                "-m",
+                "compileall",
+                "-q",
+                str(ROOT / "tools"),
+                str(ROOT / "tools_pc"),
+            ],
+            cwd=ROOT,
+        )
+        if compile_rc:
+            return compile_rc
         return subprocess.call(
             [
                 sys.executable,
