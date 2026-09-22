@@ -26,9 +26,13 @@ investigation artifacts.
 
 | Tool | Role |
 |---|---|
-| `../tools/n64_port_audit.py` | Target-neutral semantic/ABI audit entry point. New automation should call this path. |
-| `../tools/r36s_semantic_audit.py` | Current detector implementation and backward-compatible historical entry point. Being progressively generalized behind `n64_port_audit.py`. |
-| `../docs/PORTING-TOOLSET.md` | Architecture, speedrun rules, validation tiers, and roadmap for extracting the GoldenEye work into a reusable N64 porting toolkit. |
+| `../tools/n64_port.py` | Stable unified CLI: `doctor`, `audit`, `show-profile`. CI calls this interface. |
+| `../tools/n64_port_audit.py` | Profile-aware semantic audit runner used by the CLI. |
+| `../tools/r36s_semantic_audit.py` | Current detector engine and historical backward-compatible entry point. Generic rules are profile-driven; GoldenEye binary checks are selected by contract suite. |
+| `../tools/port_profiles/goldeneye.json` | GoldenEye reference project/target profile. |
+| `../tools/port_profiles/goldeneye_abi.json` | Machine-readable GoldenEye host/N64 ABI contract consumed by converter checks. |
+| `../tools/port_profiles/template.json` | Minimal starting profile for a second N64 decomp/recomp. |
+| `../docs/PORTING-TOOLSET.md` | Architecture, speedrun rules, validation tiers, and extraction roadmap. |
 
 ## Living — verification & release
 
