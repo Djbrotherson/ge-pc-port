@@ -2371,7 +2371,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                             chrpropDelist(obj->prop);
                             chrpropDisable(obj->prop);
                         }
-                        if (obj->type != PROPDEF_COLLECTABLE || !chrEquipWeapon(obj, chr))
+                        if (obj->type != PROPDEF_COLLECTABLE || !chrEquipWeapon((WeaponObjRecord *)obj, chr))
                         {
                             chrpropReparent(obj->prop, chr->prop);
                         }
@@ -3824,7 +3824,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
     #else
                         sfx_related[ai->slotID].sfxID = sfxID;
     #endif
-                        sfx_related[ai->slotID].pos = pad;
+                        sfx_related[ai->slotID].pos = &pad->pos;
                         sfx_related[ai->slotID].Obj = NULL;
                         if (sfxID == 0)
                         {
@@ -3926,7 +3926,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                         if (obj->type == PROPDEF_MONITOR)
                         {
                             MonitorObjRecord *sm = (MonitorObjRecord *)obj;
-                            monitorSetImageByNum(&sm->Monitor.cmdlist, ai->SCREEN_BANK);
+                            monitorSetImageByNum(&sm->Monitor, ai->SCREEN_BANK);
                         }
                         else if (obj->type == PROPDEF_MULTI_MONITOR)
                         {
@@ -3934,7 +3934,7 @@ void                   ai(PropDefHeaderRecord *Entityp, PROP_TYPE EntityType)
                             if (slot < 4)
                             {
                                 MultiMonitorObjRecord *mm = (MultiMonitorObjRecord *)obj; // need new size here 0x74 (116) + 0x80 (so monitor is obj + 74)
-                                monitorSetImageByNum(&mm->Monitor[slot].cmdlist, ai->SCREEN_BANK);
+                                monitorSetImageByNum(&mm->Monitor[slot], ai->SCREEN_BANK);
                             }
                         }
                     }

@@ -1561,7 +1561,7 @@ Gfx *constructor_menu00_legalscreen(Gfx *DL)
     
     matrix_4x4_copy(&lookatmtx, renderdata.mtxlist);
     
-    logoinst->render_pos = (union RenderPosView *) renderdata.mtxlist;
+    logoinst->render_pos = (RenderPosView *)renderdata.mtxlist;
     
     modelUpdateNodeRelations(logoinst);
     
@@ -1790,7 +1790,7 @@ Gfx *constructor_menu01_nintendo(Gfx *DL)
 
     matrix_4x4_copy(&ninlogoMtxf, ninlogo.mtxlist);
 
-    logoinst->render_pos = (union RenderPosView*)ninlogo.mtxlist;
+    logoinst->render_pos = (RenderPosView *)ninlogo.mtxlist;
 
     modelUpdateNodeRelations(logoinst);
 

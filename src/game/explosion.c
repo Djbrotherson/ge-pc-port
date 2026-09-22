@@ -2213,7 +2213,7 @@ Gfx *explosionRenderBulletImpactOnProp(Gfx *gdl, PropRecord *arg1, s32 arg2)
     s32 sp50;
     struct Scorch *sp4C;
     s32 sp48;
-    union RenderPosView *render_pos;
+    RenderPosView *render_pos;
     s32 padding3;
 
     s16 var_s5;

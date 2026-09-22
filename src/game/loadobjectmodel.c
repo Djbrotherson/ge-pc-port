@@ -346,7 +346,7 @@ ObjectRecord *setupGetPtrToCommandByIndex(s32 index) //#MATCH
 /**
  * Address 0x7F056B1C.
 */
-s32 tagGetCommandIndex(struct ObjectRecord *tag)
+s32 tagGetCommandIndex(PropDefHeaderRecord *tag)
 {
     PropDefHeaderRecord *object;
     s32 i;
@@ -570,13 +570,13 @@ ObjectRecord *setupFindObjForReuse(s32 wanttype, ObjectRecord **offscreenobjptr,
     ObjectRecord *offscreenobj = NULL;
     ObjectRecord *anyobj = NULL;
 
-    u32 *cmd = g_CurrentSetup.propDefs;
+    PropDefHeaderRecord *cmd = g_CurrentSetup.propDefs;
 
     if (cmd)
     {
-        while ((u8)cmd[0] != PROPDEF_END)
+        while (cmd->type != PROPDEF_END)
         {
-            if ((wanttype & 0xff) == (u8)cmd[0])
+            if ((wanttype & 0xff) == (u8)cmd->type)
             {
                 ObjectRecord *obj = (ObjectRecord *)cmd;
 

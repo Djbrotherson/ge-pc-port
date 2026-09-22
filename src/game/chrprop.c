@@ -234,7 +234,7 @@ void chraiUpdateOnscreenPropCount(void)
         #endif
     }
 
-    g_LastOnScreenProp = (PropRecord *)&g_OnScreenPropList[count];
+    g_LastOnScreenProp = &g_OnScreenPropList[count];
 
     for (i=0; i<count; i++)
     {
@@ -2518,7 +2518,7 @@ void chrpropUpdateAutoaimTarget(void)
             }
 
             // Score the candidate based on how close it is to the center of the screen.
-            candidate_score = chrpropScoreAutoAimTarget(candidate_prop, &target_aimpos, &target_world_xbounds.x, &target_world_ybounds.x, &candidate_screen_aim.x);
+            candidate_score = chrpropScoreAutoAimTarget(candidate_prop, &target_aimpos, &target_world_xbounds.x, &target_world_ybounds.x, &candidate_screen_aim);
 
             if (best_score < candidate_score)
             {

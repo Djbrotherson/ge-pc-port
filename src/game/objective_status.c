@@ -182,7 +182,7 @@ OBJECTIVESTATUS get_status_of_objective(s32 objectiveNum) //#MATCH
         else
         {
             // for each objective in objectives
-            for (objective = &objective_ptrs[objectiveNum]->id; objective->type != PROPDEF_OBJECTIVE_END; objective = sizepropdef(objective) + (PropDefHeaderRecord *)objective)
+            for (objective = (MissionObjectiveRecord *)&objective_ptrs[objectiveNum]->id; objective->type != PROPDEF_OBJECTIVE_END; objective = (MissionObjectiveRecord *)(sizepropdef((PropDefHeaderRecord *)objective) + (PropDefHeaderRecord *)objective))
             {
                 {
                     currentstatus = OBJECTIVESTATUS_COMPLETE;
