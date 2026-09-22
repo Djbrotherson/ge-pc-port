@@ -1,88 +1,60 @@
-# `tools_pc/` — PC-port dev & test scripts
+# GoldenEye-Specific Tools
 
-Index for the ~60 scripts here (speed-ups plan Step 4 / N2). None of these are
-part of the build; they are converters, verification tooling, and
-investigation artifacts.
+This directory contains project-specific converters and verification utilities
+for the GoldenEye ARM64/R36S integration.
 
-**Marker:**
-- **`living`** — kept and re-run; part of the verification ritual, the release
-  flow, or a converter the build depends on (via the sidecars it emits).
-- **`artifact`** — added to chase one finding. Safe to move to
-  `tools_pc/archive/<dxx>/` once that finding is closed and the technique is
-  captured in `docs/dev/findings.md` / `docs/porting-notes.md`.
+Reusable tooling belongs in `portkit/` or shared libraries under `tools/`.
 
-## Living — converters the sidecars depend on
+## Binary converters
 
-| Script | Role |
+| Tool | Purpose |
 |---|---|
-| `d43_emit.py` | Offline N64→PC model-file converter → RZ sidecar + `manifest.csv` (D50 / Plan B). Regen after any model-format change. |
-| `d43_convert.py` | Reference single-file model converter + full-512 layout/pointer validator (D43). |
-| `d69_emit.py` | Offline converter for stage `bg/*.seg` + `Tbg_*_stanZ` → concatenated sidecar (D69/D78–D82). |
-| `d88_emit.py` | Offline converter for per-level `Usetup*Z` stage-setup files → appended to the `pccg.bin` sidecar (D88). |
-| `d88_propdefs.py` | The `propDefs` polymorphic-record stream N64→PC converter used by `d88_emit.py` (D88.4). |
-| `d69_emit.py` / `d88_emit.py` / `d43_emit.py` | Run all three (+ `d88_propdefs`) to rebuild `data/` sidecars from the ROM. |
+| `d43_emit.py` | model/rodata/display-list host sidecars |
+| `d43_convert.py` | focused model conversion/validation |
+| `d69_emit.py` | background and STAN host sidecars |
+| `d88_emit.py` | stage setup host sidecars |
+| `d88_propdefs.py` | polymorphic propDef stream conversion |
 
-## Generic port-tool entry points
+These converters are treated as ABI components. Size, endian, relocation and
+runtime-walk assumptions are guarded by the semantic/ABI gate where possible.
 
-| Tool | Role |
+## Verification
+
+| Tool | Purpose |
 |---|---|
-| `../tools/n64_port.py` | Stable unified CLI: `doctor`, `audit`, `show-profile`. CI calls this interface. |
-| `../tools/n64_port_audit.py` | Profile-aware semantic audit runner used by the CLI. |
-| `../tools/r36s_semantic_audit.py` | Current detector engine and historical backward-compatible entry point. Generic rules are profile-driven; GoldenEye binary checks are selected by contract suite. |
-| `../tools/port_profiles/goldeneye.json` | GoldenEye reference project/target profile. |
-| `../tools/port_profiles/goldeneye_abi.json` | Machine-readable GoldenEye host/N64 ABI contract consumed by converter checks. |
-| `../tools/port_profiles/template.json` | Minimal starting profile for a second N64 decomp/recomp. |
-| `../docs/PORTING-TOOLSET.md` | Architecture, speedrun rules, validation tiers, and extraction roadmap. |
+| `verify.sh` | host verification entry point |
+| `level_sweep.sh` | multi-level smoke sweep |
+| `playtest.sh` | interactive playtest helper |
+| `crash_brief.py` | reduce crash logs into actionable summaries |
+| `framediff.py` | frame regression comparison |
+| `pixcount.py` | simple rendered-pixel sanity check |
+| `repro_gdb.sh` | reproducible debugger launch |
+| `romverify.c` | ROM integrity check |
+| `dump_objectives.py` | objective extraction for validation |
+| `ppm2bmp.py` | dependency-free frame conversion |
+| `gen_findings_index.py` | findings index generation/check |
+| `gen_env_probes.py` | environment-probe drift check |
 
-## Living — verification & release
+## Layout probes
 
-| Script | Role |
+| Tool | Purpose |
 |---|---|
-| `verify.sh` | Speed-ups plan Step 2. One command → one verdict: build-if-stale, headless `GE_PCDUMP`/`GE_INPUTSCRIPT` capture, crash-detect + symbolication (via `crash_brief.py`), `pixcount`, `framediff` vs golden, `--json`. `verify.sh <level>`, `verify.sh sweep [subset]`, `verify.sh parity <level> --against <dir>`. |
-| `crash_brief.py` | Speed-ups plan Step 9 / R5. `ge007.crash.log` → symbolicated frames + a dev-process.md-shaped dispatch-ready brief: matches porting-notes.md sections / findings-index.csv entries by resolved function/file, flags known parked-crash signatures (Cuba credits, D188 va_list, D189 stack overrun) so agents stop re-investigating them. Called automatically by `verify.sh` on CRASH; also runnable standalone. |
-| `framediff.py` | Visual regression: candidate `GE_PCDUMP` frames vs `tools_pc/golden/`, per-region divergence. Structural/tolerant by default; `--exact` after `GE_DETERM`. |
-| `pixcount.py` | Count non-black pixels in a PPM dump — "did the scene render anything" as a number. |
-| `level_sweep.sh` | Bare `-level_XX` boot of all 21 solo levels → PASS / NO-FRAMES / CRASH. Predates `verify.sh sweep`; kept as the battle-tested full-21-level runner until `verify.sh sweep` has done an equivalent soak. |
-| `playtest.sh` | Launch a level for `docs/dev/LEVEL-PLAYTEST.md` human validation (WS6). |
-| `audiodebug.ps1` | Audio counterpart to `debug.ps1` (that one is for crashes; this one is for audio behaviour). Drives the `GE_D204` health monitor + `GE_AUDIOTRACE`/`GE_AUDIODUMP` and prints a pass/fail verdict: real-time ratio, queue starvation, dropped blocks, oversized blocks, plus a soundIndex histogram. `-AB` runs the same binary twice (with and without `GE_D204_OLD`) and prints a before/after table — how D204 was measured. `-Play` for an instrumented interactive playtest (the D202 workflow), `-Soak` for a 5-min stability run, `-SyncData` to mirror `./data` first. |
-| `debug.ps1` / `repro_gdb.sh` / `attach_animgen.sh` | Launch (or attach to) the game under gdb so a crash always leaves a backtrace. |
-| `bundle-win.sh` / `bundle-linux.sh` | Package a built tree as a distributable archive (exe + licenses + `prepare-assets/`). |
-| `romverify.c` | One-shot `.z64` integrity check against the repo's ground truths. |
-| `dump_objectives.py` | Dump per-level objectives + win/fail criteria from the ROM (playtest validation; Step 10 / N8 acceptance oracle). |
-| `disasm.py` | Minimal MIPS disassembler for the BE ROM (RAM-addr → file offset). |
-| `ppm2bmp.py` | PPM → 24-bit BMP, no deps — eyeball `GE_PCDUMP` frames without PIL. |
-| `gen_findings_index.py` | Regenerate `docs/dev/findings-index.csv` (grep-before-you-read aid for the 200 KB finding log). `--check` in CI-style use. |
-| `gen_env_probes.py` | Drift check for `docs/dev/GE-ENV-PROBES.md` — re-greps live `getenv("GE_*")` sites, reports NEW/GONE. |
+| `d43_layoutprobe.c` | compiler-verified model-sidecar layout |
+| `d88_layoutprobe.c` | compiler-verified stage/propDef layout |
+| `mtxtest.c` | matrix-pipeline numerical checks |
 
-## Living — compiler-verified layout probes (kept: re-run when structs change)
+## Policy
 
-| Script | Role |
-|---|---|
-| `d43_layoutprobe.c` | Prints `sizeof`/`offsetof` for every struct `d43_emit.py` must reproduce, built with the port toolchain. |
-| `d88_layoutprobe.c` | Same, for the `PROPDEF_*` record structs `d88_emit.py` converts. |
-| `mtxtest.c` | Standalone numerical test of the fast3d matrix pipeline conventions (GE swapped-perspective, packing, MUL order). |
+One-off investigation scripts do not stay in this directory after their
+finding is resolved.
 
-## Investigation artifacts — D43 model-file format (finding closed; archive candidates)
+A useful investigation graduates into one of:
 
-`d43_chainbound.py`, `d43_cover.py`, `d43_decode.py`, `d43_fullwalk.py`,
-`d43_gdldump.py`, `d43_gdlhist.py`, `d43_gdlorder.py`, `d43_gdlseq.py`,
-`d43_invariants.py`, `d43_layout.py`, `d43_layout1.py`, `d43_lutscan.py`,
-`d43_pointusage.py`, `d43_seg5.py`, `d43_seg5ops.py`, `d43_seg5vtx.py`,
-`d43_seg5vtx2.py`, `d43_sizes.py`, `d43_sizes2.py`, `d43_tree_dump.py`,
-`d43_vtxfmt.py`, `d43_walk.py` — layout/pointer/GDL-order analysis passes that
-derived the D43 converter spec. `d43_sizes.py` is still `exec()`'d by a couple
-of the others.
+- reusable Portkit capability,
+- semantic-audit rule,
+- ABI-manifest entry,
+- converter validation,
+- permanent regression test.
 
-## Investigation artifacts — other closed/parked findings
-
-| Script | Finding |
-|---|---|
-| `d125_check.py` | D125 — is the emitted `propDefs` blob byte-identical to `d88_propdefs.convert_stream()`? |
-| `d88_propdef_scan.py` | D88.4 — histogram of `PROPDEF_*` record types across shipped levels. |
-| `d51_gdb.py` / `dump_animgen.cmd` | D51 texture-tile crash capture / Facility-outro-hang anim-state dump (gdb scripts). |
-
-## Other
-
-- `dist/` — staged bundle README template (`README.md.in`) + tokens.
-- `golden/` — per-level golden frames for `framediff.py` (Step 3 fills this out).
-- `__pycache__/` — ignored.
+Git history preserves closed investigations; the working tree stays focused on
+living tools.
