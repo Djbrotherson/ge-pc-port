@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "project": "goldeneye",
+  "host_pointer_bits": 64,
+  "stage_setup": {
+    "header_n64_bytes": 40,
+    "header_host_bytes": 80,
+    "growth_tables": {
+      "pads": [44, 56],
+      "boundpads": [68, 80],
+      "waypointgroups": [12, 24],
+      "pathwaypoints": [16, 24],
+      "patrolpaths": [8, 16],
+      "ailists": [8, 16],
+      "padnames": [4, 8],
+      "boundpadnames": [4, 8]
+    }
+  },
+  "model_sidecar": {
+    "model_node_host_bytes": 48,
+    "rodata_host_bytes": {
+      "1": 24,
+      "2": 40,
+      "3": 40,
+      "4": 40,
+      "8": 24,
+      "9": 48,
+      "10": 28,
+      "12": 48,
+      "13": 48,
+      "15": 28,
+      "18": 16,
+      "21": 20,
+      "22": 32,
+      "23": 2,
+      "24": 64
+    }
+  },
+  "stan": {
+    "tile_point_bytes": 8,
+    "tile_header_bytes": 8,
+    "tile_sizes_by_point_count": [32, 32, 32, 32, 40, 48, 56, 64, 72, 80, 88, 0]
+  },
+  "graphics": {
+    "gfx_bytes": 8,
+    "mtx_bytes": 64,
+    "vtx_bytes": 16,
+    "vertex_bytes": 16
+  },
+  "monitor_animation": {
+    "command_word_bytes": 4,
+    "command_words": 3,
+    "command_bytes": 12
+  }
+}
