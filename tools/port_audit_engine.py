@@ -215,8 +215,9 @@ def scan_file(path:Path):
         # for manual classification rather than silently inheriting N64-era
         # assumptions.
         if host_active and re.search(
-            r"\(\s*uintptr_t\s*\)\s*[^;\n]+(?:->|\.)[A-Za-z_]\w*\s*&\s*"
-            r"(?:\(\s*uintptr_t\s*\)\s*)?0x[0-9A-Fa-f]+",
+            r"\(\s*uintptr_t\s*\)\s*"
+            r"(?:\(?\s*[A-Za-z_]\w*(?:(?:->|\.)[A-Za-z_]\w*)+\s*\)?)"
+            r"\s*&\s*(?:\(\s*uintptr_t\s*\)\s*)?0x[0-9A-Fa-f]+",
             line,
         ):
             add("P1","pointer-tag-bit-test",path,i,raw,
@@ -243,7 +244,8 @@ def scan_file(path:Path):
         # field name can be reused by unrelated scalar structs.
         m_member_cast=re.search(
             r"\((?:s32|u32|int|unsigned\s+int)\)\s*"
-            r"[^;\n]+(?:->|\.)([A-Za-z_]\w*)\b",
+            r"\(?\s*[A-Za-z_]\w*(?:(?:->|\.)[A-Za-z_]\w*)*"
+            r"(?:->|\.)([A-Za-z_]\w*)\b\s*\)?",
             line,
         )
         if (host_active and m_member_cast
