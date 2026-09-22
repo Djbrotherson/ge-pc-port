@@ -4135,7 +4135,7 @@ GE_LAYOUT_ASSERT(sizeof(LockDoorRecord) == 32, "LockDoorRecord host propDef size
 GE_LAYOUT_ASSERT(sizeof(SafeObjectRecord) == 40, "SafeObjectRecord host propDef size");
 GE_LAYOUT_ASSERT(sizeof(VehichleRecord) == 208, "VehichleRecord host propDef size");
 GE_LAYOUT_ASSERT(sizeof(AircraftRecord) == 208, "AircraftRecord host propDef size");
-GE_LAYOUT_ASSERT(sizeof(TankRecord) == 224, "TankRecord host propDef size");
+GE_LAYOUT_ASSERT(sizeof(TankRecord) == 240, "TankRecord host propDef size");
 GE_LAYOUT_ASSERT(sizeof(TintedGlassRecord) == 168, "TintedGlassRecord host propDef size");
 GE_LAYOUT_ASSERT(sizeof(DoorRecord) == 296, "DoorRecord host propDef size");
 GE_LAYOUT_ASSERT(sizeof(KeyRecord) == 152, "KeyRecord host propDef size");

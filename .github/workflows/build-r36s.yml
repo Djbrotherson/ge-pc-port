@@ -4,7 +4,7 @@ on:
   # covered by the cheap semantic gate. Run this only after a reviewed batch
   # is ready for AArch64 proof, or when validating a PR into main.
   workflow_dispatch:
-  # Editing this workflow is itself an explicit build decision (proof pass 2). This lets a
+  # Editing this workflow is itself an explicit build decision (proof pass 3). This lets a
   # reviewed batch request one proof build without making normal source pushes
   # consume AArch64 minutes.
   push:
