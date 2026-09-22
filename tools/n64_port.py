@@ -9,7 +9,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PROFILE = ROOT / "tools" / "port_profiles" / "goldeneye.json"
+DEFAULT_PROFILE = ROOT / "tools" / "integration_profiles" / "goldeneye.json"
 
 
 def load_profile(path: Path) -> dict:
