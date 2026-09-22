@@ -2,12 +2,13 @@ name: GoldenEye AArch64 R36S GLES Build
 # CI trigger: standard-hosted AArch64 cross-validation (forced retrigger 2026-09-20 13:xx AEST)
 
 on:
+  # Expensive cross-builds are intentional. Active development pushes are
+  # covered by the cheap semantic gate; dispatch this workflow after a whole
+  # reviewed batch is ready for AArch64 proof.
   workflow_dispatch:
   push:
     branches:
       - main
-      - r36s-native-gles
-      - r36s-first-frame-noaudio
     paths:
       - 'src/**'
       - 'include/**'
