@@ -791,7 +791,7 @@ void sub_GAME_7F04088C(ObjectRecord *baseobj, struct coord3d *pos, Mtxf *matrix,
     {
         ObjectRecord *roomObj;
         f32 distfromTileCenter;
-        rect4f *byrefA;
+        coord2d *byrefA;
         s32 byrefB;
         f32 byrefC;
         f32 byrefD;

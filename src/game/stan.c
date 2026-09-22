@@ -1662,7 +1662,7 @@ s32 stanTestLineUnobstructed(StandTile **pTile, f32 p_x, f32 p_z, f32 dest_x, f3
     f32 spC0;
     f32 temp_f0_2;
     s16 *spB8;
-    struct rect4f *polygon; // spB4
+    coord2d *polygon; // spB4
     s32 numvertices0; // spB0
     //f32 unused2;
     s32 i;
@@ -1736,12 +1736,12 @@ s32 stanTestLineUnobstructed(StandTile **pTile, f32 p_x, f32 p_z, f32 dest_x, f3
                     {
                         next = (i + 1) % numvertices0;
 
-                        if (doSegmentsIntersect(p_x, p_z, dest_x, dest_z, polygon->points[i].f[0], polygon->points[i].f[1], polygon->points[next].f[0], polygon->points[next].f[1]) != 0)
+                        if (doSegmentsIntersect(p_x, p_z, dest_x, dest_z, polygon[i].f[0], polygon[i].f[1], polygon[next].f[0], polygon[next].f[1]) != 0)
                         {
-                            sp134.f[0] = polygon->points[i].f[0];
-                            sp134.f[1] = polygon->points[i].f[1];
-                            sp12C.f[0] = polygon->points[next].f[0];
-                            sp12C.f[1] = polygon->points[next].f[1];
+                            sp134.f[0] = polygon[i].f[0];
+                            sp134.f[1] = polygon[i].f[1];
+                            sp12C.f[0] = polygon[next].f[0];
+                            sp12C.f[1] = polygon[next].f[1];
 
                             temp_f0 = calculateSegmentIntersectionFraction(&sp14C, &sp144, &sp134, &sp12C);
 
@@ -1847,7 +1847,7 @@ PropRecord *sub_GAME_7F0B1410(StandTile *t, f32 start_x, f32 start_z, f32 end_x,
     s32 roomCount;
     s32 roomBuffer[21];
     s16 *propIndexPtr;
-    struct rect4f *polygon;
+    coord2d *polygon;
     s32 numEdges;
     PropRecord *bestProp;
     s32 next;
@@ -1901,14 +1901,14 @@ PropRecord *sub_GAME_7F0B1410(StandTile *t, f32 start_x, f32 start_z, f32 end_x,
                         {
                             next = (i + 1) % numEdges;
 
-                            if (doSegmentsIntersect(start_x, start_z, end_x, end_z, polygon->points[i].f[0], polygon->points[i].f[1], polygon->points[next].f[0], polygon->points[next].f[1]))
+                            if (doSegmentsIntersect(start_x, start_z, end_x, end_z, polygon[i].f[0], polygon[i].f[1], polygon[next].f[0], polygon[next].f[1]))
                             {
-                                edgeStart.f[0] = polygon->points[i].f[0];
-                                tmp = &polygon->points[i];
+                                edgeStart.f[0] = polygon[i].f[0];
+                                tmp = &polygon[i];
                                 edgeStart.f[1] = (*tmp).f[1];
 
-                                edgeEnd.f[0] = polygon->points[next].f[0];
-                                edgeEnd.f[1] = polygon->points[next].f[1];
+                                edgeEnd.f[0] = polygon[next].f[0];
+                                edgeEnd.f[1] = polygon[next].f[1];
 
                                 frac = calculateSegmentIntersectionFraction(&lineStart, &lineEnd, &edgeStart, &edgeEnd);
 
@@ -2019,7 +2019,7 @@ s32 stanTestVolume(StandTile **arg0, f32 arg1, f32 arg2, f32 arg3, s32 cdtypes, 
     s32 spFC;
     struct PropRecord *prop; // no stack
     s32 spA8[0x14];
-    struct rect4f *polygon;
+    coord2d *polygon;
     s32 numvertices0;  // spa0
     f32 temp_f0_3; // stack ??
     f32 temp_f0_2; // stack ??
@@ -2078,7 +2078,7 @@ s32 stanTestVolume(StandTile **arg0, f32 arg1, f32 arg2, f32 arg3, s32 cdtypes, 
                     {
                         next = (i + 1) % numvertices0;
 
-                        var_f20 = stanGetSignedPointLineDistance(polygon->points[i].f[0], polygon->points[i].f[1], polygon->points[next].f[0], polygon->points[next].f[1], arg1, arg2);
+                        var_f20 = stanGetSignedPointLineDistance(polygon[i].f[0], polygon[i].f[1], polygon[next].f[0], polygon[next].f[1], arg1, arg2);
 
                         if (var_f20 < 0.0f)
                         {
@@ -2087,22 +2087,22 @@ s32 stanTestVolume(StandTile **arg0, f32 arg1, f32 arg2, f32 arg3, s32 cdtypes, 
 
                         if (var_f24 < var_f20)
                         {
-                            temp_f0_2 = distBetweenPoints2d(polygon->points[i].f[0], polygon->points[i].f[1], arg1, arg2);
-                            temp_f0_3 = distBetweenPoints2d(polygon->points[next].f[0], polygon->points[next].f[1], arg1, arg2);
+                            temp_f0_2 = distBetweenPoints2d(polygon[i].f[0], polygon[i].f[1], arg1, arg2);
+                            temp_f0_3 = distBetweenPoints2d(polygon[next].f[0], polygon[next].f[1], arg1, arg2);
 
                             if ((var_f20 < arg3)
                                 && (
                                     (temp_f0_2 < arg3)
                                     || (temp_f0_3 < arg3)
-                                    || (stanPointProjectsOntoEdge(polygon->points[i].f[0], polygon->points[i].f[1], polygon->points[next].f[0], polygon->points[next].f[1], arg1, arg2) != 0)))
+                                    || (stanPointProjectsOntoEdge(polygon[i].f[0], polygon[i].f[1], polygon[next].f[0], polygon[next].f[1], arg1, arg2) != 0)))
                             {
                                 D_800413BC = 1;
                                 var_f24 = var_f20;
 
-                                stanSavedColl_pntA.f[0] = polygon->points[i].f[0];
-                                stanSavedColl_pntA.f[1] = polygon->points[i].f[1];
-                                stanSavedColl_pntB.f[0] = polygon->points[next].f[0];
-                                stanSavedColl_pntB.f[1] = polygon->points[next].f[1];
+                                stanSavedColl_pntA.f[0] = polygon[i].f[0];
+                                stanSavedColl_pntA.f[1] = polygon[i].f[1];
+                                stanSavedColl_pntB.f[0] = polygon[next].f[0];
+                                stanSavedColl_pntB.f[1] = polygon[next].f[1];
                                 stanSavedColl_tile = NULL;
                                 stanSavedColl_pointI = 0;
                                 stanSavedColl_posData = prop;

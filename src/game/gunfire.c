@@ -291,7 +291,7 @@ void gunFireTankShell(s32 handnum)
     obj->runtime_bitflags &= ~RUNTIMEBITFLAG_OWNER;
     obj->runtime_bitflags |= get_cur_playernum() << RUNTIMEBITSHIFT_OWNER;
 
-    gunInitProjectileFromPlayer(obj, &spawnpos, &shellmtx, &velocity, (s32 *) &identitymtx);
+    gunInitProjectileFromPlayer(obj, &spawnpos, &shellmtx, &velocity, &identitymtx);
 
     if (obj->runtime_bitflags & RUNTIMEBITFLAG_00000080)
     {
