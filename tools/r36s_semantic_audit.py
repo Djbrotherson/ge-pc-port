@@ -12,6 +12,7 @@ EXCLUDE_PARTS=set(
     if p
 )
 PROJECT_NAME=os.environ.get("N64_PORT_AUDIT_PROJECT", "goldeneye-r36s")
+CONTRACT_SUITE=os.environ.get("N64_PORT_AUDIT_CONTRACT_SUITE", "goldeneye")
 EXTS={".c",".h",".cc",".cpp",".cxx",".hpp"}
 DESKTOP_GL={
  "glPolygonMode","glDrawBuffer","glGetTexImage","glTexImage1D","glTexSubImage1D",
@@ -773,13 +774,17 @@ def check_propdef_stride_contract():
 def main():
     collect_pointer_member_names()
     for f in iter_files(): scan_file(f)
-    check_propdef_stride_contract()
-    check_renderer_reload_contract()
-    check_stage_setup_layout_contract()
-    check_model_sidecar_layout_contract()
-    check_stan_layout_contract()
-    check_ai_command_layout_contract()
-    check_ai_command_endian_contract()
+    if CONTRACT_SUITE == "goldeneye":
+        check_propdef_stride_contract()
+        check_renderer_reload_contract()
+        check_stage_setup_layout_contract()
+        check_model_sidecar_layout_contract()
+        check_stan_layout_contract()
+        check_ai_command_layout_contract()
+        check_ai_command_endian_contract()
+    elif CONTRACT_SUITE:
+        add("P0","unknown-contract-suite",Path("."),1,CONTRACT_SUITE,
+            "Profile requested an unknown project-specific contract suite.")
     findings.sort(key=lambda x:(0 if x[0]=="P0" else 1,x[2],x[3],x[1]))
     out=Path("semantic-audit-out"); out.mkdir(exist_ok=True)
     with (out/"semantic-findings.tsv").open("w") as fp:
