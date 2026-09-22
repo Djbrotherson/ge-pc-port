@@ -9,6 +9,7 @@ on:
       - 'src/**'
       - 'include/**'
       - 'port/**'
+      - 'tools_pc/d69_emit.py'
       - 'tools_pc/d88_propdefs.py'
       - 'tools/r36s_semantic_audit.py'
       - '.github/workflows/r36s-semantic-gate.yml'
