@@ -2177,7 +2177,7 @@ void load_walletbond(void)
             b = (struct ModelNode *)mnode;
             srecord = (ModelRoData_DisplayList_CollisionRecord *)b->Data;
 
-            arg0 = (Gfx *)((u8 *)srecord->BaseAddr + ((uintptr_t)srecord->Primary & 0x00ffffffu));
+            arg0 = (Gfx *)((u8 *)srecord->BaseAddr + (N64_PTR_TO_U32_TOKEN(srecord->Primary) & 0x00ffffffu));
             bgApplyDynamicCCRMLUT(arg0, NULL, CCRMLUT_WALLETBOND);
         }
     }

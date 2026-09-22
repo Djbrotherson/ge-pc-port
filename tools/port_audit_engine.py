@@ -245,7 +245,7 @@ def scan_file(path:Path):
         m_member_cast=re.search(
             r"\((?:s32|u32|int|unsigned\s+int)\)\s*"
             r"\(?\s*[A-Za-z_]\w*(?:(?:->|\.)[A-Za-z_]\w*)*"
-            r"(?:->|\.)([A-Za-z_]\w*)\b\s*\)?",
+            r"(?:->|\.)([A-Za-z_]\w*)\b(?!\s*\[)\s*\)?",
             line,
         )
         if (host_active and m_member_cast

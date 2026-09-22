@@ -3884,7 +3884,6 @@ s32 sub_GAME_7F0448A8(struct PropRecord *argProp)
     f32 radius;
     f32 ground;
     PropRecord *propss;
-    ObjectRecord *temp_v0_2;
     coord2d *polygon;
     s32 edges;
     f32 top;
@@ -3910,8 +3909,15 @@ s32 sub_GAME_7F0448A8(struct PropRecord *argProp)
         {
             if ((prop->type == PROP_TYPE_VIEWER) || (prop->type == PROP_TYPE_CHR))
             {
-                temp_v0_2 = prop->obj;
-                if ((temp_v0_2 == NULL) || !((uintptr_t)temp_v0_2->model & (uintptr_t)0x400u))
+                /*
+                 * N64 layout alias: ObjectRecord.model and ChrRecord.chrflags
+                 * both occupied offset 0x14, so the decomp read CHRFLAG_HIDDEN
+                 * through prop->obj->model. LP64 widens ObjectRecord pointers
+                 * and destroys that overlap. Use the real typed field.
+                 */
+                if ((prop->type == PROP_TYPE_VIEWER)
+                    || (prop->chr == NULL)
+                    || !(prop->chr->chrflags & CHRFLAG_HIDDEN))
                 {
                     chrpropGetCollisionBounds(prop, &radius, &height, &arbitratyNumber);
 
@@ -7065,7 +7071,7 @@ Gfx *process_monitor_animation_microcode(Model *model, ModelNode *node, MonitorR
         vertices[3] = rodata->DisplayListCollisions.Vertices[3];
 
 #ifdef PORT
-        if ((uintptr_t)screen->tconfig < 100u)
+        if (N64_PTR_TO_U32_TOKEN(screen->tconfig) < 100u)
         {
             tconfig = &monitorimages[N64_PTR_TO_S32_TOKEN(screen->tconfig)];
         }
