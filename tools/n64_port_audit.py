@@ -45,6 +45,13 @@ def main() -> None:
     if missing:
         raise SystemExit(f"{profile_path}: missing source roots: {', '.join(missing)}")
 
+    abi_contract = profile.get("abi_contract", "")
+    if abi_contract:
+        if not isinstance(abi_contract, str):
+            raise SystemExit(f"{profile_path}: abi_contract must be a path string")
+        if not Path(abi_contract).exists():
+            raise SystemExit(f"{profile_path}: abi_contract path not found: {abi_contract}")
+
     for group in ("binary_adapters", "verification"):
         entries = profile.get(group, {})
         if entries is not None and not isinstance(entries, dict):
@@ -58,6 +65,7 @@ def main() -> None:
     os.environ["N64_PORT_AUDIT_PROFILE"] = str(profile_path)
     os.environ["N64_PORT_AUDIT_PROJECT"] = str(profile.get("project", profile_path.stem))
     os.environ["N64_PORT_AUDIT_CONTRACT_SUITE"] = str(profile.get("contract_suite", ""))
+    os.environ["N64_PORT_AUDIT_ABI_CONTRACT"] = str(abi_contract)
     os.environ["N64_PORT_AUDIT_ROOTS"] = os.pathsep.join(str(x) for x in roots)
     os.environ["N64_PORT_AUDIT_EXCLUDES"] = os.pathsep.join(str(x) for x in excludes)
 
