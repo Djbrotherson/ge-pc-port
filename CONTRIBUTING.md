@@ -121,7 +121,7 @@ A binary conversion change must account for all of:
 
 Prefer a machine-readable contract over duplicated constants.
 
-Current project contracts live under `tools/port_profiles/`.
+Current project contracts live under `tools/integration_profiles/`.
 
 ## Graphics changes
 
