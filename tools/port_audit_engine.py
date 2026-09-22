@@ -671,6 +671,7 @@ def check_model_sidecar_layout_contract():
         tree=ast.parse(converter.read_text(errors="replace"))
         pc_node=None
         pc_rec=None
+        n64_rec=None
         for node in tree.body:
             if isinstance(node, ast.Assign):
                 for t in node.targets:
@@ -678,6 +679,8 @@ def check_model_sidecar_layout_contract():
                         pc_node=ast.literal_eval(node.value)
                     elif isinstance(t, ast.Name) and t.id=="PC_REC":
                         pc_rec=ast.literal_eval(node.value)
+                    elif isinstance(t, ast.Name) and t.id=="N64_REC":
+                        n64_rec=ast.literal_eval(node.value)
         spec=ABI_CONTRACT.get("model_sidecar", {})
         expected_node=int(spec.get("model_node_host_bytes",0))
         expected_rec={int(k):int(v) for k,v in spec.get("rodata_host_bytes",{}).items()}
@@ -692,26 +695,58 @@ def check_model_sidecar_layout_contract():
                 f"PC_REC={pc_rec}",
                 "Model sidecar converter native rodata sizes drifted from the compile-time ABI contract in bondtypes.h.")
 
+        if not isinstance(n64_rec, dict):
+            raise ValueError("N64_REC not found in d43_emit.py")
+        missing_pc=sorted(set(n64_rec)-set(pc_rec or {}))
+        extra_pc=sorted(set(pc_rec or {})-set(n64_rec))
+        if missing_pc or extra_pc:
+            add("P0","model-sidecar-record-coverage",converter,1,
+                f"missing_pc={missing_pc} extra_pc={extra_pc}",
+                "Every admitted N64 model record class must have exactly one native-PC record footprint.")
+
         # Pointer-bearing records need both an offline widened slot and a
-        # matching runtime promotion. Opcode 17 historically had the former
-        # missing, then exposed that the runtime was promoting Group.ChildGroup
-        # instead of Op17.othernode. Keep the end-to-end boundary locked.
+        # matching runtime promotion. Check the complete currently-supported
+        # model pointer surface, not individual historical bugs.
         runtime=Path("src/game/model.c")
         rtext=runtime.read_text(errors="replace")
-        op17=re.search(
+        promotion_contract={
+            "MODELNODE_OPCODE_HEADER": ("FirstGroup",),
+            "MODELNODE_OPCODE_GROUP": ("ChildGroup",),
+            "MODELNODE_OPCODE_OP03": ("ChildGroup",),
+            "MODELNODE_OPCODE_DL": ("Vertices",),
+            "MODELNODE_OPCODE_DLCOLLISION": ("Vertices","CollisionVertices","PointUsage"),
+            "MODELNODE_OPCODE_LOD": ("Affects",),
+            "MODELNODE_OPCODE_SWITCH": ("Controls",),
+            "MODELNODE_OPCODE_BSP": ("leftChild","rightChild"),
+            "MODELNODE_OPCODE_OP17": ("othernode",),
+            "MODELNODE_OPCODE_GUNFIRE": ("Image",),
+            "MODELNODE_OPCODE_SHADOW": ("image","Header"),
+            "MODELNODE_OPCODE_DLPRIMARY": ("Vertices",),
+        }
+        for opname,fields in promotion_contract.items():
+            m=re.search(
+                rf"case\s+{opname}\s*:(.*?)(?=\n\s*case\s+MODELNODE_OPCODE_|\n\s*default\s*:)",
+                rtext,re.S,
+            )
+            if not m:
+                add("P0","model-runtime-promotion-contract",runtime,1,
+                    f"{opname} case missing",
+                    "Model sidecar pointer-bearing records must have a runtime relocation arm.")
+                continue
+            body=m.group(1)
+            for field in fields:
+                if f"PROMOTE(rodata->{field})" not in body:
+                    add("P0","model-runtime-promotion-contract",runtime,1,
+                        f"{opname}: missing PROMOTE(rodata->{field})",
+                        "Runtime model pointer promotion drifted from the sidecar converter's widened pointer fields.")
+        op17_body=re.search(
             r"case\s+MODELNODE_OPCODE_OP17\s*:(.*?)(?=\n\s*case\s+MODELNODE_OPCODE_|\n\s*default\s*:)",
             rtext,re.S,
         )
-        if not op17:
-            add("P0","model-op17-runtime-contract",runtime,1,
-                "MODELNODE_OPCODE_OP17 case missing",
-                "Opcode 17 sidecar records contain an othernode reference that must be promoted at load time.")
-        else:
-            body=op17.group(1)
-            if "ModelRoData_Op17Record" not in body or "PROMOTE(rodata->othernode)" not in body:
-                add("P0","model-op17-runtime-contract",runtime,1,
-                    body.strip()[:300],
-                    "Opcode 17 runtime promotion must resolve ModelRoData_Op17Record.othernode, matching d43_emit.py.")
+        if op17_body and "ModelRoData_Op17Record" not in op17_body.group(1):
+            add("P0","model-op17-type-contract",runtime,1,
+                op17_body.group(1).strip()[:300],
+                "Opcode 17 must be interpreted as ModelRoData_Op17Record before promoting othernode.")
     except Exception as exc:
         add("P0","model-sidecar-audit-error",converter,1,str(exc),
             "Could not prove model sidecar converter/native ABI agreement.")
