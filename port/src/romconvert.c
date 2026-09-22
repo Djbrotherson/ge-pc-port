@@ -116,7 +116,7 @@ static int rcRunConverter(const char *exePath, const char *rom, const char *out)
     if (pid == 0) {
         /* Child: stdio is inherited (console apps see the converter's
          * progress lines; GUI builds simply discard them). */
-        execv(exePath, (char *const[]){ exePath, "--rom", (char *)rom,
+        execv(exePath, (char *const[]){ (char *)exePath, "--rom", (char *)rom,
                                         "--out", (char *)out, NULL });
         _exit(127);   /* execv failed */
     }

@@ -1191,12 +1191,16 @@ void sub_GAME_7F06D490(Model *model, ModelNode *modelNode)
         {
             interpolate3dVectors(&sp38, &rw->Header.unk24, model->unk2c);
 
+#ifdef PORT
+            rw->Header.unk14 = sub_GAME_7F06D0CC(rw->Header.unk30, rw->Header.unk20, model->unk2c);
+#else
             // Weird do while loop but needed for matching.
             do
             {
                 rw->Header.unk14 = sub_GAME_7F06D0CC(rw->Header.unk30, rw->Header.unk20, model->unk2c);
             }
             while (model->unka0 * 0);
+#endif
         }
     }
 

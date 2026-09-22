@@ -7121,7 +7121,11 @@ Gfx *process_monitor_animation_microcode(Model *model, ModelNode *node, MonitorR
 
                 tmp1 = xfrac1 * yfrac1 * xfrac2;
 
+#ifdef PORT
+                (void)(tmp1 * yfrac2);
+#else
                 if (tmp1 * yfrac2);
+#endif
 
                 vertices[0].s = tconfig->width  * (screen->xmid + xfrac1) * 32.0f;
                 vertices[0].t = tconfig->height * (screen->ymid + yfrac1) * 32.0f;
