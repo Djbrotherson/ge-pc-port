@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - main
+      - r36s-first-frame-noaudio
     paths:
       - 'src/**'
       - 'include/**'
