@@ -255,7 +255,7 @@ void post_type8_indyrescmd_log_recieved(s32 rsize, s32 wsize, u32 data1, u32 dat
    cmd.entry.resourceID = INDYMAGIC;
    cmd.entry.type = INDY_LOGRECVD;
   
-   cmd.entry.size = (cmd2size +3 & ~3)+ sizeof(indy_resource_entry_type8);
+   cmd.entry.size = ((cmd2size + 3) & ~3) + sizeof(indy_resource_entry_type8);
    cmd.entry.readsize = rsize;
    cmd.entry.writesize = wsize;
   
@@ -274,7 +274,7 @@ void indyrescmdSendDump(s32 rsize, s32 wsize, char *strptr, u32 size2, const voi
   cmd.entry.resourceID = INDYMAGIC;
   cmd.entry.type = INDY_SENDDUMP;
 
-  cmd.entry.size = (size2 + 3 & 0xfffffffc) + sizeof(indy_resource_entry_type9);
+  cmd.entry.size = ((size2 + 3) & 0xfffffffc) + sizeof(indy_resource_entry_type9);
   cmd.entry.readsize = rsize;
   cmd.entry.writesize = wsize;
 
@@ -478,7 +478,7 @@ s32 indycmdSendLoadFile(u8 *filename,u32 size)
 
 s32 post_indyrescmd_1_8_2(u32 data1,u32 data2,u32 size2,struct indy_resource_entry_header *cmd2)
 {
-    indyrescmdStartCmdSeq((size2 + 3 & 0xfffffffc) + sizeof(indy_resource_entry_type8),sizeof(indy_resource_entry_type8));
+    indyrescmdStartCmdSeq(((size2 + 3) & 0xfffffffc) + sizeof(indy_resource_entry_type8),sizeof(indy_resource_entry_type8));
     post_type8_indyrescmd_log_recieved(sizeof(s_indyResCmd02End),sizeof(s_indyResCmd02End),data1,data2,size2,cmd2);
     indyrescmdEndCmdSeq(0,0);
 
@@ -488,7 +488,7 @@ s32 post_indyrescmd_1_8_2(u32 data1,u32 data2,u32 size2,struct indy_resource_ent
 
 s32 indycmdSendDump(char *string, u32 size, const void *data)
 {
-    indyrescmdStartCmdSeq((size + 3 & 0xfffffffc) + sizeof(indy_resource_entry_type9),sizeof(indy_resource_entry_type9));
+    indyrescmdStartCmdSeq(((size + 3) & 0xfffffffc) + sizeof(indy_resource_entry_type9),sizeof(indy_resource_entry_type9));
     indyrescmdSendDump(sizeof(s_indyResCmd02End),sizeof(s_indyResCmd02End),string,size,data);
     indyrescmdEndCmdSeq(0,0);
 
@@ -651,8 +651,8 @@ s32 indycmdRecieveCommand(u8 *buffer, u32 size)
 
 s32 post_indyrescmd_read_2commands(u8 *buffer1,u32 size1,u8 *buffer2,u32 size2)
 {
-    indy_buffer_read_command(buffer1,size1 + 3 & 0xfffffffc);
-    indy_buffer_read_command(buffer2,size2 + 3 & 0xfffffffc);
+    indy_buffer_read_command(buffer1,(size1 + 3) & 0xfffffffc);
+    indy_buffer_read_command(buffer2,(size2 + 3) & 0xfffffffc);
     return TRUE;
 }
 
