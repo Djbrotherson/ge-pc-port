@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "project": "goldeneye",
+  "source_roots": ["src", "include", "port"],
+  "exclude_path_parts": ["third_party"],
+  "targets": [
+    {
+      "id": "r36s-aarch64-gles",
+      "arch": "aarch64",
+      "pointer_bits": 64,
+      "graphics": "gles3"
+    }
+  ],
+  "binary_adapters": {
+    "model": "tools_pc/d43_emit.py",
+    "bg_stan": "tools_pc/d69_emit.py",
+    "stage_setup": "tools_pc/d88_emit.py",
+    "propdefs": "tools_pc/d88_propdefs.py"
+  },
+  "verification": {
+    "semantic_audit": "tools/n64_port_audit.py",
+    "native_harness": "tools_pc/verify.sh",
+    "target_workflow": ".github/workflows/build-r36s.yml"
+  }
+}
