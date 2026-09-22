@@ -12,6 +12,7 @@ DESKTOP_GL={
 }
 
 findings=[]
+POINTER_MEMBER_NAMES=set()
 
 def add(sev,kind,path,line,code,why):
     findings.append((sev,kind,str(path),line,code.strip()[:300],why))
@@ -23,6 +24,31 @@ def iter_files():
         for f in p.rglob("*"):
             if f.is_file() and f.suffix in EXTS and "third_party" not in f.parts:
                 yield f
+
+def collect_pointer_member_names():
+    """Harvest pointer field names from project headers before scanning uses.
+
+    This catches casts of ordinary fields such as obj->model / node->Data that
+    name-based ptr/addr heuristics miss. It is intentionally P1 at use sites
+    because field names can be reused by unrelated scalar structs.
+    """
+    global POINTER_MEMBER_NAMES
+    decl=re.compile(
+        r"\b(?:struct\s+\w+|union\s+\w+|[A-Za-z_]\w*)"
+        r"(?:\s+const)?\s*\*+\s*([A-Za-z_]\w*)"
+        r"(?:\s*\[[^\]]*\])?\s*(?:;|,)"
+    )
+    names=set()
+    for f in iter_files():
+        if f.suffix not in {".h",".hpp"}:
+            continue
+        text=f.read_text(errors="replace")
+        text=re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+        text=re.sub(r"//.*", " ", text)
+        for m in decl.finditer(text):
+            names.add(m.group(1))
+    POINTER_MEMBER_NAMES=names
+
 
 def _strip_comments(line:str, in_block:bool):
     out=[]
@@ -148,6 +174,22 @@ def scan_file(path:Path):
             if not re.search(r"(OS_K0_TO_PHYSICAL|osVirtualToPhysical|romptr|PTR_ANIM|CART_BASE)", line):
                 add("P0","host-address-narrowing",path,i,raw,
                     "Native address is explicitly narrowed to 32 bits without a pointer-width/token boundary.")
+
+        # Type-informed pointer-member narrowing. Header harvesting catches
+        # ordinary field names (model, anim, data, next, table, ...), which
+        # naming heuristics alone cannot distinguish. Keep as P1 because a
+        # field name can be reused by unrelated scalar structs.
+        m_member_cast=re.search(
+            r"\((?:s32|u32|int|unsigned\s+int)\)\s*"
+            r"[^;\n]+(?:->|\.)([A-Za-z_]\w*)\b",
+            line,
+        )
+        if (host_active and m_member_cast
+                and m_member_cast.group(1) in POINTER_MEMBER_NAMES
+                and "uintptr_t" not in line and "intptr_t" not in line
+                and "N64_PTR_TO_" not in line):
+            add("P1","declared-pointer-member-narrowing",path,i,raw,
+                "A field declared as a pointer somewhere in project headers is narrowed to 32 bits; classify native pointer vs N64 token.")
 
         # Direct pointer-looking variables/fields narrowed without uintptr_t.
         if host_active and "uintptr_t" not in line and "intptr_t" not in line:
@@ -403,6 +445,7 @@ def check_propdef_stride_contract():
 
 
 def main():
+    collect_pointer_member_names()
     for f in iter_files(): scan_file(f)
     check_propdef_stride_contract()
     findings.sort(key=lambda x:(0 if x[0]=="P0" else 1,x[2],x[3],x[1]))
