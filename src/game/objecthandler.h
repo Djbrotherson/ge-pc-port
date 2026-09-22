@@ -61,6 +61,26 @@ struct ModelSlot {
     void *unk10;                 /* 0x20 — Model.datas (RW-data pool pointer) */
     char pad28[sizeof(struct Model) - 0x28]; /* rest of the punned Model */
 };
+
+/* The slot structs are deliberately overlaid with struct Model. Make the
+ * dependency executable: any future Model layout change must fail the build
+ * here instead of corrupting slot state at runtime. */
+_Static_assert(offsetof(struct ModelSlot, unk02) == offsetof(struct Model, rwdatalen),
+               "ModelSlot.rwdatalen overlay drift");
+_Static_assert(offsetof(struct ModelSlot, unk08) == offsetof(struct Model, obj),
+               "ModelSlot.obj overlay drift");
+_Static_assert(offsetof(struct ModelSlot, unk10) == offsetof(struct Model, datas),
+               "ModelSlot.datas overlay drift");
+_Static_assert(sizeof(struct ModelSlot) >= sizeof(struct Model),
+               "ModelSlot must contain a full Model overlay");
+_Static_assert(offsetof(struct AnimModelSlot, unk02) == offsetof(struct Model, rwdatalen),
+               "AnimModelSlot.rwdatalen overlay drift");
+_Static_assert(offsetof(struct AnimModelSlot, unk08) == offsetof(struct Model, obj),
+               "AnimModelSlot.obj overlay drift");
+_Static_assert(offsetof(struct AnimModelSlot, unk10) == offsetof(struct Model, datas),
+               "AnimModelSlot.datas overlay drift");
+_Static_assert(sizeof(struct AnimModelSlot) >= sizeof(struct Model),
+               "AnimModelSlot must contain a full Model overlay");
 #else
 struct AnimModelSlot {
     s16 unk00;
