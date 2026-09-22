@@ -55,6 +55,10 @@ static struct GfxRenderingAPI *renderingAPI;
 static int initDone = 0;
 static int crashScreenActive = 0;
 
+/* Dam lab hardware/runtime HUD. Kept config-backed so the F10 overlay can
+ * hide it without rebuilding or disabling the underlying telemetry/logging. */
+static int cfgPerfHud = 1;
+
 /*
  * [Video] ge007.ini knobs. Every default reproduces the previously-hardcoded
  * behaviour, so a fresh config or a missing [Video] section changes nothing.
@@ -218,6 +222,9 @@ f32 portLodDistanceMultiplier(void)
 PD_CONSTRUCTOR static void videoConfigInit(void)
 {
     configRegisterFloat("Game.ScreenShakeIntensity", &portScreenShakeScale, 0.0f, 10.0f);
+#if defined(DAM_ONLY_LAB)
+    configRegisterInt("Debug.PerfHUD", &cfgPerfHud, 0, 1);
+#endif
     configRegisterInt("Game.SkipIntro", &portSkipIntro, 0, 1);
     configRegisterInt("Game.NoHitFlash", &portNoHitFlash, 0, 1);
     configRegisterInt("Game.AllUnlocked", &portAllUnlocked, 0, 1);
@@ -909,8 +916,9 @@ static void videoPreSwapCapture(void)
 
 #if defined(DAM_ONLY_LAB) && defined(__aarch64__)
     /* DAMLAB HUD: deliberately simple framebuffer text so the diagnostic
-     * remains visible even if the game UI/render state is part of the bug. */
-    {
+     * remains visible even if the game UI/render state is part of the bug.
+     * Debug.PerfHUD only controls visibility; telemetry/logging stays live. */
+    if (cfgPerfHud) {
         GLint prevFbo = 0;
         GLint prevVp[4] = {0, 0, 640, 480};
         char hud[256];
