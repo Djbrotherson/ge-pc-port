@@ -10722,7 +10722,7 @@ bool chrAdjustPosForSpawn(coord3d *pos, StandTile **arg1, f32 facing, bool allow
  * Address 0x7F03415C.
  * PD: chrSpawnAtCoord
 */
-PropRecord *chrSpawnAtCoord(s32 bodynum, s32 headnum, coord3d *pos, StandTile *stan, f32 angle, AIListRecord *ailist, s32 spawnflags)
+PropRecord *chrSpawnAtCoord(s32 bodynum, s32 headnum, coord3d *pos, StandTile *stan, f32 angle, AIRecord *ailist, s32 spawnflags)
 {
     PropRecord *chrprop;
     coord3d newpos; //struct copy here would have been more efficient
