@@ -12,7 +12,7 @@
 #include <bondconstants.h>
 #include "game/player.h"
 #include "game/bondview.h"
-#include "game/boss.h"
+#include "boss.h"
 
 static DamLabSnapshot g_dam;
 static FILE *g_log;
