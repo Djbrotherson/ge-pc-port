@@ -255,7 +255,7 @@ void __scMain(void *arg)
         osRecvMesg(&sc->interruptQ, &msg, OS_MESG_BLOCK);
 
 #ifdef PORT
-        switch ((s32)(intptr_t)msg)
+        switch (N64_PTR_TO_S32_TOKEN(msg))
 #else
         switch ((s32)msg)
 #endif
@@ -309,7 +309,7 @@ void __scMain(void *arg)
         {
             osRecvMesg(&sc->interruptQ, &msg, OS_MESG_BLOCK);
 #ifdef PORT
-        } while((s32)(intptr_t)msg != VIDEO_MSG);
+        } while(N64_PTR_TO_S32_TOKEN(msg) != VIDEO_MSG);
 #else
         } while((s32)msg != VIDEO_MSG);
 #endif

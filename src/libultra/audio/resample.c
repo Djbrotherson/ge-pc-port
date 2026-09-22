@@ -131,7 +131,7 @@ s32 alResampleParam(void *filter, s32 paramID, void *param)
         case (AL_FILTER_SET_PITCH):
 #ifdef PORT
             /* param carries the 32-bit IEEE-754 payload through the libaudio void* ABI. */
-            data.i = (s32)(uintptr_t)param;
+            data.i = N64_PTR_TO_S32_TOKEN(param);
 #else
             data.i = (s32) param;
 #endif

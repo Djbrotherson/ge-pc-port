@@ -793,7 +793,7 @@ static void portPostVIEvent(void)
             sysLogPrintf(r != 0 ? LOG_ERROR : LOG_NOTE,
                          "D51 vi post #%llu mq=%p msg=%d valid=%d/%d ret=%d",
                          (unsigned long long)g_viPostCount, (void *)g_viRetraceMQ,
-                         (int)(intptr_t)g_viRetraceMsg, g_viRetraceMQ->validCount,
+                         N64_PTR_TO_S32_TOKEN(g_viRetraceMsg), g_viRetraceMQ->validCount,
                          g_viRetraceMQ->msgCount, r);
         }
     }
@@ -1456,7 +1456,7 @@ void osWritebackDCache(void *addr, int size)      { (void)addr; (void)size; }
 void osWritebackDCacheAll(void)                    { }
 void osInvalICache(void *addr, int size)           { (void)addr; (void)size; }
 void osInvalDCache(void *addr, int size)           { (void)addr; (void)size; }
-u32   osVirtualToPhysical(void *va)                { return (u32)(uintptr_t)va; }
+u32   osVirtualToPhysical(void *va)                { return N64_PTR_TO_U32_TOKEN(va); }
 void *osPhysicalToVirtual(u32 pa)                  { return (void *)(uintptr_t)pa; }
 
 /* ------------------------------------------------------------------------ */

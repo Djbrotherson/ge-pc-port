@@ -1761,7 +1761,7 @@ void proplvreset2(enum LEVELID stageId)
                             pdef_veh->turnrot60    = 0.0f;
                             pdef_veh->roty         = 0.0f;
                             pdef_veh->speedtime60  = -1.0f;
-                            pdef_veh->ailist       = ailistFindById((s32)(uintptr_t)pdef_veh->ailist);
+                            pdef_veh->ailist       = ailistFindById(N64_PTR_TO_S32_TOKEN(pdef_veh->ailist));
                             pdef_veh->aioffset     = 0;
                             pdef_veh->aireturnlist = -1;
                             pdef_veh->path         = 0;
@@ -1783,7 +1783,7 @@ void proplvreset2(enum LEVELID stageId)
                             pdef_air->yrot            = 0.0f;
                             pdef_air->speedtime60     = -1.0f;
                             pdef_air->rotaryspeedtime = -1.0f;
-                            pdef_air->ailist          = ailistFindById((s32)(uintptr_t)pdef_air->ailist);
+                            pdef_air->ailist          = ailistFindById(N64_PTR_TO_S32_TOKEN(pdef_air->ailist));
                             pdef_air->aioffset        = 0;
                             pdef_air->aireturnlist    = -1;
                             pdef_air->nextstep        = 0;

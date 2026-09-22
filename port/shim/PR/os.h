@@ -34,7 +34,7 @@
 #    define OS_K0_TO_PHYSICAL(x) ((u32)((uintptr_t)(x) - (uintptr_t)0x70000000u))
 
 #    undef OS_PHYSICAL_TO_K0
-#    define OS_PHYSICAL_TO_K0(x) ((void *)(uintptr_t)(u32)(uintptr_t)(x))
+#    define OS_PHYSICAL_TO_K0(x) ((void *)(uintptr_t)N64_PTR_TO_U32_TOKEN(x))
 
 #else
 #    include <PR/os.h>

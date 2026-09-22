@@ -306,17 +306,17 @@ typedef	struct	{
  *	Select Display List
  *---------------------------------------------------------------------------*/
 #define	gSPSelectDL(pkt, mptr, sid, flag, mask)	\
-{	gDma1p((pkt), G_RDPHALF_0, (flag), (u32)(uintptr_t)(mptr) & 0xffff, (sid)); \
-	gDma1p((pkt), G_SELECT_DL, (mask), (u32)(uintptr_t)(mptr) >> 16, G_DL_PUSH); }
+{	gDma1p((pkt), G_RDPHALF_0, (flag), N64_PTR_TO_U32_TOKEN(mptr) & 0xffff, (sid)); \
+	gDma1p((pkt), G_SELECT_DL, (mask), N64_PTR_TO_U32_TOKEN(mptr) >> 16, G_DL_PUSH); }
 #define	gsSPSelectDL(mptr, sid, flag, mask)	\
-{	gsDma1p(G_RDPHALF_0, (flag), (u32)(uintptr_t)(mptr) & 0xffff, (sid)); \
-	gsDma1p(G_SELECT_DL, (mask), (u32)(uintptr_t)(mptr) >> 16, G_DL_PUSH); }
+{	gsDma1p(G_RDPHALF_0, (flag), N64_PTR_TO_U32_TOKEN(mptr) & 0xffff, (sid)); \
+	gsDma1p(G_SELECT_DL, (mask), N64_PTR_TO_U32_TOKEN(mptr) >> 16, G_DL_PUSH); }
 #define	gSPSelectBranchDL(pkt, mptr, sid, flag, mask)	\
-{	gDma1p((pkt), G_RDPHALF_0, (flag), (u32)(uintptr_t)(mptr) & 0xffff, (sid)); \
-	gDma1p((pkt), G_SELECT_DL, (mask), (u32)(uintptr_t)(mptr) >> 16, G_DL_NOPUSH); }
+{	gDma1p((pkt), G_RDPHALF_0, (flag), N64_PTR_TO_U32_TOKEN(mptr) & 0xffff, (sid)); \
+	gDma1p((pkt), G_SELECT_DL, (mask), N64_PTR_TO_U32_TOKEN(mptr) >> 16, G_DL_NOPUSH); }
 #define	gsSPSelectBranchDL(mptr, sid, flag, mask)	\
-{	gsDma1p(G_RDPHALF_0, (flag), (u32)(uintptr_t)(mptr) & 0xffff, (sid)); \
-	gsDma1p(G_SELECT_DL, (mask), (u32)(uintptr_t)(mptr) >> 16, G_DL_NOPUSH); }
+{	gsDma1p(G_RDPHALF_0, (flag), N64_PTR_TO_U32_TOKEN(mptr) & 0xffff, (sid)); \
+	gsDma1p(G_SELECT_DL, (mask), N64_PTR_TO_U32_TOKEN(mptr) >> 16, G_DL_NOPUSH); }
 
 /*---------------------------------------------------------------------------*
  *	Set general status

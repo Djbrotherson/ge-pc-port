@@ -136,7 +136,7 @@ void init(void)
     if (inflate_code_size > MAXCODESIZE)
     {
 #ifdef PORT
-        osPiRawStartDma(OS_READ, (u32)(uintptr_t)&_alt_startSegmentRomStart,
+        osPiRawStartDma(OS_READ, N64_PTR_TO_U32_TOKEN(&_alt_startSegmentRomStart),
                         &_alt_startSegmentStart, inflate_code_size - MAXCODESIZE);
 #else
         osPiRawStartDma(OS_READ, &_alt_startSegmentRomStart, &_alt_startSegmentStart, inflate_code_size - MAXCODESIZE);

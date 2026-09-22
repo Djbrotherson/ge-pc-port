@@ -124,9 +124,11 @@ def scan_file(path:Path):
         # Explicit pointer-width integer conversion is a semantic boundary,
         # not proof of truncation. Keep it in the report as P1 so it remains
         # auditable, but reserve P0 for unreviewed direct narrowing.
-        if host_active and explicit_width_boundary.search(line):
+        if (host_active and explicit_width_boundary.search(line)
+                and "N64_PTR_TO_U32_TOKEN" not in line
+                and "N64_PTR_TO_S32_TOKEN" not in line):
             add("P1","explicit-32bit-token-boundary",path,i,raw,
-                "Explicit uintptr_t/intptr_t to 32-bit conversion; verify this is an intentional N64 token/serialized ABI boundary.")
+                "Raw uintptr_t/intptr_t to 32-bit conversion; classify it and replace proven N64 ABI/token boundaries with N64_PTR_TO_*_TOKEN.")
 
         # Address-of narrowed directly without a pointer-width boundary.
         if host_active and re.search(r"\((?:s32|u32|int|unsigned\s+int)\)\s*&\s*[A-Za-z_]", line):

@@ -54,7 +54,7 @@ void sub_GAME_7F0762E0(ModelFileHeader *objheader, u8 *name, u8 *dst, struct tex
 
     if (gdl != NULL)
     {
-        u32 firsttoken = (u32)(uintptr_t)gdl;
+        u32 firsttoken = N64_PTR_TO_U32_TOKEN(gdl);
         u32 firstoff = firsttoken & 0x00ffffffu;
         s32 delta = romremaining - pcremaining;
         s32 tailbytes = pcremaining - (s32)firstoff;
@@ -72,7 +72,7 @@ void sub_GAME_7F0762E0(ModelFileHeader *objheader, u8 *name, u8 *dst, struct tex
             {
                 ModelNode *curnode = node;
                 Gfx *curgdl = gdl;
-                u32 curtoken = (u32)(uintptr_t)curgdl;
+                u32 curtoken = N64_PTR_TO_U32_TOKEN(curgdl);
                 u32 curoff = curtoken & 0x00ffffffu;
                 s32 gdllen;
 
@@ -80,7 +80,7 @@ void sub_GAME_7F0762E0(ModelFileHeader *objheader, u8 *name, u8 *dst, struct tex
 
                 if (gdl != NULL)
                 {
-                    u32 nexttoken = (u32)(uintptr_t)gdl;
+                    u32 nexttoken = N64_PTR_TO_U32_TOKEN(gdl);
                     gdllen = (s32)(nexttoken - curtoken);
                 }
                 else

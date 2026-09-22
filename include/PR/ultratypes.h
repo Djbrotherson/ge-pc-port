@@ -81,4 +81,15 @@ typedef double                      f64; /* double prec floating point */
     typedef ptrdiff_t ssize_t;
 #endif
 
+/*
+ * Explicit N64 ABI/token boundaries.
+ *
+ * These helpers are only for values whose 32-bit semantics have been proven:
+ * cart/ROM addresses, segmented display-list tokens, libultra message payloads,
+ * serialized N64 fields, or other wire-format values. Native host pointers
+ * must remain uintptr_t/pointer-width and must not use these helpers.
+ */
+#define N64_PTR_TO_U32_TOKEN(x) ((u32)(uintptr_t)(x))
+#define N64_PTR_TO_S32_TOKEN(x) ((s32)N64_PTR_TO_U32_TOKEN(x))
+
 #endif /* _ULTRATYPES_H_ */

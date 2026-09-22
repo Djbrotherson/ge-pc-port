@@ -21,7 +21,7 @@ struct levelentry
 #define PORTMAX 200
 
 #ifdef PORT
-#define BG_SEG_TO_PTR(base, off) ((void *)((uintptr_t)(base) + (uintptr_t)(((u32)(uintptr_t)(off)) + 0xF1000000u)))
+#define BG_SEG_TO_PTR(base, off) ((void *)((uintptr_t)(base) + (uintptr_t)((N64_PTR_TO_U32_TOKEN(off)) + 0xF1000000u)))
 #else
 #define BG_SEG_TO_PTR(base, off) ((void *) (((u32) (base)) + (((u32) (off)) + 0xF1000000)))
 #endif

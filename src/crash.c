@@ -639,7 +639,7 @@ s32 crashIndyScanLoadResourceIdFromBuffer(u32 arg0)
 	while (TRUE) {
 #ifdef PORT
         u8 *next = crashIndyFileGetAddressSubsequentData(this);
-        u32 resourceId = (u32)(uintptr_t)g_indyCurrentReadBufferResourceId;
+        u32 resourceId = N64_PTR_TO_U32_TOKEN(g_indyCurrentReadBufferResourceId);
 #else
 		u32 next = crashIndyFileGetAddressSubsequentData(this);
         u32 resourceId = (u32)g_indyCurrentReadBufferResourceId;
@@ -671,7 +671,7 @@ u32 crashIndyIsValidReadBufferResourceId(void)
 {
     crashIndyFileGetAddressSubsequentData((u8*)0xe00000);
 #ifdef PORT
-    return ((u32)(uintptr_t)g_indyCurrentReadBufferResourceId ^ 0x826475beu) == 0;
+    return (N64_PTR_TO_U32_TOKEN(g_indyCurrentReadBufferResourceId) ^ 0x826475beu) == 0;
 #else
     return ((u32)g_indyCurrentReadBufferResourceId ^ 0x826475be) == 0;
 #endif

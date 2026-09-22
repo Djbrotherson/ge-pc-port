@@ -7062,7 +7062,7 @@ Gfx *process_monitor_animation_microcode(Model *model, ModelNode *node, MonitorR
 #ifdef PORT
         if ((uintptr_t)screen->tconfig < 100u)
         {
-            tconfig = &monitorimages[(s32)(uintptr_t)screen->tconfig];
+            tconfig = &monitorimages[N64_PTR_TO_S32_TOKEN(screen->tconfig)];
         }
         else
         {
@@ -8887,7 +8887,7 @@ bool propobjFindHit(Model *model, ModelNode *startNode, coord3d *rayPos, coord3d
                     {
                         if (rwdata->gdl == rodata->Primary)
                         {
-                            s3 = (Gfx *)((uintptr_t)rodata->BaseAddr + ((u32)(uintptr_t)rodata->Primary & 0xffffff));
+                            s3 = (Gfx *)((uintptr_t)rodata->BaseAddr + (N64_PTR_TO_U32_TOKEN(rodata->Primary) & 0xffffff));
                         }
                         else
                         {
@@ -8896,7 +8896,7 @@ bool propobjFindHit(Model *model, ModelNode *startNode, coord3d *rayPos, coord3d
 
                         if (rodata->Secondary != NULL)
                         {
-                            s5 = (void *)((uintptr_t)rodata->BaseAddr + ((u32)(uintptr_t)rodata->Secondary & 0xffffff));
+                            s5 = (void *)((uintptr_t)rodata->BaseAddr + (N64_PTR_TO_U32_TOKEN(rodata->Secondary) & 0xffffff));
                         }
 
                         vertices = rwdata->Vertices;
@@ -8910,11 +8910,11 @@ bool propobjFindHit(Model *model, ModelNode *startNode, coord3d *rayPos, coord3d
 
                     if (rodata->Primary != NULL)
                     {
-                        s3 = (Gfx *)((uintptr_t)rodata->BaseAddr + ((u32)(uintptr_t)rodata->Primary & 0xffffff));
+                        s3 = (Gfx *)((uintptr_t)rodata->BaseAddr + (N64_PTR_TO_U32_TOKEN(rodata->Primary) & 0xffffff));
 
                         if (rodata->Secondary != NULL)
                         {
-                            s5 = (Gfx *)((uintptr_t)rodata->BaseAddr + ((u32)(uintptr_t)rodata->Secondary & 0xffffff));
+                            s5 = (Gfx *)((uintptr_t)rodata->BaseAddr + (N64_PTR_TO_U32_TOKEN(rodata->Secondary) & 0xffffff));
                         }
 
                         vertices = (void *)(uintptr_t)rodata->BaseAddr;

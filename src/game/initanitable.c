@@ -257,8 +257,8 @@ void expand_ani_table_entries(s32 *arg0)
      * dereferencing on LP64 hosts.
      */
     u32 *var_v0 = (u32 *)arg0;
-    const u32 animbase = (u32)(uintptr_t)&ptr_animation_table->data;
-    const u32 entriesbase = (u32)(uintptr_t)&_animation_entriesSegmentRomStart;
+    const u32 animbase = N64_PTR_TO_U32_TOKEN(&ptr_animation_table->data);
+    const u32 entriesbase = N64_PTR_TO_U32_TOKEN(&_animation_entriesSegmentRomStart);
 
     while (*var_v0 != 0) {
         if (*var_v0 != 1) {

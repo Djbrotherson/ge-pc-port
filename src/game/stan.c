@@ -2543,8 +2543,8 @@ s32 stanTileDistanceRelated(StandTile **arg0, f32 arg1, f32 arg2, f32 arg3, stru
 s32 stanGetLocusField0(struct StandTileLocusCallbackRecord *arg0)
 {
 #ifdef PORT
-    /* Sentinel accessor: callers consume 0/1, never the rooms pointer itself. */
-    return (s32)(uintptr_t)arg0->rooms;
+    /* Sentinel accessor: callers consume presence, never the rooms pointer itself. */
+    return arg0->rooms != NULL;
 #else
     return arg0->rooms;
 #endif

@@ -626,7 +626,7 @@ extern u32 _musicsampletblSegmentRomStart;
  */
 void musicSeqFileNew(RareALSeqBankFile *file, u8 *base)
 {
-    u32 offset = (u32)(uintptr_t)base;
+    u32 offset = N64_PTR_TO_U32_TOKEN(base);
     s32 i;
     
     /*
