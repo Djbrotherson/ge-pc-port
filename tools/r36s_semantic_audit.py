@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import ast, re, sys
+import ast, importlib.util, re, sys
 from pathlib import Path
 
 ROOTS=("src","include","port")
@@ -343,6 +343,42 @@ def check_propdef_stride_contract():
                 add("P0","propdef-stride-contract",runtime,1,
                     f"type {ptype}: converter={emitted} runtime={walked}",
                     "Offline propDef byte size and runtime walk stride disagree; following records will desynchronise.")
+
+        # Exercise every converter branch without requiring the copyrighted ROM.
+        # A synthetic record is sufficient to prove branch coverage, output
+        # length, record-header preservation and whole-stream walk agreement.
+        spec=importlib.util.spec_from_file_location("d88_propdefs_gate", converter)
+        module=importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        synthetic=bytearray()
+        expected_pc=0
+        for ptype in sorted(module.PROPDEF_N64_WORDS):
+            if ptype == 48:
+                continue
+            n64w=module.PROPDEF_N64_WORDS[ptype]
+            rec=bytearray(n64w * 4)
+            rec[3]=ptype
+            converted=module.convert_record(rec, 0, ptype)
+            if len(converted) != module.PROPDEF_PC_BYTES[ptype]:
+                raise ValueError(
+                    f"converter type {ptype} length={len(converted)} "
+                    f"expected={module.PROPDEF_PC_BYTES[ptype]}"
+                )
+            if converted[3] != ptype:
+                raise ValueError(f"converter type {ptype} lost header type byte")
+            synthetic += rec
+            expected_pc += module.PROPDEF_PC_BYTES[ptype]
+
+        end=bytearray(module.PROPDEF_N64_WORDS[48] * 4)
+        end[3]=48
+        synthetic += end
+        expected_pc += module.PROPDEF_PC_BYTES[48]
+        converted,n64len,pclen=module.convert_stream(synthetic,0,len(synthetic))
+        if n64len != len(synthetic) or pclen != expected_pc or len(converted) != expected_pc:
+            raise ValueError(
+                f"synthetic stream mismatch n64={n64len}/{len(synthetic)} "
+                f"pc={pclen}/{expected_pc} bytes={len(converted)}"
+            )
     except Exception as exc:
         add("P0","propdef-stride-audit-error",runtime,1,str(exc),
             "Could not prove converter/runtime propDef stride agreement.")
