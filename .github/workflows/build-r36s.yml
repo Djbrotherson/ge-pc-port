@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - r36s-first-frame-noaudio
+      - main
     paths:
       - '.github/r36s-build-trigger'
   pull_request:
