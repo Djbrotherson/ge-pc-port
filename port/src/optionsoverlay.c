@@ -271,6 +271,7 @@ static int  s_visN = 0;
 static int  s_scroll = 0;
 static int  s_graphicsPreset = 0;
 static int  s_audioPreset = 0;
+static int  s_presetDepth = 0;
 static int  s_bindCaptureRow = -1;
 static int  s_bindWaitRelease = 0;
 
@@ -556,6 +557,19 @@ static int s_linkDepth = 0;   /* re-entrancy guard for the sens link below */
 static void rowSet(struct Row *r, double v)
 {
     double lo = rowLo(r), hi = rowHi(r);
+
+    /* Presets are conveniences, not hidden state. Any manual tweak to a
+     * preset-owned setting immediately returns the label to CUSTOM. */
+    if (!s_presetDepth) {
+        if (strncmp(r->key, "Video.", 6) == 0 &&
+            strcmp(r->key, "Video.DisplayFPS") != 0) {
+            s_graphicsPreset = 0;
+        }
+        if (strcmp(r->key, "Audio.QueueLimit") == 0 ||
+            strcmp(r->key, "Audio.BufferSize") == 0) {
+            s_audioPreset = 0;
+        }
+    }
     if (strcmp(r->key, "__ScreenMode") == 0) {
         if (v < 0) v = 0; if (v > 2) v = 2;
         cur_player_set_screen_setting((u32)lround(v));
