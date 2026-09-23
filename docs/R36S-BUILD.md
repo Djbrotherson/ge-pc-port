@@ -144,6 +144,10 @@ same sources, no cross toolchain. From a Windows host with Docker Desktop:
 bash build-arm.sh   # configure + build build/arm64/ge007.aarch64, print sha256
 ```
 
+The builder image (`ge-builder:noble`: Ubuntu 24.04, GCC 13) is reproducible
+from `docker/Dockerfile.noble` and built on demand by the script when absent,
+so a fresh machine needs nothing but Docker.
+
 It uses the PortMaster builder image with `gcc-10` (installed on demand)
 plus warning-downgrade wrappers, because that image's default GCC 9 trips
 `-Werror=maybe-uninitialized` where newer compilers stay quiet. See the

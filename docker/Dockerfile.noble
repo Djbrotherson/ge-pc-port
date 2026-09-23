@@ -1,0 +1,20 @@
+# ge-builder:noble - reproducible R36S contributor toolchain.
+#
+# Ubuntu 24.04 + GCC 13 + SDL2/GLES/zlib/DRM-GBM dev files, used by
+# build-arm.sh.
+#
+# Rebuild it with:
+#   docker build -t ge-builder:noble -f docker/Dockerfile.noble docker/
+# build-arm.sh does that automatically when the image is absent, so a fresh
+# machine only needs Docker Desktop.
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -qq \
+ && apt-get install -y -qq --no-install-recommends \
+    cmake g++ pkg-config ca-certificates \
+    libsdl2-dev \
+    libegl1-mesa-dev libgles2-mesa-dev \
+    zlib1g-dev \
+    libgbm-dev libdrm-dev \
+ && rm -rf /var/lib/apt/lists/*
