@@ -134,3 +134,28 @@ sidecar directories. A package must therefore bundle `ge007.aarch64` and a
 `ge007-convert` frozen from the same source revision. Stale sidecars are
 deleted automatically; a stale converter is rejected instead of launching the
 game with incompatible setup/model layouts.
+
+## Local native build (contributor loop)
+
+CI cross-builds; contributors can build natively in a container instead --
+same sources, no cross toolchain. From a Windows host with Docker Desktop:
+
+```sh
+bash build-arm.sh   # configure + build build/arm64/ge007.aarch64, print sha256
+```
+
+It uses the PortMaster builder image with `gcc-10` (installed on demand)
+plus warning-downgrade wrappers, because that image's default GCC 9 trips
+`-Werror=maybe-uninitialized` where newer compilers stay quiet. See the
+script header.
+
+## Toolchain generation matters on RK3326
+
+Measured 2026-09-22: same source under the PortMaster image's GCC 9/10
+produces an 11.2MB binary that runs visibly worse on device than a GCC 13
+build (9.6MB -- matching the reference build's size class). Weak CPUs
+amplify codegen differences (auto-vectorizer, ARM backend, loop opts) that
+are noise on desktop. `-O2`-vs-`-O3` within one compiler is small; jumping
+compiler generations is the big lever, LTO on top. Default build type stays
+RelWithDebInfo (`-O2`); device glibc is 2.41, so Ubuntu 24.04-baseline
+binaries (glibc 2.39) run fine.
