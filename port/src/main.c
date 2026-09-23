@@ -158,6 +158,9 @@ static int portLevelPicker(void)
             }
         }
 
+        /* Same exit combo as in-game: quits back to ES from the picker. */
+        if (pad && inputExitComboPressed(pad)) { result=-2; done=1; }
+
         SDL_SetRenderDrawColor(r,8,12,8,255); SDL_RenderClear(r);
         SDL_SetRenderDrawColor(r,220,210,150,255);
         portDrawText(r,28,22,3,"GOLDENEYE LEVEL SELECT");

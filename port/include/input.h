@@ -61,6 +61,10 @@ void inputSuspendForOverlay(void);
 int   inputPadButton(int idx, SDL_GameControllerButton b);
 short inputPadAxis(int idx, SDL_GameControllerAxis a);
 
+/* Select+Start held together on one pad. Shared by the picker, in-game
+ * poll, and overlay path so the combo works in every flow. NULL-safe. */
+int inputExitComboPressed(SDL_GameController *pad);
+
 /* Queue a mouse-wheel weapon-cycle input (one short A-button press). Sign is
  * ignored -- GE only cycles forward on a bare A edge. */
 void inputPostWheel(int notches);

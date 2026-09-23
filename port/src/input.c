@@ -775,6 +775,12 @@ unsigned inputComputePad(int idx, signed char *stick_x, signed char *stick_y)
                                                            SDL_CONTROLLER_BUTTON_BACK) : 0;
         if (selNow && !padSelectPrev) optionsOverlayToggle();
         padSelectPrev = selNow;
+        /* Exit combo must work here too, or Select opens the overlay and
+         * Start can never join it. */
+        if (inputExitComboPressed(pads[0])) {
+            sysLogPrintf(LOG_INFO, "input: Select+Start -> quit to ES");
+            exit(0);
+        }
         optionsOverlayHandleInput();
         if (stick_x) *stick_x = 0;
         if (stick_y) *stick_y = 0;
@@ -1189,6 +1195,12 @@ unsigned inputComputePad(int idx, signed char *stick_x, signed char *stick_y)
             int selNow = SDL_GameControllerGetButton(pad, SDL_CONTROLLER_BUTTON_BACK);
             if (selNow && !padSelectPrev) optionsOverlayToggle();
             padSelectPrev = selNow;
+            /* Select+Start quits cleanly (same exit(0) as Alt+F4, so
+             * atexit persists config). BACK alone still toggles overlay. */
+            if (inputExitComboPressed(pad)) {
+                sysLogPrintf(LOG_INFO, "input: Select+Start -> quit to ES");
+                exit(0);
+            }
         }
     }
 
@@ -1300,6 +1312,13 @@ short inputPadAxis(int idx, SDL_GameControllerAxis a)
 {
     if (idx < 0 || idx >= MAX_PADS || !pads[idx]) return 0;
     return SDL_GameControllerGetAxis(pads[idx], a);
+}
+
+int inputExitComboPressed(SDL_GameController *pad)
+{
+    if (!pad) return 0;
+    return SDL_GameControllerGetButton(pad, SDL_CONTROLLER_BUTTON_BACK) &&
+           SDL_GameControllerGetButton(pad, SDL_CONTROLLER_BUTTON_START);
 }
 
 void inputSuspendForOverlay(void)
