@@ -6,6 +6,16 @@ ARM-GE is an open-source engineering effort to make the reconstructed GoldenEye 
 
 The current reference target is **R36S / dArkOSRE / PortMaster** using **AArch64 + SDL2 + OpenGL ES 3**.
 
+## Current showcase
+
+[![Watch the current ARM64/R36S showcase](https://img.youtube.com/vi/lcN9C9waB6I/hqdefault.jpg)](https://www.youtube.com/shorts/lcN9C9waB6I)
+
+**Latest video state:** https://www.youtube.com/shorts/lcN9C9waB6I
+
+This is the single current showcase clip for the project. It represents the latest public video state and supersedes older showcase footage.
+
+[Full showcase notes →](SHOWCASE.md)
+
 ## See it running
 
 - **Alpha testing / real-device reports:**  
