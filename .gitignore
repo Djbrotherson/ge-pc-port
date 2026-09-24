@@ -1,2 +1,43 @@
-dist/
+# Build outputs
 build/
+dist/
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.map
+*.sym
+*.dSYM/
+
+# Local runtime/config/logs
+*.log
+ge007.ini
+ge007.eep
+core
+core.*
+
+# ROMs / disc images / cartridge dumps
+*.z64
+*.n64
+*.v64
+*.rom
+*.iso
+
+# Generated ROM-derived runtime data
+pcmodels.bin
+pccg.bin
+pcmodels-*/
+pccg-*/
+data/*.z64
+data/*.n64
+data/*.v64
+ge007/data/*.z64
+ge007/data/*.n64
+ge007/data/*.v64
+
+# Local editor / OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
