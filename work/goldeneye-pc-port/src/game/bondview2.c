@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #endif
 #include <math.h>
+#include <stdint.h>
 #include <bondtypes.h>
 #include <boss.h>
 #include <fr.h>
@@ -427,7 +428,7 @@ void solo_char_load(void)
     s32                         cursor;
     s32                         size0;
     s32                         size1;
-    s32                         helddst;
+    uintptr_t                   helddst;
     WeaponObjRecord             weapon;
     struct player             **pp;
     s32                         prop;
@@ -702,8 +703,7 @@ void solo_char_load(void)
         {
             if (getPlayerCount() == 1)
             {
-                helddst      = cursor;
-                helddst      = ((s32)weaponbuf0) + helddst;
+                helddst      = (uintptr_t)(weaponbuf0 + cursor);
                 cursor       = ALIGN64_V3(cursor + 0xc7);
                 pitemheader  = get_ptr_itemheader_in_hand(GUNLEFT);
                 *pitemheader = *PitemZ_entries[prop].header;
