@@ -8,7 +8,6 @@ Layout inside the zip:
 
     ge007/
         ge007.aarch64               the game (default: build/arm64/)
-        ge007-watch                 Select+Start exit watcher (build/arm64/)
         data/ge007.ini              R36S-safe video defaults
         data/.place-user-rom-and-sidecars-here
         prepare-assets/
@@ -17,7 +16,6 @@ Layout inside the zip:
             vendor/scripts/filelist.u.csv
             vendor/assets/**        file_resource_table + model headers
         build-info.txt
-        port.json gameinfo.xml
     GoldenEye 007.sh                launcher (runs the converter on first boot)
 
 Refuses to include any ROM (.z64/.n64/.v64) or sidecar (pcmodels.bin/pccg.bin).
@@ -39,8 +37,8 @@ BUNDLE = ROOT / "bundle" / "prepare-assets"
 LAUNCHER = ROOT / "port" / "GoldenEye 007.sh"
 PORT_JSON = ROOT / "port" / "port.json"
 GAMEINFO = ROOT / "port" / "gameinfo.xml"
+README = ROOT / "port" / "README.md"
 DEFAULT_BIN = ROOT / "build" / "arm64" / "ge007.aarch64"
-DEFAULT_WATCH = ROOT / "build" / "arm64" / "ge007-watch"
 
 CONVERTER_SCRIPTS = [
     "prepare-assets.py",
@@ -108,7 +106,6 @@ def stage_converter(stage):
 def main():
     ap = argparse.ArgumentParser(description="Assemble the PortMaster zip.")
     ap.add_argument("--game-bin", default=str(DEFAULT_BIN), help="path to ge007.aarch64")
-    ap.add_argument("--watch-bin", default=str(DEFAULT_WATCH), help="path to ge007-watch")
     ap.add_argument("--out", default=str(ROOT / "dist"), help="output dir (default: dist/)")
     ap.add_argument("--zip-name", default=None, help="zip file name (default: port.json name)")
     args = ap.parse_args()
@@ -118,14 +115,11 @@ def main():
         die(f"--game-bin {game_bin}: not a file")
     if not check_elf_aarch64(game_bin):
         die(f"--game-bin {game_bin}: not an AArch64 ELF")
-    watch_bin = Path(args.watch_bin)
-    if not watch_bin.is_file() or not check_elf_aarch64(watch_bin):
-        die(f"--watch-bin {watch_bin}: missing or not an AArch64 ELF")
     if not LAUNCHER.is_file():
         die(f"missing launcher: {LAUNCHER}")
     if b"\r\n" in LAUNCHER.read_bytes():
         die(f"{LAUNCHER} has CRLF line endings")
-    for f in (PORT_JSON, GAMEINFO):
+    for f in (PORT_JSON, GAMEINFO, README):
         if not f.is_file():
             die(f"missing {f}")
     try:
@@ -139,7 +133,6 @@ def main():
         wrapper = stage_converter(stage)
 
         shutil.copy2(game_bin, stage / "ge007" / "ge007.aarch64")
-        shutil.copy2(watch_bin, stage / "ge007" / "ge007-watch")
         data = stage / "ge007" / "data"
         data.mkdir(parents=True, exist_ok=True)
         (data / ".place-user-rom-and-sidecars-here").write_text(
@@ -150,8 +143,9 @@ def main():
 
         launcher = stage / LAUNCHER.name
         shutil.copy2(LAUNCHER, launcher)
-        shutil.copy2(PORT_JSON, stage / "ge007" / "port.json")
-        shutil.copy2(GAMEINFO, stage / "ge007" / "gameinfo.xml")
+        shutil.copy2(PORT_JSON, stage / "port.json")
+        shutil.copy2(GAMEINFO, stage / "gameinfo.xml")
+        shutil.copy2(README, stage / "README.md")
 
         try:
             rev = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=SRC,
@@ -178,8 +172,7 @@ def main():
         if zippath.exists():
             zippath.unlink()
         exec_files = {wrapper.resolve(), launcher.resolve(),
-                      (stage / "ge007" / "ge007.aarch64").resolve(),
-                      (stage / "ge007" / "ge007-watch").resolve()}
+                      (stage / "ge007" / "ge007.aarch64").resolve()}
         with zipfile.ZipFile(zippath, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
             for p in sorted(stage.rglob("*")):
                 if not p.is_file():
@@ -193,9 +186,11 @@ def main():
             names = z.namelist()
         checks = {
             "ge007/ge007.aarch64 in zip": "ge007/ge007.aarch64" in names,
-            "ge007/ge007-watch in zip": "ge007/ge007-watch" in names,
             "launcher in zip": LAUNCHER.name in names,
-            "port.json in zip": "ge007/port.json" in names,
+            "port.json at zip root": "port.json" in names,
+            "gameinfo.xml at zip root": "gameinfo.xml" in names,
+            "README.md at zip root": "README.md" in names,
+            "no nested metadata": "ge007/port.json" not in names and "ge007/gameinfo.xml" not in names,
             "converter wrapper in zip": "ge007/prepare-assets/ge007-convert" in names,
             "converter scripts in zip": all(f"ge007/prepare-assets/{n}" in names
                                             for n in CONVERTER_SCRIPTS),
