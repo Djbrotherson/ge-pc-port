@@ -725,6 +725,11 @@ static void inputRebuildBinds(void)
     }
 }
 
+void inputRefreshBinds(void)
+{
+    inputRebuildBinds();
+}
+
 static int actHeld(const Uint8 *ks, int act)
 {
     for (int k = 0; k < BIND_MAX_KEYS; k++) {
