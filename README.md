@@ -1,8 +1,19 @@
-# ARM-GE — GoldenEye 007 AArch64 / GLES Port
+# ARM-GE — GoldenEye 007, Native on ARM64 Linux
 
-ARM-GE is an open-source effort to run the reconstructed GoldenEye 007 Nintendo 64 codebase natively on low-power ARM64 Linux handhelds.
+> **GoldenEye 007's reconstructed Nintendo 64 codebase running natively on ARM64 Linux handheld hardware — AArch64 + SDL2 + OpenGL ES, not N64 emulation.**
 
-The current target is the **R36S / dArkOSRE / PortMaster** stack using **AArch64 + SDL2 + OpenGL ES 3**. This is a native source port, not N64 emulation.
+ARM-GE is an open-source engineering effort to make the reconstructed GoldenEye 007 Nintendo 64 codebase run as native software on low-power ARM64 Linux handhelds.
+
+The current reference target is **R36S / dArkOSRE / PortMaster** using **AArch64 + SDL2 + OpenGL ES 3**.
+
+## See it running
+
+- **Alpha testing / real-device reports:**  
+  https://www.reddit.com/r/R36S/comments/1wos5ea/goldeneye_007_n64_arm64_call_for_alpha_testers/
+- **Current alpha release links:**  
+  https://www.reddit.com/r/u_Appropriate_Comb1486/comments/1woso74/goldeneye_007_n64_arm64_port_alpha_release_links/
+
+The interesting part is not simply that GoldenEye runs on another device. The engineering problem is moving reconstructed software that still carries a 1990s console's ABI, address model, graphics assumptions and runtime invariants onto a modern 64-bit ARM Linux host.
 
 ## Current alpha
 
@@ -19,9 +30,41 @@ The CI build verifies the executable as AArch64, builds the PortMaster package, 
 
 ## What works on real hardware
 
-The port has demonstrated native AArch64 execution on R36S-class hardware, SDL2/GLES rendering, boot/menus/intro, in-mission rendering and gameplay, controller integration, PortMaster install/launch, first-run generation of required ROM-derived sidecars from the user's own ROM, runtime logging and on-device diagnostics.
+The port has demonstrated:
 
-The active work is now correctness and polish: stage behavior, spawn positions, AI/objectives/props, collision/navigation edge cases, GLES rendering defects, audio/runtime behavior and broader handheld compatibility.
+- native AArch64 execution on R36S-class hardware;
+- SDL2/GLES rendering;
+- boot, menus and intro;
+- in-mission rendering and gameplay;
+- controller integration;
+- PortMaster install and launch;
+- first-run generation of required ROM-derived sidecars from the user's own ROM;
+- runtime logging and on-device diagnostics.
+
+Active work is focused on correctness and polish: stage behavior, spawn positions, AI/objectives/props, collision/navigation edge cases, GLES rendering defects, audio/runtime behavior and broader handheld compatibility.
+
+## The portability work
+
+Porting reconstructed N64 software to a modern host is not a mechanical 32-bit-to-64-bit conversion.
+
+A recurring rule in this project is to classify values before changing them:
+
+1. **native host pointer**
+2. **N64 / ROM / segmented-address token**
+3. **ordinary integer or game state**
+
+That distinction drives whole-class fixes for LP64 correctness rather than one-crash-at-a-time patches.
+
+Other recurring problem areas include:
+
+- MIPS-era signedness and pointer-width assumptions;
+- binary structure layout and ABI dependencies;
+- segmented and ROM address translation;
+- desktop OpenGL behavior that is unavailable in OpenGL ES;
+- gameplay/runtime behavior that depended on N64-era invariants;
+- generated sidecar and asset formats crossing host architectures.
+
+The longer-term goal is to turn those lessons into reusable N64-to-modern-host portability tooling and documentation.
 
 ## Install model
 
@@ -45,6 +88,7 @@ The first launch generates the required host-format data locally and then starts
 - `package.py` — builds and validates the distributable PortMaster ZIP
 - `watch/` — PortMaster exit-hotkey helper
 - `.github/workflows/build-r36s.yml` — reference AArch64/GLES build and packaging proof
+- `PRESS.md` — concise media / creator briefing and verified public links
 
 ## Building
 
@@ -64,6 +108,8 @@ Help is welcome, particularly with real-device testing, GLES rendering, ARM64/LP
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
 
+For journalists, video creators and technical writers, see [PRESS.md](PRESS.md).
+
 ## Lineage and attribution
 
 This project builds on the work of:
@@ -80,4 +126,6 @@ Existing copyright and license notices in inherited and third-party code are pre
 
 No ROM is distributed by this project. No generated ROM-derived sidecar binaries are included in the PortMaster package.
 
-GoldenEye 007 and associated names and trademarks belong to their respective rights holders. This is a non-commercial fan preservation/porting effort and is not affiliated with or endorsed by Nintendo, Rare, MGM, EON Productions, Danjaq, or other rights holders.
+GoldenEye 007 and associated names and trademarks belong to their respective rights holders. This is a **non-commercial fan preservation/porting effort** and is not affiliated with or endorsed by Nintendo, Rare, MGM, EON Productions, Danjaq, or other rights holders.
+
+Any future commercial activity around this work is intended to concern original tooling, engineering services, educational material or creator content—not distribution or sale of GoldenEye game data.
