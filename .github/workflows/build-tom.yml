@@ -77,6 +77,8 @@ jobs:
             -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
             -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
             -DCMAKE_ASM_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_C_COMPILER_TARGET=aarch64 \
+            -DCMAKE_CXX_COMPILER_TARGET=aarch64 \
             -DCMAKE_SYSTEM_NAME=Linux \
             -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
             -DROMID=ntsc-final \
