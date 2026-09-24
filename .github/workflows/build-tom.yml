@@ -51,7 +51,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y \
-            cmake ccache \
+            cmake make ccache pkg-config \
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu \
             libc6-dev-arm64-cross \
             libsdl2-dev libgles2-mesa-dev libegl1-mesa-dev zlib1g-dev \
@@ -74,7 +74,11 @@ jobs:
           PKG_CONFIG_SYSROOT_DIR: /
         run: |
           cmake -S work/goldeneye-pc-port -B build/arm64 \
-            -DCMAKE_TOOLCHAIN_FILE=$GITHUB_WORKSPACE/work/goldeneye-pc-port/cmake/toolchains/aarch64-linux.cmake \
+            -DCMAKE_C_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_CXX_COMPILER=aarch64-linux-gnu-g++ \
+            -DCMAKE_ASM_COMPILER=aarch64-linux-gnu-gcc \
+            -DCMAKE_SYSTEM_NAME=Linux \
+            -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
             -DROMID=ntsc-final \
             -DSDL2_INCLUDE_DIR=/usr/include/SDL2 \
             -DSDL2_LIBRARY=/usr/lib/aarch64-linux-gnu/libSDL2.so \
