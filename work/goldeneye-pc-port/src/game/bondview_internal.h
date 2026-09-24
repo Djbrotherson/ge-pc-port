@@ -66,7 +66,11 @@ extern f32 g_MpSwirlForwardSpeed;
 extern f32 g_MpSwirlDistance;
 extern s32 D_80036420;
 extern s32 g_bondviewForceDisarm;
+#ifdef PORT
+extern uintptr_t resolution;
+#else
 extern s32 resolution;
+#endif
 extern s32 cameraBufferToggle;
 extern s32 cameraFrameCounter1;
 extern s32 cameraFrameCounter2;
