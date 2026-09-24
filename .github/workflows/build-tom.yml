@@ -5,6 +5,10 @@ on:
     branches: [tom]
     paths:
       - '.github/workflows/build-tom.yml'
+      - 'work/goldeneye-pc-port/**'
+      - 'bundle/**'
+      - 'port/**'
+      - 'package.py'
   workflow_dispatch:
 
 concurrency:
@@ -51,7 +55,7 @@ jobs:
 
           sudo apt-get update
           sudo apt-get install -y \
-            cmake make ccache pkg-config \
+            cmake make ccache pkg-config unzip file \
             gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu \
             libc6-dev-arm64-cross \
             libsdl2-dev libgles2-mesa-dev libegl1-mesa-dev zlib1g-dev \
@@ -103,11 +107,28 @@ jobs:
           grep -q "Machine:.*AArch64" build/arm64/ge007.elf-header.txt
           sha256sum build/arm64/ge007.aarch64 | tee build/arm64/ge007.sha256
 
-      - name: Upload binary
+      - name: Build and validate PortMaster install zip
+        run: |
+          python3 package.py --game-bin build/arm64/ge007.aarch64 --out dist
+          unzip -t dist/ge007.zip
+          unzip -l dist/ge007.zip | tee dist/ge007.zip.list
+          unzip -p dist/ge007.zip port.json | python3 -m json.tool >/dev/null
+          unzip -Z1 dist/ge007.zip | grep -qx 'port.json'
+          unzip -Z1 dist/ge007.zip | grep -qx 'gameinfo.xml'
+          unzip -Z1 dist/ge007.zip | grep -qx 'README.md'
+          unzip -Z1 dist/ge007.zip | grep -qx 'GoldenEye 007.sh'
+          unzip -Z1 dist/ge007.zip | grep -qx 'ge007/ge007.aarch64'
+          ! unzip -Z1 dist/ge007.zip | grep -Eq '\.(z64|n64|v64)$|(^|/)(pcmodels|pccg)\.bin$'
+          sha256sum dist/ge007.zip | tee dist/ge007.zip.sha256
+
+      - name: Upload alpha install
         uses: actions/upload-artifact@v4
         with:
-          name: tom-ge007-aarch64
+          name: ge007-r36s-portmaster-alpha
           path: |
+            dist/ge007.zip
+            dist/ge007.zip.sha256
+            dist/ge007.zip.list
             build/arm64/ge007.aarch64
             build/arm64/ge007.elf-header.txt
             build/arm64/ge007.sha256
