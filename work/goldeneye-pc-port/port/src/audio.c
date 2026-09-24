@@ -53,6 +53,10 @@ static int  bufferSize = 512;
  * NB: an existing data/ge007.ini pins QueueLimit, so this default only
  * applies to fresh configs -- see docs/dev/findings.md D204. */
 static int  queueLimit = 2880;
+static int  masterVolume = 100;
+static int  mute = 0;
+#define AUDIO_VOLUME_SCRATCH_SAMPLES 8192
+static s16 volumeScratch[AUDIO_VOLUME_SCRATCH_SAMPLES];
 
 /* D204/F1: size in bytes of the block most recently handed to the DAC. Used
  * to bound audioGetAiLengthBytes() to one buffer, like real AI hardware. */
@@ -309,8 +313,18 @@ void audioSetNextBuffer(const s16 *buf, u32 len)
     }
 
     if (dev && buf && len) {
+        const s16 *queueBuf = buf;
+        if (mute || masterVolume < 100) {
+            u32 samples = len / sizeof(s16);
+            if (samples <= AUDIO_VOLUME_SCRATCH_SAMPLES) {
+                int vol = mute ? 0 : masterVolume;
+                for (u32 i = 0; i < samples; ++i)
+                    volumeScratch[i] = (s16)(((s32)buf[i] * vol) / 100);
+                queueBuf = volumeScratch;
+            }
+        }
         if (audioGetSamplesBuffered() < queueLimit) {
-            SDL_QueueAudio(dev, buf, len);
+            SDL_QueueAudio(dev, queueBuf, len);
             lastBufferBytes = len;
         } else if (dropCount++ % 128 == 0) {
             /* D204/F3: dropping here used to be silent, so overproduction
@@ -326,4 +340,6 @@ PD_CONSTRUCTOR static void audioConfigInit(void)
 {
     configRegisterInt("Audio.BufferSize", &bufferSize, 0, 1 * 1024 * 1024);
     configRegisterInt("Audio.QueueLimit", &queueLimit, 0, 1 * 1024 * 1024);
+    configRegisterInt("Audio.MasterVolume", &masterVolume, 0, 100);
+    configRegisterInt("Audio.Mute", &mute, 0, 1);
 }
