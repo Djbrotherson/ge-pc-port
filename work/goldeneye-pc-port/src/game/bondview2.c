@@ -10219,7 +10219,11 @@ Gfx* hudmsgBottomRender(Gfx* arg0)
             }
 
             view_vert = view_top - view_top_offset;
+#ifdef PORT
+            arg0 = draw_blackbox_to_screen(arg0, &view_left, &view_vert, &view_horiz, &view_top);
+#else
             arg0 = draw_blackbox_to_screen(arg0, (s32) &view_left, (s32) &view_vert, (s32) &view_horiz, (s32) &view_top);
+#endif
             arg0 = combiner_bayer_lod_perspective(textRenderOutlined(arg0, &view_left, &view_vert, stringbuffer_lowerleft[status_bar_text_buffer_index], BONDVIEW_2ND_FONTTABLE(status_bar_text_buffer_index), BONDVIEW_1ST_FONTTABLE(status_bar_text_buffer_index), -1, 0x646464FFU, (s16) (s32) viGetX(), (s16) viGetY(), 0, 0));
         }
     }
