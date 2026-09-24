@@ -8919,7 +8919,7 @@ void mp_respawn_handler(void)
 {
     coord3d start_pos = ZeroCoordSpawnPos;
     f32 start_look_angle;
-    s32 start_stan;
+    StandTile *start_stan;
     s32 pad;
     f32 stan_height;
     s32 var_v0;
@@ -9041,7 +9041,16 @@ void mp_respawn_handler(void)
                 case 6: // INTROTYPE_CAMERA
                     intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroCamera));
                     break;
-                default: // INTROTYPE_WATCH, INTROTYPE_CREDITS
+                case 7: // INTROTYPE_WATCH
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroWatch));
+                    break;
+                case 8: // INTROTYPE_CREDITS
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroCredits));
+                    break;
+                default:
+                    /* INTROTYPE_END is handled by the while condition. Keep
+                     * unknown data progressing by one tag word rather than
+                     * silently applying the wrong known-record stride. */
                     intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroEmpty));
                     break;
             }
