@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<game>
-  <name>GoldenEye 007 ARM64 - Fresh Extract Test</name>
-  <description>Experimental R36S PortMaster build with first-run ROM sidecar extraction.</description>
-  <genre>Action</genre>
-  <players>1</players>
-  <developer>GoldenEye PC-port contributors</developer>
-  <publisher>Personal test build</publisher>
-</game>
