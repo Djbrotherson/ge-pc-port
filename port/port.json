@@ -12,7 +12,7 @@
       "bitflipunix",
       "Tomobobo710"
     ],
-    "desc": "Experimental AArch64/GLES GoldenEye 007 source port for R36S. Supply your own verified US NTSC ROM; first launch generates the required ROM-derived sidecars locally.",
+    "desc": "Alpha AArch64/GLES GoldenEye 007 source port for R36S. Supply your own verified US NTSC ROM; first launch generates the required ROM-derived sidecars locally.",
     "desc_md": null,
     "inst": "Install ge007.zip with PortMaster. Put your own US NTSC GoldenEye 007 ROM at ge007/data/ge007.ntsc-final.z64, then launch once to generate sidecars. No ROM or extracted game data is included.",
     "inst_md": null,
