@@ -1,0 +1,56 @@
+name: Package Tom R36S Alpha
+
+on:
+  push:
+    branches: [tom]
+    paths:
+      - '.github/workflows/package-tom-alpha.yml'
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout current packaging tree
+        uses: actions/checkout@v4
+
+      - name: Reuse last known-good Tom AArch64 binary
+        uses: actions/download-artifact@v4
+        with:
+          name: tom-ge007-aarch64
+          path: known-good
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 35943311348
+
+      - name: Prove reused binary matches current game source lineage
+        run: |
+          test -f known-good/ge007.aarch64
+          file known-good/ge007.aarch64
+          readelf -h known-good/ge007.aarch64 | grep -q 'Machine:.*AArch64'
+          echo "Known-good source commit: c3a54fe7859da15d67b29804f87e953d2157948c"
+          git diff --quiet c3a54fe7859da15d67b29804f87e953d2157948c..HEAD -- work/goldeneye-pc-port
+
+      - name: Build PortMaster zip
+        run: |
+          python3 package.py --game-bin known-good/ge007.aarch64 --out dist
+          unzip -t dist/ge007.zip
+          unzip -l dist/ge007.zip | tee dist/ge007.zip.list
+          unzip -p dist/ge007.zip port.json | python3 -m json.tool >/dev/null
+          unzip -Z1 dist/ge007.zip | grep -qx 'port.json'
+          unzip -Z1 dist/ge007.zip | grep -qx 'gameinfo.xml'
+          unzip -Z1 dist/ge007.zip | grep -qx 'README.md'
+          unzip -Z1 dist/ge007.zip | grep -qx 'GoldenEye 007.sh'
+          unzip -Z1 dist/ge007.zip | grep -qx 'ge007/ge007.aarch64'
+          ! unzip -Z1 dist/ge007.zip | grep -Eq '\.(z64|n64|v64)$|(^|/)(pcmodels|pccg)\.bin$'
+          sha256sum dist/ge007.zip | tee dist/ge007.zip.sha256
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: ge007-r36s-portmaster-alpha
+          path: |
+            dist/ge007.zip
+            dist/ge007.zip.sha256
+            dist/ge007.zip.list
+          if-no-files-found: error
