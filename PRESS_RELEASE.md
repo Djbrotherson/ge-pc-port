@@ -68,6 +68,14 @@ https://github.com/bitflipunix-re/ge-pc-port/issues/7
 **Real-device tester thread:**  
 https://www.reddit.com/r/R36S/comments/1wos5ea/goldeneye_007_n64_arm64_call_for_alpha_testers/
 
+## Media contact
+
+**Project:** ARM-GE / bitflipunix  
+**Email:** bitflipunix@gmail.com  
+**Source:** https://github.com/bitflipunix-re/ge-pc-port
+
+Support options for the project may be added in the future.
+
 ### Legal
 
 No GoldenEye ROM or generated ROM-derived sidecar binaries are distributed by the project. Users provide their own compatible legally obtained NTSC-U ROM.
