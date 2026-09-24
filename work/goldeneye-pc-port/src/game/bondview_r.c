@@ -206,7 +206,7 @@ void bondviewLoadSetupIntroSection(void)
                         startpadcount++;
                     }
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroSpawn));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroSpawn));
                 }
                 break;
 
@@ -243,7 +243,7 @@ void bondviewLoadSetupIntroSection(void)
                         }
                     }
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroItem));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroItem));
                 }
                 break;
 
@@ -254,7 +254,7 @@ void bondviewLoadSetupIntroSection(void)
                         give_cur_player_ammo(((struct SetupIntroAmmo*)intro_record)->ammo_type, ((struct SetupIntroAmmo*)intro_record)->ammo_amount);
                     }
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroAmmo));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroAmmo));
                 }
                 break;
 
@@ -273,7 +273,7 @@ void bondviewLoadSetupIntroSection(void)
                     intro_swirl->unk14.fval = intro_swirl->unk14.ival / M_U16_MAX_VALUE_F;
                     intro_swirl->unk18.fval = intro_swirl->unk18.ival / M_U16_MAX_VALUE_F;
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroSwirl));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroSwirl));
                 }
                 break;
 
@@ -281,7 +281,7 @@ void bondviewLoadSetupIntroSection(void)
                 {
                     g_IntroAnimationIndex = ((struct SetupIntroAnim*)intro_record)->intro_anim;
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroAnim));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroAnim));
                 }
                 break;
 
@@ -289,7 +289,7 @@ void bondviewLoadSetupIntroSection(void)
                 {
                     g_CurrentPlayer->bondtype = ((struct SetupIntroCuff*)intro_record)->bondtype;
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroCuff));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroCuff));
                 }
                 break;
 
@@ -328,7 +328,7 @@ void bondviewLoadSetupIntroSection(void)
                         }
                     }
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroCamera));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroCamera));
                 }
                 break;
 
@@ -350,7 +350,7 @@ void bondviewLoadSetupIntroSection(void)
 
                     if (watch_time_0);
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroWatch));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroWatch));
                 }
                 break;
 
@@ -359,7 +359,7 @@ void bondviewLoadSetupIntroSection(void)
                     intro_credits = (struct SetupIntroCredits*)intro_record;
 
                     // hack: bad address math
-                    credits = (CreditsEntry*)((s32)g_ptrStageSetupFile + (s32)intro_credits->unk04);
+                    credits = (CreditsEntry *)((u8 *)g_ptrStageSetupFile + (u32)intro_credits->unk04);
                     credits_pointer = credits;
 
                     // what is the point of this?
@@ -368,7 +368,7 @@ void bondviewLoadSetupIntroSection(void)
                         credits++;
                     }
 
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroCredits));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroCredits));
                 }
                 break;
 
@@ -377,7 +377,7 @@ void bondviewLoadSetupIntroSection(void)
                     #ifdef DEBUG
                         ossyncprintf("unknown bondstart type %d!\n",intro_record->type);
                     #endif
-                    intro_record = (struct SetupIntroEmpty*)((s32)intro_record + sizeof(struct SetupIntroEmpty));
+                    intro_record = (struct SetupIntroEmpty *)((u8 *)intro_record + sizeof(struct SetupIntroEmpty));
                 }
                 break;
 
