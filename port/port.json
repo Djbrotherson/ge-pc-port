@@ -2,26 +2,33 @@
   "version": 4,
   "name": "ge007.zip",
   "items": [
-    "ge007/",
-    "GoldenEye 007.sh"
+    "GoldenEye 007.sh",
+    "ge007/"
   ],
-  "items_opt": null,
+  "items_opt": [],
   "attr": {
     "title": "GoldenEye 007",
-    "porter": ["Tomobobo710"],
-    "desc": "ARM64 GLES build of the GoldenEye 007 PC port. First launch builds the required data files from your ROM, then starts the game. Credits: GoldenEye 007 decompilation by the n64decomp/007 contributors (https://github.com/n64decomp/007); PC port by jkdansereau and contributors (https://github.com/jkdansereau/goldeneye-pc-port); ARM64/R36S port by Tomobobo710.",
-    "desc_md": "ARM64 GLES build of the GoldenEye 007 PC port. First launch builds the required data files from your ROM, then starts the game.\n\n**Credits**\n- GoldenEye 007 decompilation: [n64decomp/007](https://github.com/n64decomp/007) contributors\n- PC port: [jkdansereau/goldeneye-pc-port](https://github.com/jkdansereau/goldeneye-pc-port) and contributors\n- ARM64 / R36S port: Tomobobo710",
-    "inst": "Put your own US NTSC GoldenEye 007 ROM at ge007/data/ge007.ntsc-final.z64, then launch. No ROM data is included.",
+    "porter": [
+      "bitflipunix",
+      "Tomobobo710"
+    ],
+    "desc": "Experimental AArch64/GLES GoldenEye 007 source port for R36S. Supply your own verified US NTSC ROM; first launch generates the required ROM-derived sidecars locally.",
+    "desc_md": null,
+    "inst": "Install ge007.zip with PortMaster. Put your own US NTSC GoldenEye 007 ROM at ge007/data/ge007.ntsc-final.z64, then launch once to generate sidecars. No ROM or extracted game data is included.",
     "inst_md": null,
-    "genres": ["action"],
-    "image": {},
+    "genres": [
+      "action"
+    ],
+    "image": null,
     "rtr": false,
     "exp": true,
     "runtime": [],
     "store": [],
-    "availability": "testing",
+    "availability": "full",
     "reqs": [],
-    "arch": ["aarch64"],
+    "arch": [
+      "aarch64"
+    ],
     "min_glibc": ""
   }
 }
