@@ -1299,7 +1299,9 @@ void bondviewCalcIntroSwirlCamera(s32 index, f32 time, coord3d *pos, coord3d *lo
 
         base = swirl;
         scale = base->scale.fval;
+#ifndef PORT
         base = (void *)(index << 5);
+#endif
 
         coord3dCubicSplineInterp((coord3d *) &pointbuf[0], (coord3d *) &pointbuf[3], (coord3d *) &pointbuf[6], (coord3d *) &pointbuf[9], frac, scale, pos);
 
@@ -1311,7 +1313,11 @@ void bondviewCalcIntroSwirlCamera(s32 index, f32 time, coord3d *pos, coord3d *lo
         lookat->y = g_CurrentPlayer->field_3C8;
         lookat->z = g_CurrentPlayer->field_3CC;
 
+#ifdef PORT
+        swirl = g_IntroSwirl + index;
+#else
         swirl = (void *)(((u32) g_IntroSwirl) + (u32) base);
+#endif
 
         if (!(swirl->bitflags & 4))
         {
@@ -10015,7 +10021,11 @@ void hudmsgsSetOff(s32 flags)
 
 
 #ifdef VERSION_US
+#ifdef PORT
+void setFontTables(struct fontchar *arg0, struct font *arg1)
+#else
 void setFontTables(s32 arg0, s32 arg1)
+#endif
 {
     copy_2ndfonttable = arg0;
     copy_1stfonttable = arg1;

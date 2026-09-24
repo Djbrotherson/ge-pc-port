@@ -2706,9 +2706,15 @@ extern s32 status_bar_text_buffer_index;
 //D:8003689C
 extern s32 display_statusbar;
 //D:800368A0
+#ifdef PORT
+extern struct font *copy_1stfonttable;
+//D:800368A4
+extern struct fontchar *copy_2ndfonttable;
+#else
 extern s32 copy_1stfonttable;
 //D:800368A4
 extern s32 copy_2ndfonttable;
+#endif
 //D:800368A8
 extern s32 upper_text_buffer_index;
 //D:800368AC
@@ -2825,7 +2831,11 @@ void jp_hudmsgBottomShow(char *string);
 // VERSION_US
 #define HUDMESSAGEBOTTOM hudmsgBottomShow
 void hudmsgBottomShow(char *string);
+#ifdef PORT
+void setFontTables(struct fontchar *arg0, struct font *arg1);
+#else
 void setFontTables(s32 arg0, s32 arg1);
+#endif
 #endif
 
 Gfx * bondviewRenderDebugBondView(Gfx *arg0);
