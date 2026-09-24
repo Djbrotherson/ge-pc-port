@@ -48,6 +48,10 @@ endif()
 # (port/src/romassets_<region>.s, see scripts/gen_romassets.py).
 project(ge007 C CXX ASM)
 
+# ARM-GE Port Control telemetry profile. This enables the reusable HUD and
+# runtime instrumentation only; stage selection remains untouched on tom.
+add_compile_definitions(DAM_ONLY_LAB=1)
+
 include(TargetArch)
 include(FindPkgConfig)
 
